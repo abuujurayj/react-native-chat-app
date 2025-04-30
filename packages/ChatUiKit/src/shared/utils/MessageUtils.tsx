@@ -19,12 +19,15 @@ import { deepMerge } from "../helper/helperFunctions";
 import { CometChatDate } from "../views/CometChatDate";
 import { CometChatAvatar, CometChatReceipt } from "../views";
 
-type MessageViewType = {
+type MessageViewParamsType = {
   message: CometChat.BaseMessage;
   templates?: CometChatMessageTemplate[];
   alignment?: MessageBubbleAlignmentType;
   theme: CometChatTheme;
   isThreaded?: boolean;
+  datePattern?: (message: CometChat.BaseMessage) => string;
+  receiptsVisibility?: boolean;
+  avatarVisibility?: boolean;
 };
 
 const getOverridenBubbleStyles = (theme: CometChatTheme) => {
@@ -130,9 +133,13 @@ const MessageContentView = (props: {
 };
 
 const getLeadingView = useCallback(
-  (item: CometChat.BaseMessage, theme: CometChatTheme): JSX.Element | undefined => {
+  (
+    item: CometChat.BaseMessage,
+    theme: CometChatTheme,
+    avatarVisibility = true
+  ): JSX.Element | undefined => {
+    if (!avatarVisibility) return undefined;
     let _style = getBubbleStyle(item, theme);
-
     if (
       item.getSender()?.getUid() !== CometChatUIKit.loggedInUser?.getUid() &&
       item.getCategory() != MessageCategoryConstants.action
@@ -215,7 +222,9 @@ const getStatusInfoView = (
     | CometChat.InteractiveMessage
     | CometChat.BaseMessage
     | any,
-  theme: CometChatTheme
+  theme: CometChatTheme,
+  receiptsVisibility: boolean = true,
+  datePattern?: (message: CometChat.BaseMessage) => string
 ): JSX.Element | undefined => {
   const loggedInUser = CometChatUIKit.loggedInUser!;
 
@@ -243,13 +252,14 @@ const getStatusInfoView = (
     >
       <CometChatDate
         timeStamp={
-          (item.getDeletedAt() || item.getReadAt() || item.getDeliveredAt() || item.getSentAt()) *
+          (item.getDeletedAt() || item.getSentAt()) *
             1000 || getSentAtTimestamp(item)
         }
         pattern={"timeFormat"}
+        customDateString={datePattern && datePattern(item)}
         style={_style.dateStyles}
       />
-      {isOutgoingMessage ? (
+      {receiptsVisibility && isOutgoingMessage ? (
         /* ToDoM Use Icon From Incoming/Outgoing bubble styles */
         <View style={{ marginLeft: 2, alignItems: "center", justifyContent: "center" }}>
           <CometChatReceipt
@@ -269,8 +279,16 @@ const getStatusInfoView = (
 };
 
 export const MessageUtils = {
-  getMessageView: (params: MessageViewType) => {
-    const { message, templates, alignment, theme } = params;
+  getMessageView: (params: MessageViewParamsType) => {
+    const {
+      message,
+      templates,
+      alignment,
+      theme,
+      datePattern,
+      receiptsVisibility,
+      avatarVisibility,
+    } = params;
     const templatesMap = getTemplatesMap(templates!);
     let hasTemplate = templatesMap.get(`${message.getCategory()}_${message.getType()}`);
     if (templates!.length > 0) {
@@ -292,7 +310,9 @@ export const MessageUtils = {
           MessageContentView({ message, alignment: alignment!, theme: theme! })
         }
         LeadingView={
-          message.getReceiverType() === "group" ? getLeadingView(message, theme) : undefined
+          message.getReceiverType() === "group"
+            ? getLeadingView(message, theme, avatarVisibility)
+            : undefined
         }
         HeaderView={
           message.getReceiverType() === "group" ? getHeaderView(message, theme) : undefined
@@ -300,7 +320,7 @@ export const MessageUtils = {
         BottomView={hasTemplate?.BottomView && hasTemplate?.BottomView(message, alignment!)}
         StatusInfoView={
           (hasTemplate?.StatusInfoView && hasTemplate!.StatusInfoView(message, alignment!)) ||
-          getStatusInfoView(message, theme)
+          getStatusInfoView(message, theme, receiptsVisibility, datePattern)
         }
         style={style}
       />
@@ -311,23 +331,24 @@ export const MessageUtils = {
 export const getMessagePreviewInternal = (
   iconName: IconName,
   text: string,
-  {iconColor, theme} : {iconColor?: ColorValue, theme?: CometChatTheme}
+  { iconColor, theme }: { iconColor?: ColorValue; theme?: CometChatTheme }
 ) => {
-
   return (
     <>
-      {iconName && <Icon
-        name={iconName}
-        size={theme.spacing.spacing.s4}
-        color={iconColor || theme.color.textSecondary}
-        containerStyle={{ marginRight: theme.spacing.spacing.s0_5 }}
-      />}
+      {iconName && (
+        <Icon
+          name={iconName}
+          size={theme?.spacing?.spacing?.s4}
+          color={iconColor || theme?.color?.textSecondary}
+          containerStyle={{ marginRight: theme?.spacing?.spacing?.s0_5 }}
+        />
+      )}
       <Text
         numberOfLines={1}
         ellipsizeMode='tail'
         style={{
-          color: theme.color.textSecondary,
-          ...theme.typography.body.regular,
+          color: theme?.color?.textSecondary,
+          ...theme?.typography?.body?.regular,
           flexShrink: 2,
         }}
       >

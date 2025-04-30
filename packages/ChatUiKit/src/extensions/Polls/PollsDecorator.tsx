@@ -11,7 +11,11 @@ import { PollsConfigurationInterface } from "./PollsConfigurations";
 import React from "react";
 import { View } from "react-native";
 import { CometChatUIKit } from "../../shared";
-import { AdditionalParams, MessageBubbleAlignmentType } from "../../shared/base/Types";
+import {
+  AdditionalAttachmentOptionsParams,
+  AdditionalParams,
+  MessageBubbleAlignmentType,
+} from "../../shared/base/Types";
 import { Icon } from "../../shared/icons/Icon";
 import { getMessagePreviewInternal } from "../../shared/utils/MessageUtils";
 import { CometChatTheme } from "../../theme/type";
@@ -68,16 +72,24 @@ export class PollsExtensionDecorator extends DataSourceDecorator {
    * @returns {string | JSX.Element}
    * @description Returns the preview text or element for the last conversation message.
    */
-  getLastConversationMessage(conversation: CometChat.Conversation, theme?: CometChatTheme): string | JSX.Element {
-    if (conversation["lastMessage"] == undefined) {
+  getLastConversationMessage(
+    conversation: CometChat.Conversation,
+    theme?: CometChatTheme
+  ): string | JSX.Element {
+    if (conversation.getLastMessage() == undefined) {
       return "";
     }
 
     if (
-      conversation["lastMessage"]["type"] == ExtensionTypeConstants.extensionPoll &&
-      conversation["lastMessage"]["category"] == MessageCategoryConstants.custom
+      (conversation.getLastMessage() as CometChat.BaseMessage).getType() ==
+        ExtensionTypeConstants.extensionPoll &&
+      (conversation.getLastMessage() as CometChat.BaseMessage).getCategory() ==
+        MessageCategoryConstants.custom &&
+      (conversation.getLastMessage() as CometChat.BaseMessage).getDeletedAt() === undefined
     ) {
-      return getMessagePreviewInternal("bar-chart-fill", localize("CUSTOM_MESSAGE_POLL"), { theme });
+      return getMessagePreviewInternal("bar-chart-fill", localize("CUSTOM_MESSAGE_POLL"), {
+        theme,
+      });
     } else {
       return super.getLastConversationMessage(conversation, theme);
     }
@@ -123,14 +135,17 @@ export class PollsExtensionDecorator extends DataSourceDecorator {
     theme: CometChatTheme,
     user?: any,
     group?: any,
-    composerId?: any
+    composerId?: any,
+    additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
   ): CometChatMessageComposerAction[] {
     let attachmentOptions: CometChatMessageComposerAction[] = super.getAttachmentOptions(
       theme,
       user,
       group,
-      composerId
+      composerId,
+      additionalAttachmentOptionsParams
     );
+    if (additionalAttachmentOptionsParams?.hidePollsAttachmentOption) return attachmentOptions;
     if (
       composerId == undefined ||
       (composerId as Map<any, any>).get("parentMessageId") == undefined
@@ -182,7 +197,13 @@ export class PollsExtensionDecorator extends DataSourceDecorator {
           }
         },
         options: (loggedInUser, messageObject, theme, group) =>
-          ChatConfigurator.dataSource.getMessageOptions(loggedInUser, messageObject, theme, group),
+          ChatConfigurator.dataSource.getMessageOptions(
+            loggedInUser,
+            messageObject,
+            theme,
+            group,
+            additionalParams
+          ),
         BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
           return ChatConfigurator.dataSource.getBottomView(message, alignment);
         },

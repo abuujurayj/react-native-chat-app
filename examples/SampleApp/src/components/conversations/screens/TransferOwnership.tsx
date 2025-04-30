@@ -82,6 +82,7 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
       {group && (
         <CometChatGroupMembers
           group={group}
+          excludeOwner={true}
           onBack={handleBack}
           hideHeader={true}
           selectionMode="single"

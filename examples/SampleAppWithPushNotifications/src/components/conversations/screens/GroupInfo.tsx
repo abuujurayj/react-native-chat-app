@@ -10,6 +10,7 @@ import {
   localize,
   useTheme,
   CometChatConversationEvents,
+  CometChatUIEvents,
 } from '@cometchat/chat-uikit-react-native';
 import {Icon} from '@cometchat/chat-uikit-react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
@@ -63,7 +64,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
         setUserScope(
           updatedGroup?.getOwner() === CometChatUIKit.loggedInUser?.getUid()
             ? CometChatUiKitConstants.GroupMemberScope.owner
-            : updatedGroup?.getScope() ?? userScope,
+            : (updatedGroup?.getScope() ?? userScope),
         );
       }
     };
@@ -127,10 +128,16 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
 
   // 2) "Owner => Transfer Ownership" confirm
   const handleOwnerLeaveConfirm = () => {
+    if (!data.groupDetails) return;
+
     setIsOwnerLeaveModalOpen(false);
     navigation.navigate('TransferOwnershipSection', {
       group: data.groupDetails,
     });
+    CometChatUIEventHandler.emitGroupEvent(
+      CometChatUIEvents.ccGroupLeft,
+      { leftGroup: CommonUtils.clone(data.groupDetails) },
+    );
   };
 
   // 3) "Delete and Exit" confirm
@@ -353,8 +360,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
 
       {/* Actions */}
       <View style={styles.actionContainer}>
-
-      <TouchableOpacity
+        <TouchableOpacity
           style={styles.actionButtons}
           onPress={() => setDeleteModalOpen(true)}>
           <Icon
@@ -405,7 +411,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
         ].includes(userScope) && (
           <TouchableOpacity
             style={styles.actionButtons}
-            onPress={() => setDeleteModalOpen(true)}>
+            onPress={() => setIsDeleteExitModalOpen(true)}>
             <Icon
               icon={<Delete color={theme.color.error} height={24} width={24} />}
             />

@@ -23,6 +23,7 @@ import { ExtensionTypeConstants } from "../ExtensionConstants";
 import { CometChatStickerKeyboard } from "./CometChatStickerKeyboard";
 import { CometChatStickerBubble } from "./StickersBubble";
 import { StickerConfigurationInterface } from "./StickerConfiguration";
+import { AdditionalAuxiliaryOptionsParams } from "../../shared/base/Types";
 
 /**
  * StickerButton Component
@@ -93,8 +94,8 @@ const StickerButton = ({ user, group, id, stickerIconStyle, stickerIcon }: any) 
     let receiverType = user
       ? CometChat.RECEIVER_TYPE.USER
       : group
-      ? CometChat.RECEIVER_TYPE.GROUP
-      : undefined;
+        ? CometChat.RECEIVER_TYPE.GROUP
+        : undefined;
 
     if (!receiverType) {
       console.error("Receiver type is undefined.");
@@ -189,7 +190,7 @@ const StickerButton = ({ user, group, id, stickerIconStyle, stickerIcon }: any) 
         //color={!isPanelOpen ? theme.color.iconSecondary : theme.color.primary}
         color={
           !isPanelOpen
-            ? stickerIconStyle.inactive.tintColor ?? theme.color.iconSecondary
+            ? (stickerIconStyle.inactive.tintColor ?? theme.color.iconSecondary)
             : theme.color.primary
         }
       />
@@ -239,7 +240,13 @@ export class StickersExtensionDecorator extends DataSourceDecorator {
           }
         },
         options: (loggedInuser, message, theme, group) => {
-          return ChatConfigurator.dataSource.getMessageOptions(loggedInuser, message, theme, group);
+          return ChatConfigurator.dataSource.getMessageOptions(
+            loggedInuser,
+            message,
+            theme,
+            group,
+            additionalParams
+          );
         },
         BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
           return ChatConfigurator.dataSource.getBottomView(message, alignment);
@@ -284,19 +291,26 @@ export class StickersExtensionDecorator extends DataSourceDecorator {
     user: CometChat.User,
     group: CometChat.Group,
     id?: Map<string, any>,
-    additionalParams?: AdditionalParams
+    additionalAuxiliaryParams?: AdditionalAuxiliaryOptionsParams
   ) {
-    return [
-      ...super.getAuxiliaryOptions(user, group, id ?? new Map<string, any>(), additionalParams),
+    const auxiliaryOptions = super.getAuxiliaryOptions(
+      user,
+      group,
+      id ?? new Map<string, any>(),
+      additionalAuxiliaryParams
+    );
+    if (additionalAuxiliaryParams?.hideStickersButton) return auxiliaryOptions;
+    auxiliaryOptions.push(
       <StickerButton
         key='sticker-button'
         user={user}
         group={group}
         id={id}
-        stickerIcon={additionalParams?.stickerIcon}
-        stickerIconStyle={additionalParams?.stickerIconStyle}
-      />,
-    ];
+        stickerIcon={additionalAuxiliaryParams?.stickerIcon}
+        stickerIconStyle={additionalAuxiliaryParams?.stickerIconStyle}
+      />
+    );
+    return auxiliaryOptions;
   }
 
   /**
@@ -329,16 +343,20 @@ export class StickersExtensionDecorator extends DataSourceDecorator {
   /**
    * Customizes the last conversation message preview for sticker messages.
    */
-  getLastConversationMessage(conversation: CometChat.Conversation,
+  getLastConversationMessage(
+    conversation: CometChat.Conversation,
     theme?: CometChatTheme
   ): string | JSX.Element {
-    const message = conversation["lastMessage"];
+    const message = conversation.getLastMessage() as CometChat.BaseMessage;
     if (
       message != null &&
-      message.type === ExtensionTypeConstants.sticker &&
-      message.category === MessageCategoryConstants.custom
+      message.getType() === ExtensionTypeConstants.sticker &&
+      message.getCategory() === MessageCategoryConstants.custom &&
+      message.getDeletedAt() === undefined
     ) {
-      return getMessagePreviewInternal("sticker-fill", localize("CUSTOM_MESSAGE_STICKER"), {theme});
+      return getMessagePreviewInternal("sticker-fill", localize("CUSTOM_MESSAGE_STICKER"), {
+        theme,
+      });
     } else {
       return super.getLastConversationMessage(conversation, theme);
     }

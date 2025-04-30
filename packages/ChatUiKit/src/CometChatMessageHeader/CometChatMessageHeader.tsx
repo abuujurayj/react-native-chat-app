@@ -74,7 +74,7 @@ export type CometChatMessageHeaderInterface = {
   /**
    * Hide the back button.
    */
-  hideBackButton?: boolean;
+  showBackButton?: boolean;
   /**
    * Callback when back button is pressed.
    */
@@ -87,6 +87,18 @@ export type CometChatMessageHeaderInterface = {
    * Error callback.
    */
   onError?: (error: CometChat.CometChatException) => void;
+  /**
+   * toggle visibilty of voice call button.
+   */
+  hideVoiceCallButton?: boolean;
+  /**
+   * toggle visibilty of video call button.
+   */
+  hideVideoCallButton?: boolean;
+  /**
+   * toggle visibilty of user status.
+   */
+  usersStatusVisibility?: boolean;
 };
 
 interface Translations {
@@ -108,16 +120,20 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
     AuxiliaryButtonView,
     user,
     group,
-    hideBackButton = true,
+    showBackButton = false,
     onBack,
     style = {},
     ItemView,
     LeadingView,
     TrailingView,
     onError,
+    hideVoiceCallButton = false,
+    hideVideoCallButton = false,
+    usersStatusVisibility = true,
   } = props;
 
   const [groupObj, setGroupObj] = useState(group);
+  const [userObj, setUserObj] = useState<CometChat.User | undefined>(user);
   const [userStatus, setUserStatus] = useState(user && user.getStatus ? user.getStatus() : "");
   const [typingText, setTypingText] = useState("");
   const receiverTypeRef = useRef(
@@ -129,8 +145,8 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   }, [group]);
 
   useEffect(() => {
-    setUserStatus(user ? user.getStatus() : "");
-  }, [user]);
+    setUserStatus(userObj ? userObj.getStatus() : "");
+  }, [userObj]);
 
   const messageHeaderStyles = useMemo(() => {
     return deepMerge(theme.messageHeaderStyles, style);
@@ -222,9 +238,9 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
           <CometChatAvatar
             style={messageHeaderStyles.avatarStyle}
             image={
-              user
-                ? user.getAvatar()
-                  ? { uri: user.getAvatar() }
+              userObj
+                ? userObj.getAvatar()
+                  ? { uri: userObj.getAvatar() }
                   : undefined
                 : groupObj
                 ? groupObj.getIcon()
@@ -232,12 +248,15 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
                   : undefined
                 : undefined
             }
-            name={(user?.getName() ?? groupObj?.getName())!}
+            name={(userObj?.getName() ?? groupObj?.getName())!}
           />
           {groupObj ? (
             <CometChatStatusIndicator type={statusIndicatorType} />
           ) : (
-            !user?.getBlockedByMe() && <CometChatStatusIndicator type={statusIndicatorType} />
+            usersStatusVisibility &&
+            !(userObj?.getBlockedByMe() || userObj?.getHasBlockedMe()) && (
+              <CometChatStatusIndicator type={statusIndicatorType} />
+            )
           )}
         </View>
       );
@@ -245,37 +264,47 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
       errorHandler(e);
       return <></>;
     }
-  }, [user, groupObj, statusIndicatorType, messageHeaderStyles]);
+  }, [userObj, groupObj, statusIndicatorType, messageHeaderStyles]);
 
   /**
    * Renders subtitle view content.
    */
-  const SubtitleViewFnc = () => {
+  const SubtitleViewFnc = useCallback(() => {
     try {
       if (typingText !== "")
         return <Text style={[messageHeaderStyles.typingIndicatorTextStyle]}>{typingText}</Text>;
 
-      return (
-        <Text style={[messageHeaderStyles.subtitleTextStyle]}>
-          {receiverTypeRef.current === CometChat.RECEIVER_TYPE.GROUP &&
-          (groupObj?.["membersCount"] || groupObj?.["membersCount"] === 0)
-            ? `${groupObj["membersCount"]} ${localize(
-                groupObj["membersCount"] === 1 ? "MEMBER" : "MEMBERS"
-              )}`
-            : receiverTypeRef.current === CometChat.RECEIVER_TYPE.USER &&
-              user &&
-              !user.getBlockedByMe()
-            ? userStatus === UserStatusConstants.online
-              ? localize("ONLINE")
-              : getLastSeenTime(user.getLastActiveAt(), translations)
-            : ""}
-        </Text>
-      );
+      let subtitle = "";
+
+      if (groupObj) {
+        const count = groupObj?.["membersCount"];
+        if (count || count === 0) {
+          subtitle = `${count} ${localize(count === 1 ? "MEMBER" : "MEMBERS")}`;
+        }
+      }
+
+      if (
+        userObj &&
+        !(userObj.getBlockedByMe() || userObj.getHasBlockedMe()) &&
+        usersStatusVisibility &&
+        userStatus
+      ) {
+        subtitle =
+          userStatus === UserStatusConstants.online
+            ? localize("ONLINE")
+            : getLastSeenTime(userObj.getLastActiveAt(), translations);
+      }
+
+      if (subtitle) {
+        return <Text style={[messageHeaderStyles.subtitleTextStyle]}>{subtitle}</Text>;
+      }
+
+      return <></>;
     } catch (error) {
       errorHandler(error);
       return <></>;
     }
-  };
+  }, [userObj, groupObj, messageHeaderStyles, usersStatusVisibility, userStatus]);
 
   /**
    * Error handler to call onError with a proper CometChatException.
@@ -296,7 +325,7 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   };
 
   const handleUserStatus = (userDetails: CometChat.User) => {
-    if (userDetails.getUid() === user?.getUid()) setUserStatus(userDetails.getStatus());
+    if (userDetails.getUid() === userObj?.getUid()) setUserStatus(userDetails.getStatus());
   };
 
   const msgTypingIndicator = (typist: CometChat.TypingIndicator, status: string) => {
@@ -311,7 +340,8 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
     } else if (
       receiverTypeRef.current === CometChat.RECEIVER_TYPE.USER &&
       receiverTypeRef.current === typist.getReceiverType() &&
-      user?.getUid() === typist.getSender().getUid()
+      userObj?.getUid() === typist.getSender().getUid()
+      && !(userObj.getBlockedByMe() || userObj.getHasBlockedMe())
     ) {
       setTypingText(status === "typing" ? localize("TYPING") : "");
     }
@@ -325,9 +355,14 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
 
   useEffect(() => {
     try {
-      if (user) {
+      if (userObj) {
         listners.addListener.userListener({ userStatusListenerId, handleUserStatus });
         receiverTypeRef.current = CometChat.RECEIVER_TYPE.USER;
+
+        CometChatUIEventHandler.addUserListener(userStatusListenerId, {
+          ccUserBlocked: (item: { user: CometChat.User }) => handleccUserBlocked(item),
+          ccUserUnBlocked: (item: { user: CometChat.User }) => handleccUserUnBlocked(item),
+        });
       }
       if (groupObj) {
         listners.addListener.groupListener({ groupListenerId, handleGroupListener });
@@ -340,13 +375,30 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
     return () => {
       try {
         if (groupObj) listners.removeListner.removeGroupListener({ groupListenerId });
-        if (user) listners.removeListner.removeUserListener({ userStatusListenerId });
+        if (userObj) {
+          listners.removeListner.removeUserListener({ userStatusListenerId });
+          CometChatUIEventHandler.removeUserListener(userStatusListenerId);
+        }
         listners.removeListner.removeMessageListener({ msgTypingListenerId });
       } catch (cleanupError) {
         errorHandler(cleanupError);
       }
     };
-  }, []);
+  }, [userObj]);
+
+  const handleccUserBlocked = ({ user: blockedUser }: { user: CometChat.User }) => {
+    if (userObj && userObj.getUid() === blockedUser.getUid()) {
+      const tempUser = CommonUtils.clone(userObj);
+      tempUser.setBlockedByMe(true);
+      setUserObj(tempUser);
+    }
+  };
+
+  const handleccUserUnBlocked = ({ user: unBlockedUser }: { user: CometChat.User }) => {
+    if (userObj && userObj.getUid() === unBlockedUser.getUid()) {
+      setUserObj(unBlockedUser);
+    }
+  };
 
   const handleGroupMemberKicked = ({ kickedFrom }: { kickedFrom: CometChat.Group }) => {
     setGroupObj(CommonUtils.clone(kickedFrom));
@@ -384,33 +436,35 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   return (
     <>
       {ItemView ? (
-        ItemView({ user, group })
+        ItemView({ user: userObj, group })
       ) : (
         <View style={[messageHeaderStyles.containerStyle]}>
-          {hideBackButton !== true && <BackButton />}
-          {LeadingView ? LeadingView({ user, group }) : <AvatarWithStatusView />}
-          <View style={{ flex: 1 }}>
+          {showBackButton === true && <BackButton />}
+          {LeadingView ? LeadingView({ user: userObj, group }) : <AvatarWithStatusView />}
+          <View style={{ flex: 1, justifyContent: "center" }}>
             {TitleView ? (
-              TitleView({ user, group })
+              TitleView({ user: userObj, group })
             ) : (
               <Text
                 numberOfLines={1}
                 ellipsizeMode='tail'
                 style={[messageHeaderStyles.titleTextStyle]}
               >
-                {user ? user.getName() : groupObj ? groupObj.getName() : ""}
+                {userObj ? userObj.getName() : groupObj ? groupObj.getName() : ""}
               </Text>
             )}
-            {SubtitleView ? SubtitleView({ user, group }) : <SubtitleViewFnc />}
+            {SubtitleView ? SubtitleView({ user: userObj, group }) : <SubtitleViewFnc />}
           </View>
           <View style={{ flex: 1, flexDirection: "row" }}>
             <View style={{ marginLeft: "auto", flexDirection: "row" }}>
               {AuxiliaryButtonView
-                ? AuxiliaryButtonView({ user, group })
-                : ChatConfigurator.getDataSource().getAuxiliaryHeaderAppbarOptions(user, group, {
+                ? AuxiliaryButtonView({ user: userObj, group })
+                : ChatConfigurator.getDataSource().getAuxiliaryHeaderAppbarOptions(userObj, group, {
                     callButtonStyle: messageHeaderStyles.callButtonStyle,
+                    hideVideoCallButton,
+                    hideVoiceCallButton,
                   })}
-              {TrailingView && <>{TrailingView({ user, group })}</>}
+              {TrailingView && <>{TrailingView({ user: userObj, group })}</>}
             </View>
           </View>
         </View>

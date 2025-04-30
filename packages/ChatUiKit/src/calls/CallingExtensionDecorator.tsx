@@ -2,7 +2,7 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React from "react";
 import { Modal, View } from "react-native";
 import { ChatConfigurator, CometChatUIEventHandler, CometChatUIKit } from "../shared";
-import { AdditionalParams } from "../shared/base/Types";
+import { AdditionalAuxiliaryHeaderOptionsParams, AdditionalParams } from "../shared/base/Types";
 import {
   CallContstatnts,
   MessageCategoryConstants,
@@ -333,7 +333,7 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
   getAuxiliaryHeaderAppbarOptions(
     user?: CometChat.User,
     group?: CometChat.Group,
-    additionalParams?: AdditionalParams
+    additionalAuxiliaryHeaderOptionsParams?: AdditionalAuxiliaryHeaderOptionsParams
   ) {
     // For one-to-one chats: if a user exists and is blocked, don't render the call buttons.
     if (user && !group && user.getBlockedByMe()) {
@@ -346,7 +346,9 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
           user={user}
           group={group}
           {...this.configuration?.callButtonsConfiguration}
-          style={additionalParams?.callButtonStyle}
+          style={additionalAuxiliaryHeaderOptionsParams?.callButtonStyle}
+          hideVoiceCallButton={additionalAuxiliaryHeaderOptionsParams?.hideVoiceCallButton}
+          hideVideoCallButton={additionalAuxiliaryHeaderOptionsParams?.hideVideoCallButton}
         />
       </View>
     );

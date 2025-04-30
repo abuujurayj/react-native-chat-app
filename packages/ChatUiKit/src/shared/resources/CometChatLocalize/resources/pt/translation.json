@@ -402,7 +402,7 @@
 	"TAP_TO_REMOVE": "Toque para remover",
 	"ADD_CONTACTS": "Adicione contatos para iniciar conversas e vê-los listados aqui.",
 	"SCOPE_CHANGE_INFO": "Você pode alterar os papéis para gerenciar permissões e responsabilidades do grupo",
-	"SOMETHING_WENT_WRONG": "Parece que algo deu errado. Por favor, tente novamente",
+	"SOMETHING_WENT_WRONG": "Parece que algo deu errado.",
 	"MENTION_UPTO": "Você pode mencionar até",
 	"TIME": "horas",
 	"TIMES": "vezes",
@@ -442,5 +442,6 @@
 	"APP_CREDENTIALS" : "Credenciais do aplicativo",
 	"REGION": "Região",
 	"WRONG_TEXT":"Parece que algo deu errado.",
-	"WRONG_TEXT_TRY_AGAIN":"Por favor, tente novamente."
+	"WRONG_TEXT_TRY_AGAIN":"Por favor, tente novamente.",
+	"BLOCKED_USER_DESC": "Não é possível enviar uma mensagem, pois o usuário está bloqueado"
 }

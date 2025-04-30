@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Platform,
@@ -11,32 +11,43 @@ import {
   createBottomTabNavigator,
   BottomTabBarButtonProps,
 } from '@react-navigation/bottom-tabs';
-import {useTheme} from '@cometchat/chat-uikit-react-native';
-import {Icon} from '@cometchat/chat-uikit-react-native';
+import {useTheme, Icon} from '@cometchat/chat-uikit-react-native';
+
 import ChatStackNavigator from './stacks/ChatStackNavigator';
 import CallsStackNavigator from './stacks/CallsStackNavigator';
-import {BottomTabParamList} from './types';
 import GroupStackNavigator from './stacks/GroupStackNavigator';
 import UserStackNavigator from './stacks/UserStackNavigator';
-import { SCREEN_CONSTANTS } from '../utils/AppConstants';
+import {BottomTabParamList} from './types';
+import {SCREEN_CONSTANTS} from '../utils/AppConstants';
 
+import ChatFill from '../assets/icons/Chatfill';
+import Chat from '../assets/icons/Chat';
+import PersonFill from '../assets/icons/PersonFill';
+import Person from '../assets/icons/Person';
+import GroupFill from '../assets/icons/GroupFill';
+import CallFill from '../assets/icons/CallFill';
+import Call from '../assets/icons/Call';
+import Group from '../assets/icons/Group';
+
+// Create the tab navigator.
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
-type IconName =
-  | 'chat-fill'
-  | 'chat'
-  | 'person-fill'
-  | 'person'
-  | 'call-fill'
-  | 'call'
-  | 'group-fill'
-  | 'group';
+// Define a type for icon components that accept color, height, and width props.
+type IconComponentType = React.ComponentType<{
+  color?: string;
+  height?: number;
+  width?: number;
+}>;
 
-const icons: Record<string, {active: IconName; inactive: IconName}> = {
-  Chats: {active: 'chat-fill', inactive: 'chat'},
-  Users: {active: 'person-fill', inactive: 'person'},
-  Calls: {active: 'call-fill', inactive: 'call'},
-  Groups: {active: 'group-fill', inactive: 'group'},
+// Update the icons mapping to use the imported image components.
+const icons: Record<
+  string,
+  {active: IconComponentType; inactive: IconComponentType}
+> = {
+  Chats: {active: ChatFill, inactive: Chat},
+  Users: {active: PersonFill, inactive: Person},
+  Calls: {active: CallFill, inactive: Call},
+  Groups: {active: GroupFill, inactive: Group},
 };
 
 const CustomTabBarButton = ({children, onPress}: BottomTabBarButtonProps) => (
@@ -59,12 +70,22 @@ const BottomTabNavigator = () => {
             const iconSet = icons[route.name];
             if (!iconSet) return null;
 
-            const iconName = focused ? iconSet.active : iconSet.inactive;
+            const IconComponent = focused ? iconSet.active : iconSet.inactive;
             const iconColor = focused
               ? theme.color.primary
               : theme.color.iconSecondary;
 
-            return <Icon name={iconName} color={iconColor} />;
+            return (
+              <Icon
+                icon={
+                  <IconComponent
+                    color={iconColor as string}
+                    height={24}
+                    width={24}
+                  />
+                }
+              />
+            );
           },
           tabBarShowLabel: true,
           tabBarLabel: ({focused}) =>
@@ -76,16 +97,9 @@ const BottomTabNavigator = () => {
               </View>
             ) : null,
           tabBarButton: props => <CustomTabBarButton {...props} />,
-          tabBarBackground() {
-            return (
-              <View
-                style={{
-                  backgroundColor: theme.color.background1,
-                  flex: 1,
-                }}
-              />
-            );
-          },
+          tabBarBackground: () => (
+            <View style={{backgroundColor: theme.color.background1, flex: 1}} />
+          ),
         })}>
         <Tab.Screen
           name={SCREEN_CONSTANTS.CHATS}

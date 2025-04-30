@@ -6,32 +6,38 @@ import { ValueOf } from "../../helper/types";
 import { CometChatTheme } from "../../../theme/type";
 
 /**
- * CometChatDateSeparator is a component useful for displaying date/time
- * in between messages.
- *
- * @Version 1.0.0
- * @author CometChat
- *
+ * Props for the CometChatDateSeparator component.
  */
-
 export interface CometChatDateSeparatorInterface {
+  /**
+   * Unix epoch time used to display the date.
+   */
   timeStamp: number;
   /**
-   * Pattern for Date.
-   * one of
-   * 1. timeFormat: "hh:mm a".
-   * 2. dayDateFormat: Today, Yesterday, or "d MMM, yyyy".
-   * 3. dayWeekDayDateTimeFormat: Today(time), weekday, Yesterday, or "dd/mm/yyyy".
+   * Pattern for formatting the date.
+   * One of the following values:
+   * - timeFormat: "hh:mm a"
+   * - dayDateFormat: Today, Yesterday, or "d MMM, yyyy"
+   * - dayWeekDayDateTimeFormat: Today (time), weekday, Yesterday, or "dd/mm/yyyy"
    */
   pattern: ValueOf<typeof DateHelper.patterns>;
   /**
-   * A string for custom date reprasentation.
+   * Custom string to be displayed instead of the formatted date.
    */
   customDateString?: string;
-
-  style?: CometChatTheme['dateSeparatorStyles'];
+  /**
+   * Custom styles for the date separator component.
+   */
+  style?: CometChatTheme["dateSeparatorStyles"];
 }
 
+/**
+ * CometChatDateSeparator is a component that displays a formatted date/time separator
+ * between messages. If a custom date string is provided, it will be displayed instead.
+ *
+ *  - Props for the component.
+ *  The rendered date separator view.
+ */
 export const CometChatDateSeparator = (props: CometChatDateSeparatorInterface) => {
   const { timeStamp, pattern, customDateString, style } = props;
   const theme = useTheme();

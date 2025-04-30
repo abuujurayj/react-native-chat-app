@@ -1,15 +1,26 @@
+/*
+ * CometChatConversations.tsx
+ * ---------------------------------------------------------------------------
+ * CometChatConversations is a React Native component that displays a list of conversations
+ * It provides features such as message receipt visibility, custom sound notifications,
+ * date formatting, and selection modes (none, single, multiple).
+ * It also allows for custom rendering of conversation items, error handling, and loading states.
+ * The component supports user and group events, message events, and call events.
+ * It also provides options for customizing the appearance of the conversation list.
+ * ---------------------------------------------------------------------------
+ */
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React, { useCallback, useMemo } from "react";
-import { GestureResponderEvent, ListRenderItem, Text, View } from "react-native";
+import { Text, View, GestureResponderEvent } from "react-native";
 import {
   ChatConfigurator,
+  CometChatAvatar,
   CometChatConversationEvents,
-  CometChatConversationUtils,
   CometChatList,
   CometChatListActionsInterface,
-  CometChatListItem,
   CometChatMentionsFormatter,
   CometChatSoundManager,
+  CometChatStatusIndicator,
   CometChatTextFormatter,
   CometChatUIKit,
   CometChatUiKitConstants,
@@ -34,7 +45,7 @@ import { CometChatBadge } from "../shared/views/CometChatBadge";
 import { CometChatConfirmDialog } from "../shared/views/CometChatConfirmDialog";
 import { CometChatDate } from "../shared/views/CometChatDate";
 import { CometChatReceipt } from "../shared/views/CometChatReceipt";
-import { TooltipMenu } from "../shared/views/CometChatTooltipMenu";
+import { CometChatTooltipMenu } from "../shared/views/CometChatTooltipMenu";
 import { ErrorEmptyView } from "../shared/views/ErrorEmptyView/ErrorEmptyView";
 import { useTheme } from "../theme";
 import { Skeleton } from "./Skeleton";
@@ -43,6 +54,7 @@ import { deepMerge } from "../shared/helper/helperFunctions";
 import Delete from "../shared/icons/components/delete";
 import { DeepPartial } from "../shared/helper/types";
 import { CometChatTheme } from "../theme/type";
+import { MenuItemInterface } from "../shared/views/CometChatTooltipMenu/CometChatTooltipMenu";
 
 // Unique listener IDs for conversation, user, group, message and call events.
 const conversationListenerId = "chatlist_" + new Date().getTime();
@@ -60,9 +72,10 @@ export interface ConversationInterface {
    */
   hideSubmitButton?: boolean;
   /**
-   * Disable display of message receipts.
+   * Toggles message receipts (single/double‑tick) inside the subtitle. When
+   * `false`, ticks are not rendered for the last outgoing message.
    */
-  hideReceipt?: boolean;
+  receiptsVisibility?: boolean;
   /**
    * Toggle sound playback for received messages.
    */
@@ -78,7 +91,17 @@ export interface ConversationInterface {
    */
   datePattern?: (conversation: CometChat.Conversation) => string;
   /**
-   * Custom view for rendering a conversation item.
+   * Completely overrides the default rendering of each conversation item in the list.
+   *
+   * **Note:** When `ItemView` is provided, all internal rendering logic – including
+   * LeadingView, TitleView, SubtitleView, TrailingView – is ignored.
+   *
+   * **Important:** If you use `ItemView`, you are also responsible for handling:
+   *
+   * - **`onItemPress`** — trigger conversation open or custom action.
+   * - **`onItemLongPress`** — show tooltip or perform contextual action.
+   * - **Selection mode** (`selectionMode: "single" | "multiple"`) — you must manage
+   *   selection state, checkboxes, and visual feedback yourself.
    */
   ItemView?: (item: CometChat.Conversation) => JSX.Element;
   /**
@@ -96,7 +119,11 @@ export interface ConversationInterface {
   /**
    * Callback when conversation selection is complete.
    */
-  onSelection?: (item: Array<CometChat.Conversation>) => void;
+  onSelection?: (conversations: Array<CometChat.Conversation>) => void;
+  /**
+   * Callback when submit selection button is pressed.
+   */
+  onSubmit?: (conversation: Array<CometChat.Conversation>) => void;
   /**
    * Custom view for the empty state.
    */
@@ -163,18 +190,43 @@ export interface ConversationInterface {
    * Hide the header of the conversation list.
    */
   hideHeader?: boolean;
+  /**
+   * Callback triggered when the fetched list is empty.
+   */
+  onEmpty?: () => void;
+  /**
+   * Callback triggered once the users have loaded and are not empty.
+   */
+  onLoad?: (list: CometChat.Conversation[]) => void;
+  /**
+   * A function to **replace** the default menu items entirely for a users.
+   */
+  options?: (conversation: CometChat.Conversation) => MenuItemInterface[];
+  /**
+   * A function to **append** more menu items on top of the default menu items for a users.
+   */
+  addOptions?: (conversation: CometChat.Conversation) => MenuItemInterface[];
+  /**
+   * Toggle user status visibilty.
+   */
+  usersStatusVisibility?: boolean;
+  /**
+   * Toggle group type visibilty.
+   */
+  groupTypeVisibility?: boolean;
+  /**
+   * Toggle delete conversation option  visibilty.
+   */
+  deleteConversationOptionVisibility?: boolean;
 }
 
 /**
  * CometChatConversations is a container component that wraps and formats the conversation list.
  * It handles events such as new messages, typing indicators, call events, and group events.
- *
- * @param props - Properties defined by ConversationInterface.
- * @returns A JSX.Element that renders the conversation list.
  */
 export const CometChatConversations = (props: ConversationInterface) => {
   const {
-    hideReceipt = false,
+    receiptsVisibility = true,
     disableSoundForMessages = false,
     hideHeader = false,
     customSoundForMessages,
@@ -183,8 +235,9 @@ export const CometChatConversations = (props: ConversationInterface) => {
     AppBarOptions,
     hideSubmitButton = false,
     hideBackButton = true,
-    selectionMode = "single",
+    selectionMode = "none",
     onSelection,
+    onSubmit,
     EmptyView,
     ErrorView,
     LoadingView,
@@ -200,6 +253,13 @@ export const CometChatConversations = (props: ConversationInterface) => {
     onBack,
     textFormatters,
     style,
+    onEmpty,
+    onLoad,
+    options,
+    addOptions,
+    usersStatusVisibility = true,
+    groupTypeVisibility = true,
+    deleteConversationOptionVisibility = true,
   } = props;
 
   // Reference for accessing CometChatList methods
@@ -219,6 +279,8 @@ export const CometChatConversations = (props: ConversationInterface) => {
   );
   // Reference to store long press identifier.
   const longPressId = React.useRef<string | undefined>(undefined);
+  const longPressedConversation = React.useRef<CometChat.Conversation>(undefined);
+
   // Reference to store tooltip position for long press events.
   const tooltipPositon = React.useRef({
     pageX: 0,
@@ -238,22 +300,24 @@ export const CometChatConversations = (props: ConversationInterface) => {
   const ErrorStateView = useCallback(() => {
     return (
       <ErrorEmptyView
-        title='Oops!'
-        subTitle='Looks like something went wrong.'
-        tertiaryTitle='Please try again.'
+        title={localize("OOPS")}
+        subTitle={localize("SOMETHING_WENT_WRONG")}
+        tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
         Icon={
           <Icon
             name='error-state'
             size={theme.spacing.margin.m15 << 1}
             containerStyle={{
               marginBottom: theme.spacing.margin.m5,
+              ...mergedStyles?.errorStateStyle?.iconContainerStyle,
             }}
-            icon={mergedStyles.errorStateStyle.icon}
+            icon={mergedStyles?.errorStateStyle?.icon}
+            imageStyle={mergedStyles?.errorStateStyle?.iconStyle}
           />
         }
-        containerStyle={mergedStyles.errorStateStyle.containerStyle}
-        titleStyle={mergedStyles.errorStateStyle?.titleStyle}
-        subTitleStyle={mergedStyles.errorStateStyle?.subTitleStyle}
+        containerStyle={mergedStyles?.errorStateStyle?.containerStyle}
+        titleStyle={mergedStyles?.errorStateStyle?.titleStyle}
+        subTitleStyle={mergedStyles?.errorStateStyle?.subTitleStyle}
       />
     );
   }, [theme, mergedStyles]);
@@ -272,48 +336,55 @@ export const CometChatConversations = (props: ConversationInterface) => {
             size={theme.spacing.spacing.s15 << 1}
             containerStyle={{
               marginBottom: theme.spacing.spacing.s5,
+              ...mergedStyles?.emptyStateStyle?.iconContainerStyle,
             }}
-            icon={mergedStyles.emptyStateStyle.icon}
+            icon={mergedStyles?.emptyStateStyle?.icon}
+            imageStyle={mergedStyles?.emptyStateStyle?.iconStyle}
           />
         }
-        containerStyle={mergedStyles.emptyStateStyle.containerStyle}
-        titleStyle={mergedStyles.emptyStateStyle?.titleStyle}
-        subTitleStyle={mergedStyles.emptyStateStyle?.subTitleStyle}
+        containerStyle={mergedStyles?.emptyStateStyle?.containerStyle}
+        titleStyle={mergedStyles?.emptyStateStyle?.titleStyle}
+        subTitleStyle={mergedStyles?.emptyStateStyle?.subTitleStyle}
       />
     );
   }, [theme, mergedStyles]);
 
   /**
    * Handler for user online/offline events. Finds the corresponding conversation and updates it.
-   * @param args - Contains user details.
    */
-  const userEventHandler = (...args: any) => {
-    const { uid, blockedByMe, status } = args[0];
-    if (!blockedByMe) {
-      let item: CometChat.Conversation =
-        conversationListRef.current!.getListItem(`${uid}_user_${loggedInUser.current!.getUid()}`) ||
-        conversationListRef.current!.getListItem(`${loggedInUser.current!.getUid()}_user_${uid}`);
-      if (item) {
-        let updatedConversation = CommonUtils.clone(item);
-        updatedConversation.setConversationWith(args[0]);
-        conversationListRef.current!.updateList(updatedConversation);
-      }
+  const userEventHandler = (...args: any[]) => {
+    const { uid } = args[0];
+    let item: CometChat.Conversation | any =
+      (conversationListRef.current?.getListItem(
+        `${uid}_user_${loggedInUser.current?.getUid()}`
+      ) as unknown as CometChat.Conversation) ||
+      (conversationListRef.current?.getListItem(
+        `${loggedInUser.current?.getUid()}_user_${uid}`
+      ) as unknown as CometChat.Conversation);
+    const user: CometChat.User = item.getConversationWith();
+    if (user.getBlockedByMe() || user.getHasBlockedMe()) return;
+    if (item) {
+      let updatedConversation = CommonUtils.clone(item);
+      updatedConversation.setConversationWith(args[0]);
+      conversationListRef.current?.updateList(updatedConversation);
     }
   };
 
   /**
    * Returns a conversation that matches a typing indicator.
-   * @param typingIndicator - The typing indicator event.
-   * @returns The matching conversation or undefined.
    */
   const getConversationRefFromTypingIndicator = (typingIndicator: CometChat.TypingIndicator) => {
-    let list = conversationListRef.current!.getAllListItems();
-    return list.find((item: CometChat.Conversation) => {
+    let list = conversationListRef.current?.getAllListItems();
+    return list?.find((item: CometChat.Conversation) => {
       return (
         (typingIndicator.getReceiverType() == ReceiverTypeConstants.user &&
           item.getConversationType() == ReceiverTypeConstants.user &&
           (item.getConversationWith() as CometChat.User).getUid() ==
-            typingIndicator.getSender().getUid()) ||
+            typingIndicator.getSender().getUid() &&
+          !(
+            (item.getConversationWith() as CometChat.User)?.getBlockedByMe() ||
+            (item.getConversationWith() as CometChat.User)?.getHasBlockedMe()
+          )) ||
         (typingIndicator.getReceiverType() == ReceiverTypeConstants.group &&
           item.getConversationType() == ReceiverTypeConstants.group &&
           (item.getConversationWith() as CometChat.Group).getGuid() ==
@@ -324,7 +395,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
 
   /**
    * Handler for typing events in conversations.
-   * @param args - Typing indicator and a flag indicating whether typing started or ended.
+   * Toggle the *live typing…* indicator on a conversation row.
    */
   const typingEventHandler = (...args: any) => {
     let conversation: CometChat.Conversation = CommonUtils.clone(
@@ -826,7 +897,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
       if (lastMessage?.hasOwnProperty("readAt")) status = MessageReceipt.READ;
       else if (lastMessage?.hasOwnProperty("deliveredAt")) status = MessageReceipt.DELIVERED;
       else if (lastMessage?.hasOwnProperty("sentAt")) status = MessageReceipt.SENT;
-      readReceipt = hideReceipt ? null : (
+      readReceipt = !receiptsVisibility ? null : (
         <CometChatReceipt receipt={status} style={mergedStyles.itemStyle.receiptStyles} />
       );
     }
@@ -867,17 +938,24 @@ export const CometChatConversations = (props: ConversationInterface) => {
   const getTrailingView = useCallback(
     (conversation: CometChat.Conversation) => {
       const customPattern = () => datePattern?.(conversation);
-      const timestamp = conversation.getLastMessage().getSentAt();
+      const timestamp = conversation.getLastMessage()?.getSentAt();
+      if (!timestamp) return <></>;
       return (
-        <View style={mergedStyles.itemStyle.trailingViewContainerStyle}>
+        <View
+          style={[
+            { marginHorizontal: 6, justifyContent: "center", alignItems: "flex-end" },
+            mergedStyles.itemStyle.trailingViewContainerStyle,
+          ]}
+        >
           <CometChatDate
             timeStamp={timestamp * 1000}
             customDateString={customPattern && customPattern()}
             pattern={"dayWeekDayDateTimeFormat"}
+            style={mergedStyles?.itemStyle?.dateStyle}
           />
           <CometChatBadge
             count={conversation.getUnreadMessageCount()}
-            style={mergedStyles.itemStyle.badgeStyle}
+            style={mergedStyles?.itemStyle?.badgeStyle}
           />
         </View>
       );
@@ -1283,13 +1361,42 @@ export const CometChatConversations = (props: ConversationInterface) => {
     // Listen for user block events.
     CometChatUIEventHandler.addUserListener(userListenerId, {
       ccUserBlocked: ({ user }: { user: CometChat.User }) => {
-        const foundConversation = conversationListRef.current?.getAllListItems().find((conv) => {
-          const convWith = conv.getConversationWith();
-          return convWith instanceof CometChat.User && convWith.getUid() === user.getUid();
-        });
-        if (foundConversation) {
-          conversationListRef?.current?.removeItemFromList(foundConversation.getConversationId());
-          removeItemFromSelectionList(foundConversation.getConversationId());
+        const uid = user.getUid();
+        let item: CometChat.Conversation | any =
+          (conversationListRef.current?.getListItem(
+            `${uid}_user_${loggedInUser.current?.getUid()}`
+          ) as unknown as CometChat.Conversation) ||
+          (conversationListRef.current?.getListItem(
+            `${loggedInUser.current?.getUid()}_user_${uid}`
+          ) as unknown as CometChat.Conversation);
+        if (
+          conversationsRequestBuilder &&
+          conversationsRequestBuilder.build().isIncludeBlockedUsers()
+        ) {
+          if (item) {
+            let updatedConversation = CommonUtils.clone(item);
+            updatedConversation.setConversationWith(user);
+            conversationListRef.current?.updateList(updatedConversation);
+          }
+          return;
+        }
+        conversationListRef?.current?.removeItemFromList(item.getConversationId());
+        removeItemFromSelectionList(item.getConversationId());
+      },
+      ccUserUnBlocked: ({ user }: { user: CometChat.User }) => {
+        /**unblocked handling is required to enable user presence listener for the user**/
+        const uid = user.getUid();
+        let item: CometChat.Conversation | any =
+          (conversationListRef.current?.getListItem(
+            `${uid}_user_${loggedInUser.current?.getUid()}`
+          ) as unknown as CometChat.Conversation) ||
+          (conversationListRef.current?.getListItem(
+            `${loggedInUser.current?.getUid()}_user_${uid}`
+          ) as unknown as CometChat.Conversation);
+        if (item) {
+          let updatedConversation = CommonUtils.clone(item);
+          updatedConversation.setConversationWith(user);
+          conversationListRef.current?.updateList(updatedConversation);
         }
       },
     });
@@ -1362,77 +1469,74 @@ export const CometChatConversations = (props: ConversationInterface) => {
     };
   }, []);
 
-  /**
-   * ConversationItemView renders an individual conversation item.
-   * Uses custom leading, title, subtitle, and trailing views if provided.
-   */
-  const ConversationItemView = React.memo(({ item: conversation }: any) => {
-    if (!conversation) return null;
-    // Extract conversation details.
-    const { conversationWith, conversationType } = conversation;
-    const lastMessage = CometChatConversationUtils.getLastMessage(conversation);
-    const { name } = conversationWith || {};
-    let avatarIcon = conversationWith[conversationType == "group" ? "icon" : "avatar"];
+  const getStatusIndicator = (conv: CometChat.Conversation) => {
+    const withObj = conv.getConversationWith();
 
-    // Determine status indicator based on conversation type and user status.
-    const statusIndicatorType = useMemo(() => {
-      if (conversation?.conversationWith?.type == GroupTypeConstants.password) {
-        return "protected";
-      } else if (conversation?.conversationWith?.type == GroupTypeConstants.private) {
-        return "private";
-      } else if (conversationWith.status == "online") {
+    if (groupTypeVisibility) {
+      if (withObj instanceof CometChat.Group) {
+        if (withObj.getType() === GroupTypeConstants.password) return "protected";
+        if (withObj.getType() === GroupTypeConstants.private) return "private";
+      }
+    } else {
+      return undefined;
+    }
+
+    if (usersStatusVisibility) {
+      if (
+        withObj instanceof CometChat.User &&
+        withObj.getStatus() === CometChatUiKitConstants.UserStatusConstants.online &&
+        !withObj.getHasBlockedMe() &&
+        !withObj.getBlockedByMe()
+      ) {
         return "online";
       }
       return "offline";
-    }, [conversation]);
+    } else {
+      return undefined;
+    }
+  };
 
-    return (
-      <CometChatListItem
-        id={conversation.conversationId}
-        avatarName={name}
-        avatarURL={avatarIcon}
-        statusIndicatorType={statusIndicatorType}
-        LeadingView={LeadingView && LeadingView(conversation)}
-        TitleView={TitleView && TitleView(conversation)}
-        SubtitleView={
-          (SubtitleView && SubtitleView(conversation)) || (
-            <LastMessageView
-              conversations={conversation}
-              typingText={conversation?.["lastMessage"]?.["typing"]}
-            />
-          )
-        }
-        title={name}
-        TrailingView={
-          TrailingView
-            ? TrailingView(conversation)
-            : lastMessage
-            ? getTrailingView(conversation)
-            : null
-        }
-        onPress={conversationClicked.bind(this, conversation)}
-        onLongPress={(id: string | undefined, e?: GestureResponderEvent) => {
-          if (onItemLongPress) {
-            onItemLongPress(conversation);
-            return;
-          }
-          if (id && e && "nativeEvent" in e) {
-            longPressId.current = id;
-            tooltipPositon.current = {
-              pageX: e.nativeEvent.pageX,
-              pageY: e.nativeEvent.pageY,
-            };
-            setTooltipVisible(true);
-          }
-        }}
-        {...mergedStyles.itemStyle}
-      />
-    );
-  });
+  const LeadingViewRaw = useCallback(
+    (conv: CometChat.Conversation) => {
+      const withObj = conv.getConversationWith();
+      const avatarURL = withObj instanceof CometChat.User ? withObj.getAvatar() : withObj.getIcon();
+      const name = withObj.getName();
+
+      return (
+        <>
+          <CometChatAvatar
+            image={{ uri: avatarURL }}
+            name={name}
+            style={mergedStyles.itemStyle.avatarStyle}
+          />
+          <CometChatStatusIndicator
+            type={getStatusIndicator(conv)}
+            style={mergedStyles?.itemStyle?.statusIndicatorStyle}
+          />
+        </>
+      );
+    },
+    [mergedStyles]
+  );
+
+  const TitleViewRaw = useCallback(
+    (conv: CometChat.Conversation) => (
+      <Text numberOfLines={1} ellipsizeMode='tail' style={mergedStyles.itemStyle.titleStyle}>
+        {conv.getConversationWith().getName()}
+      </Text>
+    ),
+    [mergedStyles]
+  );
+
+  const SubtitleViewRaw = (conv: CometChat.Conversation) => (
+    <LastMessageView conversations={conv} typingText={conv?.["lastMessage"]?.["typing"]} />
+  );
+
+  const TrailingViewRaw = useCallback((conv: CometChat.Conversation) => getTrailingView(conv), []);
 
   return (
     <View style={mergedStyles.containerStyle}>
-      <TooltipMenu
+      <CometChatTooltipMenu
         visible={tooltipVisible}
         onClose={() => {
           setTooltipVisible(false);
@@ -1440,23 +1544,34 @@ export const CometChatConversations = (props: ConversationInterface) => {
         event={{
           nativeEvent: tooltipPositon.current,
         }}
-        menuItems={[
-          {
-            text: "Delete",
-            onPress: () => {
-              setConfirmDelete(longPressId.current);
-              setTooltipVisible(false);
-            },
-            icon: (
-              <Delete
-                color={theme.color.error}
-                height={theme.spacing.spacing.s6}
-                width={theme.spacing.spacing.s6}
-              />
-            ),
-            textColor: theme.color.error,
-          },
-        ]}
+        menuItems={
+          options
+            ? options(longPressedConversation.current!)
+            : [
+                ...[
+                  ...(deleteConversationOptionVisibility
+                    ? [
+                        {
+                          text: "Delete",
+                          onPress: () => {
+                            setConfirmDelete(longPressId.current);
+                            setTooltipVisible(false);
+                          },
+                          icon: (
+                            <Delete
+                              color={theme.color.error}
+                              height={theme.spacing.spacing.s6}
+                              width={theme.spacing.spacing.s6}
+                            />
+                          ),
+                          textStyle: { color: theme.color.error },
+                        },
+                      ]
+                    : []),
+                ],
+                ...(addOptions ? addOptions(longPressedConversation.current!) : []),
+              ]
+        }
       />
       <CometChatConfirmDialog
         titleText={localize("DELETE_THIS_CONVERSATION")}
@@ -1470,38 +1585,63 @@ export const CometChatConversations = (props: ConversationInterface) => {
           removeConversation(confirmDelete!);
           setConfirmDelete(undefined);
         }}
+        {...mergedStyles.confirmDialogStyle}
       />
       <CometChatList
         AppBarOptions={AppBarOptions}
         onError={onError}
         ref={conversationListRef}
+        LeadingView={LeadingView ? LeadingView : LeadingViewRaw}
+        TitleView={TitleView ? TitleView : TitleViewRaw}
+        SubtitleView={SubtitleView ? SubtitleView : SubtitleViewRaw}
+        TrailingView={TrailingView ? TrailingView : TrailingViewRaw}
         requestBuilder={
           conversationsRequestBuilder || new CometChat.ConversationsRequestBuilder().setLimit(30)
         }
+        hideStickyHeader={true}
         title={localize("CHATS")}
         listStyle={mergedStyles}
         hideSearch={true}
         hideSubmitButton={hideSubmitButton}
-        listItemKey={"conversationId"}
-        LoadingView={LoadingView ?? (() => <Skeleton />)}
-        ItemView={
-          ItemView ??
-          ((item: CometChat.Conversation) => {
-            return <ConversationItemView item={item} />;
-          })
+        onItemPress={(conversation) =>
+          selectionMode === "none" ? conversationClicked(conversation) : null
         }
+        onItemLongPress={(conversation: CometChat.Conversation, e?: GestureResponderEvent) => {
+          if (selectionMode === "none") {
+            if (onItemLongPress) {
+              onItemLongPress(conversation);
+              return;
+            }
+            if (e && "nativeEvent" in e) {
+              longPressId.current = conversation.getConversationId();
+              longPressedConversation.current = conversation;
+              tooltipPositon.current = {
+                pageX: e.nativeEvent.pageX,
+                pageY: e.nativeEvent.pageY,
+              };
+              setTooltipVisible(true);
+            }
+          }
+        }}
+        listItemKey={"conversationId"}
+        LoadingView={LoadingView ?? (() => <Skeleton style={mergedStyles.skeletonStyle} />)}
+        ItemView={ItemView}
         EmptyView={EmptyView ? EmptyView : () => <EmptyStateView />}
         ErrorView={ErrorView ? ErrorView : () => <ErrorStateView />}
         onBack={onBack}
         hideBackButton={hideBackButton}
-        onSelection={(items) => {
-          onSelection && onSelection(items);
-          setSelecting(false);
-          setSelectedConversations([]);
-        }}
-        selectionMode={selecting ? selectionMode : "none"}
+        onSelection={onSelection}
+        onSubmit={onSubmit}
+        selectionMode={selectionMode}
         hideError={hideError}
         hideHeader={hideHeader}
+        onListFetched={(conversations: CometChat.Conversation[]) => {
+          if (conversations.length === 0) {
+            onEmpty?.();
+          } else {
+            onLoad?.(conversations);
+          }
+        }}
       />
     </View>
   );

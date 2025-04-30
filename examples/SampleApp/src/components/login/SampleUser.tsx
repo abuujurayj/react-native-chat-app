@@ -27,7 +27,7 @@ import Check from '../../assets/icons/CheckFill';
 import {sampleData} from '../../utils/helper';
 import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
 import {navigate, navigationRef} from '../../navigation/NavigationService';
-import Skeleton from './Skeleton'; 
+import Skeleton from './Skeleton'
 
 type GridItem = CometChat.User | {dummy: true};
 
@@ -66,11 +66,11 @@ const LoginScreen: React.FC = () => {
     setIsLoading(true);
     const uid: string = userUID.trim() || selectedUser!;
     try {
-      await CometChatUIKit.login({ uid });
+      await CometChatUIKit.login({uid});
       navigate('BottomTabNavigator');
       navigationRef.reset({
         index: 0,
-        routes: [{ name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR }],
+        routes: [{name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR}],
       });
     } catch (error: any) {
       console.log('Login failed with exception:', error);
@@ -124,14 +124,19 @@ const LoginScreen: React.FC = () => {
     return avatar as ImageSourcePropType;
   };
 
-  // Prepare data to ensure the grid is always complete (add dummy items to fill last row).
-  const numColumns = 3;
-  const numberOfElementsLastRow = users.length % numColumns;
-  const gridData: GridItem[] = [...users];
+  // Show skeleton if the API is still loading or if no users are available.
+  const showSkeleton = loadingUsers || users.length === 0;
 
-  if (numberOfElementsLastRow !== 0) {
-    for (let i = 0; i < numColumns - numberOfElementsLastRow; i++) {
-      gridData.push({dummy: true});
+  // Compute grid data only if users are available.
+  let gridData: GridItem[] = [];
+  if (users.length > 0) {
+    gridData = [...users];
+    const numColumns = 3;
+    const numberOfElementsLastRow = users.length % numColumns;
+    if (numberOfElementsLastRow !== 0) {
+      for (let i = 0; i < numColumns - numberOfElementsLastRow; i++) {
+        gridData.push({dummy: true});
+      }
     }
   }
 
@@ -196,7 +201,7 @@ const LoginScreen: React.FC = () => {
 
           {/* Sample Users Grid */}
           <View style={styles.userGridWrapper}>
-            {loadingUsers ? (
+            {showSkeleton ? (
               <Skeleton />
             ) : (
               <View style={styles.usersContainer}>
@@ -227,7 +232,7 @@ const LoginScreen: React.FC = () => {
                         },
                       ]}
                       onPress={() => handleSelectUser(user)}>
-                      {/* Show the check icon ONLY if selected, in the top-right corner */}
+                      {/* Show the check icon ONLY if selected */}
                       {isSelected && (
                         <View style={styles.checkIconContainer}>
                           <Icon

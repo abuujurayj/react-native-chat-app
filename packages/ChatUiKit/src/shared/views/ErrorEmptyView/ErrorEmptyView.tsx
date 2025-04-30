@@ -1,28 +1,43 @@
 import { StyleProp, Text, TextStyle, View, ViewStyle } from "react-native";
-import { RequireAtLeastOne } from "../../helper/types";
 
-// type ErrorEmptyViewProps = RequireAtLeastOne<{
-//   title: string;
-//   subTitle: string;
-//   Icon?: JSX.Element;
-//   tertiaryTitle?: string;
-// }> & {
-//   containerStyle?: StyleProp<ViewStyle>;
-//   titleStyle?: StyleProp<TextStyle>;
-//   subTitleStyle?: StyleProp<TextStyle>;
-//   RetryView?: JSX.Element;
-// };
-
+/**
+ * Props for the ErrorEmptyView component.
+ */
 type ErrorEmptyViewProps = {
+  /**
+   * The title text to display in the error/empty view.
+   */
   title?: string;
+  /**
+   * The subtitle text to display in the error/empty view.
+   */
   subTitle?: string;
+  /**
+   * A JSX element to display as an icon.
+   */
   Icon?: JSX.Element;
+  /**
+   * An optional tertiary title for additional context.
+   */
   tertiaryTitle?: string;
+  /**
+   * Custom style for the container of the error/empty view.
+   */
   containerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Custom style for the title text.
+   */
   titleStyle?: StyleProp<TextStyle>;
+  /**
+   * Custom style for the subtitle text.
+   */
   subTitleStyle?: StyleProp<TextStyle>;
+  /**
+   * A custom JSX element to render for a retry action.
+   */
   RetryView?: JSX.Element;
 };
+
 
 export const ErrorEmptyView = (props: ErrorEmptyViewProps) => {
   const {

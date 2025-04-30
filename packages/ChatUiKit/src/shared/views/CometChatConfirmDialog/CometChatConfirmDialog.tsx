@@ -15,27 +15,91 @@ import {
 import { useTheme } from "../../../theme";
 import { Icon } from "../../icons/Icon";
 
+/**
+ * Props for the CometChatConfirmDialog component.
+ */
 export interface CometChatConfirmDialogInterface {
+  /**
+   * Callback invoked when the confirm action is triggered.
+   */
   onConfirm?: () => void;
+  /**
+   * Callback invoked when the cancel action is triggered.
+   */
   onCancel?: () => void;
-  onDismiss?:() => void;
+  /**
+   * Callback invoked when the dialog is dismissed (iOS specific).
+   */
+  onDismiss?: () => void;
+  /**
+   * Flag to determine if the dialog is visible.
+   */
   isOpen?: boolean;
+  /**
+   * Custom style for the container view.
+   */
   containerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Icon to be displayed. Can be an image source or a JSX element.
+   */
   icon?: ImageSourcePropType | JSX.Element;
+  /**
+   * Custom style for the icon image.
+   */
   iconImageStyle?: StyleProp<ImageStyle>;
+  /**
+   * Custom style for the icon container.
+   */
   iconContainerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Custom style for the title text.
+   */
   titleTextStyle?: StyleProp<TextStyle>;
+  /**
+   * Custom style for the message text.
+   */
   messageTextStyle?: StyleProp<TextStyle>;
+  /**
+   * Custom style for the cancel button container.
+   */
   cancelButtonStyle?: StyleProp<ViewStyle>;
+  /**
+   * Custom style for the confirm button container.
+   */
   confirmButtonStyle?: StyleProp<ViewStyle>;
+  /**
+   * Custom style for the cancel button text.
+   */
   cancelButtonTextStyle?: StyleProp<TextStyle>;
+  /**
+   * Custom style for the confirm button text.
+   */
   confirmButtonTextStyle?: StyleProp<TextStyle>;
-
+  /**
+   * The title text of the dialog.
+   */
   titleText?: string;
+  /**
+   * The message text of the dialog.
+   */
   messageText?: string;
+  /**
+   * The text to display on the cancel button.
+   */
   cancelButtonText?: string;
+  /**
+   * The text to display on the confirm button.
+   */
   confirmButtonText?: string;
 }
+
+/**
+ * CometChatConfirmDialog is a modal dialog component that displays a confirmation prompt.
+ * It is typically used to confirm actions such as deletion.
+ *
+ * Props for the confirm dialog component.
+ * The rendered confirmation dialog.
+ */
 export const CometChatConfirmDialog = (props: CometChatConfirmDialogInterface) => {
   const {
     onConfirm,
@@ -61,7 +125,13 @@ export const CometChatConfirmDialog = (props: CometChatConfirmDialogInterface) =
   const theme = useTheme();
 
   return (
-    <Modal animationType='fade' transparent={true} visible={isOpen} onRequestClose={onCancel} onDismiss={onDismiss}>
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={isOpen}
+      onRequestClose={onCancel}
+      onDismiss={onDismiss}
+    >
       <Pressable onPress={onCancel} style={styles.wrapper}>
         <View style={[theme.confirmDialogStyles.containerStyle, containerStyle]}>
           {icon && (
@@ -90,9 +160,7 @@ export const CometChatConfirmDialog = (props: CometChatConfirmDialogInterface) =
                 onCancel?.();
               }}
             >
-              <Text
-                style={[theme.confirmDialogStyles.cancelButtonTextStyle, cancelButtonTextStyle]}
-              >
+              <Text style={[theme.confirmDialogStyles.cancelButtonTextStyle, cancelButtonTextStyle]}>
                 {cancelButtonText}
               </Text>
             </TouchableOpacity>
@@ -103,9 +171,7 @@ export const CometChatConfirmDialog = (props: CometChatConfirmDialogInterface) =
                 onConfirm?.();
               }}
             >
-              <Text
-                style={[theme.confirmDialogStyles.confirmButtonTextStyle, confirmButtonTextStyle]}
-              >
+              <Text style={[theme.confirmDialogStyles.confirmButtonTextStyle, confirmButtonTextStyle]}>
                 {confirmButtonText}
               </Text>
             </TouchableOpacity>

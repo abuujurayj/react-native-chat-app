@@ -3,7 +3,6 @@ import {
   useTheme,
   CometChatAvatar,
   localize,
-  ChatConfigurator,
   CometChatCallButtons,
 } from '@cometchat/chat-uikit-react-native';
 import {
@@ -25,21 +24,25 @@ export type CallLogDetailHeaderInterface = {
 };
 
 export const CallLogDetailHeader = (props: CallLogDetailHeaderInterface) => {
-  const themeV5 = useTheme();
+  const theme = useTheme();
 
   const {user, group} = props;
 
   const [groupObj, setGroupObj] = useState(group);
   const [userStatus, setUserStatus] = useState(
-    user && user?.getStatus ? user?.getStatus() : '',
+    user &&
+      !(user.getBlockedByMe() || user.getHasBlockedMe()) &&
+      user?.getStatus
+      ? user?.getStatus()
+      : '',
   );
 
   const receiverTypeRef = useRef(
     user
       ? CometChat.RECEIVER_TYPE.USER
       : group
-      ? CometChat.RECEIVER_TYPE.GROUP
-      : null,
+        ? CometChat.RECEIVER_TYPE.GROUP
+        : null,
   );
 
   useEffect(() => {
@@ -47,12 +50,16 @@ export const CallLogDetailHeader = (props: CallLogDetailHeaderInterface) => {
   }, [group]);
 
   useEffect(() => {
-    setUserStatus(user ? user?.getStatus() : '');
+    setUserStatus(
+      user && !(user.getBlockedByMe() || user.getHasBlockedMe())
+        ? user?.getStatus()
+        : '',
+    );
   }, [user]);
 
   const messageHeaderStyles = useMemo(() => {
-    return themeV5.messageHeaderStyles;
-  }, [themeV5.messageHeaderStyles]);
+    return theme.messageHeaderStyles;
+  }, [theme.messageHeaderStyles]);
 
   const statusIndicatorType = useMemo(() => {
     if (groupObj?.getType() === GroupTypeConstants.password) {
@@ -62,7 +69,7 @@ export const CallLogDetailHeader = (props: CallLogDetailHeaderInterface) => {
     } else if (userStatus === 'online') {
       return 'online';
     }
-    return 'offline';
+    return '';
   }, [userStatus, groupObj]);
 
   const AvatarWithStatusView = useCallback(() => {
@@ -75,10 +82,10 @@ export const CallLogDetailHeader = (props: CallLogDetailHeaderInterface) => {
                 ? {uri: user.getAvatar()}
                 : undefined
               : groupObj
-              ? groupObj.getIcon()
-                ? {uri: groupObj.getIcon()}
+                ? groupObj.getIcon()
+                  ? {uri: groupObj.getIcon()}
+                  : undefined
                 : undefined
-              : undefined
           }
           name={user?.getName() || groupObj?.getName() || ''}
         />
@@ -87,16 +94,26 @@ export const CallLogDetailHeader = (props: CallLogDetailHeaderInterface) => {
   }, [user, groupObj, statusIndicatorType]);
 
   const SubtitleViewFnc = () => {
-    return (
-      <Text style={{...themeV5.typography.caption1.regular, color: themeV5.color.textSecondary}}>
-        {receiverTypeRef.current === CometChat.RECEIVER_TYPE.GROUP &&
-        (groupObj?.['membersCount'] || groupObj?.['membersCount'] === 0)
-          ? `${groupObj['membersCount']} ${localize('MEMBERS')}`
-          : receiverTypeRef.current === CometChat.RECEIVER_TYPE.USER
+    const statusTytle =
+      receiverTypeRef.current === CometChat.RECEIVER_TYPE.GROUP &&
+      (groupObj?.['membersCount'] || groupObj?.['membersCount'] === 0)
+        ? `${groupObj['membersCount']} ${localize('MEMBERS')}`
+        : receiverTypeRef.current === CometChat.RECEIVER_TYPE.USER
           ? userStatus === UserStatusConstants.online
             ? localize('ONLINE')
-            : localize('OFFLINE')
-          : ''}
+            : userStatus === UserStatusConstants.offline
+              ? localize('OFFLINE')
+              : ''
+          : '';
+
+    if(!statusTytle) return <></>;
+    return (
+      <Text
+        style={{
+          ...theme.typography.caption1.regular,
+          color: theme.color.textSecondary,
+        }}>
+        {statusTytle}
       </Text>
     );
   };
@@ -106,22 +123,29 @@ export const CallLogDetailHeader = (props: CallLogDetailHeaderInterface) => {
       theme={{
         callButtonStyles: messageHeaderStyles.callButtonStyle,
         avatarStyle: messageHeaderStyles.avatarStyle,
-        statusIndicatorStyles: messageHeaderStyles.statusIndicatorStyle,
+        statusIndicatorStyle: messageHeaderStyles.statusIndicatorStyle,
       }}>
-      <View style={{paddingVertical: themeV5.spacing.padding.p5, paddingHorizontal: themeV5.spacing.padding.p4,
-        backgroundColor: themeV5.color.background1, flexDirection: 'row',
-        gap: themeV5.spacing.padding.p3,
-        alignItems: 'center',
-        borderTopWidth: 1,
-        borderBottomWidth: 1,
-        borderColor: themeV5.color.borderLight
-      }}>
+      <View
+        style={{
+          paddingVertical: theme.spacing.padding.p5,
+          paddingHorizontal: theme.spacing.padding.p4,
+          backgroundColor: theme.color.background1,
+          flexDirection: 'row',
+          gap: theme.spacing.padding.p3,
+          alignItems: 'center',
+          borderTopWidth: 1,
+          borderBottomWidth: 1,
+          borderColor: theme.color.borderLight,
+        }}>
         <AvatarWithStatusView />
         <View style={{flex: 1}}>
           <Text
             numberOfLines={1}
             ellipsizeMode="tail"
-            style={{...themeV5.typography.heading4.medium, color: themeV5.color.textPrimary}}>
+            style={{
+              ...theme.typography.heading4.medium,
+              color: theme.color.textPrimary,
+            }}>
             {user ? user.getName() : groupObj ? groupObj.getName() : ''}
           </Text>
           {<SubtitleViewFnc />}
@@ -137,30 +161,30 @@ export const CallLogDetailHeader = (props: CallLogDetailHeaderInterface) => {
               audioCallButtonIconStyle: {
                 height: 24,
                 width: 24,
-                tintColor: themeV5.color.iconHighlight,
+                tintColor: theme.color.iconHighlight,
               },
               videoCallButtonIconStyle: {
                 height: 24,
                 width: 24,
-                tintColor: themeV5.color.iconHighlight,
+                tintColor: theme.color.iconHighlight,
               },
               audioCallButtonIconContainerStyle: {
                 height: 40,
                 width: 64,
-                paddingVertical: themeV5.spacing.padding.p2,
-                paddingHorizontal: themeV5.spacing.padding.p5,
+                paddingVertical: theme.spacing.padding.p2,
+                paddingHorizontal: theme.spacing.padding.p5,
                 borderWidth: 1,
-                borderRadius: themeV5.spacing.radius.r2,
-                borderColor: themeV5.color.borderDefault,
+                borderRadius: theme.spacing.radius.r2,
+                borderColor: theme.color.borderDefault,
               },
               videoCallButtonIconContainerStyle: {
                 height: 40,
                 width: 64,
-                paddingVertical: themeV5.spacing.padding.p2,
-                paddingHorizontal: themeV5.spacing.padding.p5,
+                paddingVertical: theme.spacing.padding.p2,
+                paddingHorizontal: theme.spacing.padding.p5,
                 borderWidth: 1,
-                borderRadius: themeV5.spacing.radius.r2,
-                borderColor: themeV5.color.borderDefault,
+                borderRadius: theme.spacing.radius.r2,
+                borderColor: theme.color.borderDefault,
               },
             }}
           />

@@ -7,7 +7,6 @@ import {
   AppState,
   AppStateStatus,
 } from 'react-native';
-
 import {
   CometChatIncomingCall,
   CometChatThemeProvider,
@@ -23,14 +22,16 @@ import RootStackNavigator from './src/navigation/RootStackNavigator';
 import {AppConstants} from './src/utils/AppConstants';
 import {
   requestAndroidPermissions,
+  navigateToConversation,
 } from './src/utils/helper';
+import {navigationRef} from './src/navigation/NavigationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useActiveChat} from './src/utils/ActiveChatContext';
 
+// Listener ID for registering and removing CometChat listeners.
 const listenerId = 'app';
 
 const App = (): React.ReactElement => {
-  const {activeChat} = useActiveChat();
   const [callReceived, setCallReceived] = useState(false);
   const incomingCall = useRef<CometChat.Call | CometChat.CustomMessage | null>(
     null,
@@ -38,29 +39,49 @@ const App = (): React.ReactElement => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
 
   /**
-   * 1. Initial CometChat + UIKit Initialization
+   * Initialize CometChat UIKit and configure Google Sign-In.
+   * Retrieves credentials from AsyncStorage and uses fallback constants if needed.
    */
   useEffect(() => {
     async function init() {
       try {
+        // Retrieve stored app credentials or default to an empty object.
         const AppData = (await AsyncStorage.getItem('appCredentials')) || '{}';
+        const storedCredentials = JSON.parse(AppData);
+
+        // Determine the final credentials (from AsyncStorage or AppConstants).
+        const finalAppId = storedCredentials.appId || AppConstants.appId;
+        const finalAuthKey = storedCredentials.authKey || AppConstants.authKey;
+        const finalRegion = storedCredentials.region || AppConstants.region;
+
+        // Set hasValidAppCredentials based on whether all values are available.
+        if (finalAppId && finalAuthKey && finalRegion) {
+          setHasValidAppCredentials(true);
+        } else {
+          setHasValidAppCredentials(false);
+        }
+
         await CometChatUIKit.init({
-          appId: JSON.parse(AppData).appId || AppConstants.appId,
-          authKey: JSON.parse(AppData).authKey || AppConstants.authKey,
-          region: JSON.parse(AppData).region || AppConstants.region,
+          appId: finalAppId,
+          authKey: finalAuthKey,
+          region: finalRegion,
           subscriptionType: CometChat.AppSettings
             .SUBSCRIPTION_TYPE_ALL_USERS as UIKitSettings['subscriptionType'],
         });
 
+        // If a user is already logged in, update the state.
         const loggedInUser = CometChatUIKit.loggedInUser;
         if (loggedInUser) {
           setIsLoggedIn(true);
         }
+
       } catch (error) {
-        console.log('CometChat init or getLoggedinUser failed:', error);
+        console.log('Error during initialization', error);
       } finally {
+        // Mark initialization as complete.
         setIsInitializing(false);
       }
     }
@@ -68,19 +89,20 @@ const App = (): React.ReactElement => {
   }, []);
 
   /**
-   * 2. Re-check user & possibly re-init or re-login if app resumes
+   * Monitor app state changes to verify the logged-in status and clear notifications.
+   * When the app becomes active, it cancels Android notifications and checks the login status.
    */
   useEffect(() => {
+    if (Platform.OS === 'android') {
+      // Request required Android permissions for notifications.
+      requestAndroidPermissions();
+    }
     const handleAppStateChange = async (nextState: AppStateStatus) => {
       if (nextState === 'active') {
         try {
-          // Check if CometChat still has a valid logged in user
+          // Verify if there is a valid logged-in user.
           const chatUser = await CometChat.getLoggedinUser();
-          if (!chatUser) {
-            setIsLoggedIn(false);
-          } else {
-            setIsLoggedIn(true);
-          }
+          setIsLoggedIn(!!chatUser);
         } catch (error) {
           console.log('Error verifying CometChat user on resume:', error);
         }
@@ -94,19 +116,10 @@ const App = (): React.ReactElement => {
   }, []);
 
   /**
-   * 3. Handle inbound FCM messages in the foreground (Android).
+   * Attach CometChat login listener to handle login and logout events.
+   * Updates user login status accordingly.
    */
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      requestAndroidPermissions();
-    }
-  }, [activeChat]);
-
-  /**
-   * 4. Attach CometChatLogin Listener and Call Listener
-   */
-  useEffect(() => {
-    // Login Listener
     CometChat.addLoginListener(
       listenerId,
       new CometChat.LoginListener({
@@ -125,39 +138,47 @@ const App = (): React.ReactElement => {
       }),
     );
 
+    // Clean up the login listener on component unmount.
     return () => {
-      // Clean up CometChat listeners
       CometChat.removeLoginListener(listenerId);
     };
   }, []);
 
+  /**
+   * Attach CometChat call listeners to handle incoming, outgoing, and cancelled call events.
+   * Also handles UI events for call end.
+   */
   useEffect(() => {
-    // Call Listener
+    // Listener for call events.
     CometChat.addCallListener(
       listenerId,
       new CometChat.CallListener({
         onIncomingCallReceived: (call: CometChat.Call) => {
-          // Close bottomsheet for incoming call overlay
+          // Hide any bottom sheet UI before showing the incoming call screen.
           CometChatUIEventHandler.emitUIEvent(
             CometChatUIEvents.ccToggleBottomSheet,
             {
               isBottomSheetVisible: false,
             },
           );
+          // Store the incoming call and update state.
           incomingCall.current = call;
           setCallReceived(true);
         },
         onOutgoingCallRejected: () => {
+          // Clear the call state if outgoing call is rejected.
           incomingCall.current = null;
           setCallReceived(false);
         },
         onIncomingCallCancelled: () => {
+          // Clear the call state if the incoming call is cancelled.
           incomingCall.current = null;
           setCallReceived(false);
         },
       }),
     );
 
+    // Additional listener to handle call end events.
     CometChatUIEventHandler.addCallListener(listenerId, {
       ccCallEnded: () => {
         incomingCall.current = null;
@@ -165,15 +186,14 @@ const App = (): React.ReactElement => {
       },
     });
 
+    // Remove call listeners on cleanup.
     return () => {
-      // Clean up CometChat listeners
       CometChatUIEventHandler.removeCallListener(listenerId);
       CometChat.removeCallListener(listenerId);
     };
   }, [userLoggedIn]);
 
-
-  // Show basic splash or blank screen while initializing
+  // Show a blank/splash screen while the app is initializing.
   if (isInitializing) {
     return (
       <View
@@ -188,21 +208,26 @@ const App = (): React.ReactElement => {
     );
   }
 
+  // Once initialization is complete, render the main app UI.
   return (
     <SafeAreaProvider>
       <CometChatThemeProvider>
-        {/* Only show incoming call UI if logged in + we have a call object */}
+        {/* Render the incoming call UI if the user is logged in and a call is received */}
         {isLoggedIn && callReceived && incomingCall.current ? (
           <CometChatIncomingCall
             call={incomingCall.current}
             onDecline={() => {
+              // Handle call decline by clearing the incoming call state.
               incomingCall.current = null;
               setCallReceived(false);
             }}
           />
         ) : null}
-        {/* Pass isLoggedIn to your main stack */}
-        <RootStackNavigator isLoggedIn={isLoggedIn} />
+        {/* Render the main navigation stack, passing the login status as a prop */}
+        <RootStackNavigator
+          isLoggedIn={isLoggedIn}
+          hasValidAppCredentials={hasValidAppCredentials}
+        />
       </CometChatThemeProvider>
     </SafeAreaProvider>
   );

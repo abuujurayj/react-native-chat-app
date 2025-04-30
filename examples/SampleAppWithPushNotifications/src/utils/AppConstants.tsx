@@ -5,13 +5,13 @@ export const AppConstants = {
   appId: '',
   region: '',
   subscriptionType: 'ALL_USERS',
-  versionNumber: 'v5.0.0-beta.1',
+  versionNumber: 'V5.0.0',
 };
 
 export const SCREEN_CONSTANTS = {
   APP_CRED: 'AppCredentials',
   SAMPLER_USER: 'SampleUser',
-  OUTGOING_CALL_SCREEN: 'OutgoingCallScreen',
+  ONGOING_CALL_SCREEN: 'OngoingCallScreen',
   BOTTOM_TAB_NAVIGATOR: 'BottomTabNavigator',
   CHATS: 'Chats',
   CALLS: 'Calls',

@@ -2,7 +2,7 @@ import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
 import AppErrorBoundary from './AppErrorBoundary';
-import { ActiveChatProvider } from './src/utils/ActiveChatContext';
+import {ActiveChatProvider} from './src/utils/ActiveChatContext';
 
 if (global?.ErrorUtils) {
   const defaultHandler = global.ErrorUtils.getGlobalHandler();

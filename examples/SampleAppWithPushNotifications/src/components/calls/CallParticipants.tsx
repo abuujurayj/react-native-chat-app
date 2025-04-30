@@ -99,6 +99,9 @@ export const CallParticipants = (props: {
           containerStyle={_style.itemStyle.containerStyle}
           headViewContainerStyle={{flexDirection: 'row'}}
           titleStyle={_style.itemStyle.titleStyle}
+          trailingViewContainerStyle={{
+            alignSelf: 'center',
+          }}
           SubtitleView={
             <Text
               style={{

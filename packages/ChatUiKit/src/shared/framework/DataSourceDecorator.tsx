@@ -1,6 +1,6 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatTheme } from "../../theme/type";
-import { AdditionalParams, MessageBubbleAlignmentType } from "../base/Types";
+import { AdditionalAttachmentOptionsParams, AdditionalAuxiliaryHeaderOptionsParams, AdditionalAuxiliaryOptionsParams, AdditionalParams, MessageBubbleAlignmentType } from "../base/Types";
 import {
   CometChatMentionsFormatter,
   CometChatTextFormatter,
@@ -25,63 +25,70 @@ export class DataSourceDecorator implements DataSource {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams,
   ): CometChatMessageOption[] {
-    return this.dataSource.getTextMessageOptions(loggedInUser, messageObject, theme, group);
+    return this.dataSource.getTextMessageOptions(loggedInUser, messageObject, theme, group, additionalParams);
   }
 
   getAudioMessageOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams,
   ): CometChatMessageOption[] {
-    return this.dataSource.getAudioMessageOptions(loggedInUser, messageObject, theme, group);
+    return this.dataSource.getAudioMessageOptions(loggedInUser, messageObject, theme, group, additionalParams);
   }
 
   getVideoMessageOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams,
   ): CometChatMessageOption[] {
-    return this.dataSource.getVideoMessageOptions(loggedInUser, messageObject, theme, group);
+    return this.dataSource.getVideoMessageOptions(loggedInUser, messageObject, theme, group, additionalParams);
   }
 
   getImageMessageOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams,
   ): CometChatMessageOption[] {
-    return this.dataSource.getImageMessageOptions(loggedInUser, messageObject, theme, group);
+    return this.dataSource.getImageMessageOptions(loggedInUser, messageObject, theme, group, additionalParams);
   }
 
   getFileMessageOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams,
   ): CometChatMessageOption[] {
-    return this.dataSource.getFileMessageOptions(loggedInUser, messageObject, theme, group);
+    return this.dataSource.getFileMessageOptions(loggedInUser, messageObject, theme, group, additionalParams);
   }
 
   getMessageOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams,
   ): CometChatMessageOption[] {
-    return this.dataSource.getMessageOptions(loggedInUser, messageObject, theme, group);
+    return this.dataSource.getMessageOptions(loggedInUser, messageObject, theme, group, additionalParams);
   }
 
   getCommonOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams,
   ): CometChatMessageOption[] {
-    return this.dataSource.getCommonOptions(loggedInUser, messageObject, theme, group);
+    return this.dataSource.getCommonOptions(loggedInUser, messageObject, theme, group, additionalParams);
   }
 
   getBottomView(message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) {
@@ -198,32 +205,32 @@ export class DataSourceDecorator implements DataSource {
     return this.dataSource.getTextMessageTemplate(theme, additionalParams);
   }
 
-  getFormMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
-    return this.dataSource.getFormMessageTemplate(theme);
+  getFormMessageTemplate(theme: CometChatTheme, additionalParams?: AdditionalParams): CometChatMessageTemplate {
+    return this.dataSource.getFormMessageTemplate(theme, additionalParams);
   }
 
-  getSchedulerMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
-    return this.dataSource.getSchedulerMessageTemplate(theme);
+  getSchedulerMessageTemplate(theme: CometChatTheme, additionalParams?: AdditionalParams): CometChatMessageTemplate {
+    return this.dataSource.getSchedulerMessageTemplate(theme, additionalParams);
   }
 
-  getCardMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
-    return this.dataSource.getCardMessageTemplate(theme);
+  getCardMessageTemplate(theme: CometChatTheme, additionalParams?: AdditionalParams): CometChatMessageTemplate {
+    return this.dataSource.getCardMessageTemplate(theme, additionalParams);
   }
 
-  getAudioMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
-    return this.dataSource.getAudioMessageTemplate(theme);
+  getAudioMessageTemplate(theme: CometChatTheme, additionalParams?: AdditionalParams): CometChatMessageTemplate {
+    return this.dataSource.getAudioMessageTemplate(theme, additionalParams);
   }
 
-  getVideoMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
-    return this.dataSource.getVideoMessageTemplate(theme);
+  getVideoMessageTemplate(theme: CometChatTheme, additionalParams?: AdditionalParams): CometChatMessageTemplate {
+    return this.dataSource.getVideoMessageTemplate(theme, additionalParams);
   }
 
-  getImageMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
-    return this.dataSource.getImageMessageTemplate(theme);
+  getImageMessageTemplate(theme: CometChatTheme, additionalParams?: AdditionalParams): CometChatMessageTemplate {
+    return this.dataSource.getImageMessageTemplate(theme, additionalParams);
   }
 
-  getFileMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
-    return this.dataSource.getFileMessageTemplate(theme);
+  getFileMessageTemplate(theme: CometChatTheme, additionalParams?: AdditionalParams): CometChatMessageTemplate {
+    return this.dataSource.getFileMessageTemplate(theme, additionalParams);
   }
 
   getAllMessageTemplates(
@@ -236,9 +243,10 @@ export class DataSourceDecorator implements DataSource {
   getMessageTemplate(
     messageType: string,
     MessageCategory: string,
-    theme: CometChatTheme
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
   ): CometChatMessageTemplate | null {
-    return this.dataSource.getMessageTemplate(messageType, MessageCategory, theme);
+    return this.dataSource.getMessageTemplate(messageType, MessageCategory, theme, additionalParams);
   }
 
   getGroupActionTemplate(theme: CometChatTheme): CometChatMessageTemplate {
@@ -257,9 +265,9 @@ export class DataSourceDecorator implements DataSource {
     user: CometChat.User,
     group: CometChat.Group,
     id: Map<string, any>,
-    additionalParams?: AdditionalParams
+    additionalAuxiliaryParams?: AdditionalAuxiliaryOptionsParams
   ) {
-    return this.dataSource.getAuxiliaryOptions(user, group, id, additionalParams);
+    return this.dataSource.getAuxiliaryOptions(user, group, id, additionalAuxiliaryParams);
   }
 
   getMessageTypeToSubtitle(messageType: string): string {
@@ -270,9 +278,10 @@ export class DataSourceDecorator implements DataSource {
     theme: CometChatTheme,
     user?: any,
     group?: any,
-    composerId?: any
+    composerId?: any,
+    additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
   ): CometChatMessageComposerAction[] {
-    return this.dataSource.getAttachmentOptions(theme, user, group, composerId);
+    return this.dataSource.getAttachmentOptions(theme, user, group, composerId, additionalAttachmentOptionsParams);
   }
 
   getAuxiliaryButtonOptions() {
@@ -289,9 +298,9 @@ export class DataSourceDecorator implements DataSource {
   getAuxiliaryHeaderAppbarOptions(
     user?: CometChat.User,
     group?: CometChat.Group,
-    additionalParams?: AdditionalParams
+    additionalAuxiliaryHeaderOptionsParams?: AdditionalAuxiliaryHeaderOptionsParams
   ) {
-    return this.dataSource.getAuxiliaryHeaderAppbarOptions(user, group, additionalParams);
+    return this.dataSource.getAuxiliaryHeaderAppbarOptions(user, group, additionalAuxiliaryHeaderOptionsParams);
   }
 
   getAllTextFormatters(loggedInUser?: CometChat.User): CometChatTextFormatter[] {

@@ -2,7 +2,11 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React from "react";
 import { Text, View } from "react-native";
 import { CometChatUIKit } from "../../shared";
-import { AdditionalParams, MessageBubbleAlignmentType } from "../../shared/base/Types";
+import {
+  AdditionalAttachmentOptionsParams,
+  AdditionalParams,
+  MessageBubbleAlignmentType,
+} from "../../shared/base/Types";
 import {
   MessageCategoryConstants,
   MetadataConstants,
@@ -37,7 +41,8 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
     return "CollaborativeDocument";
   }
 
-  getLastConversationMessage(conversation: CometChat.Conversation,
+  getLastConversationMessage(
+    conversation: CometChat.Conversation,
     theme?: CometChatTheme
   ): string | JSX.Element {
     if (conversation.getLastMessage() == undefined) {
@@ -46,12 +51,13 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
 
     if (
       conversation.getLastMessage().getType() == ExtensionTypeConstants.document &&
-      conversation.getLastMessage().getCategory() == MessageCategoryConstants.custom
+      conversation.getLastMessage().getCategory() == MessageCategoryConstants.custom &&
+      conversation.getLastMessage().getDeletedAt() === undefined
     ) {
       return getMessagePreviewInternal(
         "collaborative-document-fill",
         localize("CUSTOM_MESSAGE_DOCUMENT"),
-        {theme}
+        { theme }
       );
     } else {
       return super.getLastConversationMessage(conversation, theme);
@@ -76,14 +82,18 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
     theme: CometChatTheme,
     user?: any,
     group?: any,
-    composerId?: any
+    composerId?: any,
+    additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
   ): CometChatMessageComposerAction[] {
     let attachmentOptions: CometChatMessageComposerAction[] = super.getAttachmentOptions(
       theme,
       user,
       group,
-      composerId
+      composerId,
+      additionalAttachmentOptionsParams
     );
+    if (additionalAttachmentOptionsParams?.hideCollaborativeDocumentOption)
+      return attachmentOptions;
     if (
       composerId == undefined ||
       (composerId as Map<any, any>).get("parentMessageId") == undefined
@@ -95,9 +105,18 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
           <Icon
             name='collaborative-document-icon'
             color={theme.color.primary}
-            height={theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle?.height}
-            width={theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle?.width}
-            containerStyle={theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconContainerStyle}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle
+            }
           />
         ),
         onPress: (user, group) => {
@@ -167,7 +186,14 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
           messageObject: CometChat.BaseMessage,
           theme: CometChatTheme,
           group?: CometChat.Group
-        ) => ChatConfigurator.dataSource.getMessageOptions(loggedInUser, messageObject, theme, group),
+        ) =>
+          ChatConfigurator.dataSource.getMessageOptions(
+            loggedInUser,
+            messageObject,
+            theme,
+            group,
+            additionalParams
+          ),
         BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
           return ChatConfigurator.dataSource.getBottomView(message, alignment);
         },

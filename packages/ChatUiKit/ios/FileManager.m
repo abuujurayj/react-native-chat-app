@@ -291,26 +291,43 @@ RCT_EXPORT_METHOD(openCamera: (NSString *) type callback:(RCTResponseSenderBlock
     });
 }
 
-RCT_EXPORT_METHOD(openFileChooser:(NSString *) type callback:(RCTResponseSenderBlock) call) {
+RCT_EXPORT_METHOD(openFileChooser:(NSString *)type callback:(RCTResponseSenderBlock)call) {
     callback = call;
     UIViewController *presentedViewController = RCTPresentedViewController();
-    if ([@"image" isEqualToString:type]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if ([@"image" isEqualToString:type]) {
             UIImagePickerController *imageController = [[UIImagePickerController alloc] init];
             imageController.delegate = self;
             imageController.title = @"Select an image";
             imageController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
             [presentedViewController presentViewController:imageController animated:YES completion:nil];
-        });
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            UIDocumentPickerViewController *documentController = [[UIDocumentPickerViewController alloc] initWithDocumentTypes: @[@"public.data",@"public.content",@"public.audiovisual-content",@"public.movie",@"public.audiovisual-content",@"public.video",@"public.audio",@"public.data",@"public.zip-archive",@"com.pkware.zip-archive",@"public.composite-content",@"public.text"] inMode: UIDocumentPickerModeImport];
+        } else {
+            NSArray *documentTypes;
+
+            if ([@"audio" isEqualToString:type]) {
+                documentTypes = @[@"public.audio"];
+            } else if ([@"video" isEqualToString:type]) {
+                documentTypes = @[@"public.movie", @"public.video"];
+            } else if ([@"text" isEqualToString:type]) {
+                documentTypes = @[@"public.text"];
+            } else if ([@"zip" isEqualToString:type]) {
+                documentTypes = @[@"com.pkware.zip-archive"];
+            } else {
+                // Fallback to general types (if needed)
+                documentTypes = @[@"public.data"];
+            }
+
+            UIDocumentPickerViewController *documentController =
+                [[UIDocumentPickerViewController alloc] initWithDocumentTypes:documentTypes
+                                                                       inMode:UIDocumentPickerModeImport];
             documentController.delegate = self;
             documentController.title = @"Select a file";
             [presentedViewController presentViewController:documentController animated:YES completion:nil];
-        });
-    }
+        }
+    });
 }
+
 
 RCT_EXPORT_METHOD(shareMessage: (NSDictionary *) shareObj myCallback:(RCTResponseSenderBlock)callback) {
     NSString *message = shareObj[@"message"];

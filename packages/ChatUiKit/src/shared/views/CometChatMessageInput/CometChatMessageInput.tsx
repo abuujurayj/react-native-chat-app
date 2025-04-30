@@ -14,77 +14,89 @@ import { CometChatTheme } from "../../../theme/type";
 import { CometChatUIEventHandler, CometChatUIEvents } from "../../events";
 import { ViewAlignment } from "../../constants/UIKitConstants";
 
+/**
+ * Props for the CometChatMessageInput component.
+ */
 export interface CometChatMessageInputInterface {
   /**
-   *
+   * Text for the input.
    *
    * @type {string}
-   * @description text for the input
    */
   text?: string;
   /**
-   *
+   * Placeholder text for the input.
    *
    * @type {string}
-   * @description placeholder text
    */
   placeHolderText?: string;
   /**
+   * Callback function invoked when the input text changes.
    *
-   *
-   * @description callback when input state changes
+   * @param {string} newText - The new text entered.
    */
   onChangeText?: (arg0: string) => void;
+  /**
+   * Custom style for the message input.
+   */
   style?: CometChatTheme["messageComposerStyles"]["messageInputStyles"];
   /**
-   *
+   * Maximum height for the input.
    *
    * @type {number}
-   * @description max height for the input
    */
   maxHeight?: number;
   /**
+   * React component for the voice recording button.
    *
+   * @type {JSX.Element}
+   */
+  VoiceRecordingButtonView?: JSX.Element;
+  /**
+   * React component for the secondary button.
    *
-   * @type {React.FC}
-   * @description React component for Secondary button
+   * @type {JSX.Element}
    */
   SecondaryButtonView?: JSX.Element;
   /**
+   * React component for the auxiliary button.
    *
-   *
-   * @type {React.FC}
-   * @description React component for Auxiliary button
+   * @type {JSX.Element}
    */
   AuxiliaryButtonView?: JSX.Element;
   /**
+   * Placement for the auxiliary button.
    *
-   *
-   * @type {('left' | 'right')}
-   * @description Placement for Auxiliary button
+   * @type {"left" | "right"}
    */
   auxiliaryButtonAlignment?: "left" | "right";
   /**
-   *
+   * React component for the primary button.
    *
    * @type {React.FC}
-   * @description React component for Primary button
    */
   PrimaryButtonView?: React.FC;
   /**
+   * Callback for when the text selection changes.
    *
-   *
-   * @description callback for onSelectionChange
+   * @param {NativeSyntheticEvent<TextInputSelectionChangeEventData>} event - The selection change event.
    */
   onSelectionChange?: (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
   /**
-   *
+   * Reference for the TextInput component.
    *
    * @type {RefObject<any>}
-   * @description ref of {TextInput}
    */
   messageInputRef?: RefObject<any>;
 }
+
+/**
+ * CometChatMessageInput renders a message input field with a divider and action buttons.
+ * It supports auxiliary, secondary, and primary buttons along with search input functionality.
+ *
+ *   Props for the component.
+ *   The rendered message input component.
+ */
 export const CometChatMessageInput = (props: CometChatMessageInputInterface) => {
   const theme = useTheme();
   const {
@@ -98,6 +110,7 @@ export const CometChatMessageInput = (props: CometChatMessageInputInterface) => 
     PrimaryButtonView,
     onSelectionChange,
     messageInputRef,
+    VoiceRecordingButtonView,
   } = props;
 
   return (
@@ -133,6 +146,7 @@ export const CometChatMessageInput = (props: CometChatMessageInputInterface) => 
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.spacing.s4 }}>
           {SecondaryButtonView}
+          {VoiceRecordingButtonView}
           {auxiliaryButtonAlignment === "left" && AuxiliaryButtonView}
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.spacing.s4 }}>

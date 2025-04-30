@@ -3,38 +3,72 @@ import {
   ColorValue,
   Dimensions,
   ImageSourcePropType,
+  ImageStyle,
   Modal,
   StyleSheet,
   Text,
+  TextStyle,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ViewStyle,
 } from "react-native";
 import { useTheme } from "../../../theme";
 import { Icon } from "../../icons/Icon";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
+/**
+ * Interface for the menu items (tooltip actions).
+ */
+export interface MenuItemInterface {
+  text: string;
+  onPress: () => void;
+  icon?: ImageSourcePropType | JSX.Element;
+  textStyle?: TextStyle;
+  iconStyle?: ImageStyle;
+  iconContainerStyle?: ViewStyle;
+  disabled?: boolean;
+}
+
+/**
+ * Props for the CometChatTooltipMenu component.
+ */
 type CometChatTooltipMenuProps = {
+  /**
+   * Controls the visibility of the tooltip menu.
+   */
   visible?: boolean;
+  /**
+   * Callback function invoked when the tooltip menu is dismissed.
+   */
   onDismiss?: () => void;
+  /**
+   * Callback function invoked when the tooltip menu is closed.
+   */
   onClose?: () => void;
+  /**
+   * The event object containing the coordinates where the tooltip menu should appear.
+   */
   event: {
     nativeEvent: {
+      /**
+       * The X coordinate of the event.
+       */
       pageX: number;
+      /**
+       * The Y coordinate of the event.
+       */
       pageY: number;
     };
   };
-  menuItems: {
-    text: string;
-    onPress: () => void;
-    textColor?: ColorValue;
-    iconColor?: ColorValue;
-    icon?: ImageSourcePropType | JSX.Element;
-  }[];
+  /**
+   * An array of menu item objects that define the options in the tooltip menu.
+   */
+  menuItems: MenuItemInterface[];
 };
 
-export const TooltipMenu = (props: CometChatTooltipMenuProps) => {
+export const CometChatTooltipMenu = (props: CometChatTooltipMenuProps) => {
   const { visible = false, onDismiss = () => null, onClose = () => null, event, menuItems } = props;
   const theme = useTheme();
 
@@ -118,17 +152,19 @@ export const TooltipMenu = (props: CometChatTooltipMenuProps) => {
                   ]}
                 >
                   <Icon
-                    color={item.iconColor ?? theme.color.textSecondary}
-                    size={theme.spacing.spacing.s6}
+                    color={item?.iconStyle?.tintColor ?? theme.color.textSecondary}
+                    size={item?.iconStyle?.height ?? theme.spacing.spacing.s6}
+                    height={item?.iconStyle?.height ?? theme.spacing.spacing.s6}
+                    width={item?.iconStyle?.width ?? theme.spacing.spacing.s6}
                     icon={item.icon}
+                    containerStyle={item?.iconContainerStyle}
                   />
                   <Text
-                    style={[
-                      {
-                        color: item.textColor ?? theme.color.textPrimary,
-                        ...theme.typography.heading4.regular,
-                      },
-                    ]}
+                    style={{
+                      color: theme.color.textPrimary,
+                      ...theme.typography.heading4.regular,
+                      ...item?.textStyle,
+                    }}
                   >
                     {item.text}
                   </Text>

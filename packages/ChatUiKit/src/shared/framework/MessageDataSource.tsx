@@ -7,7 +7,13 @@ import {
   CometChatUrlsFormatter,
 } from "../..";
 import { CometChatTheme } from "../../theme/type";
-import { AdditionalParams, MessageBubbleAlignmentType } from "../base/Types";
+import {
+  AdditionalAttachmentOptionsParams,
+  AdditionalAuxiliaryHeaderOptionsParams,
+  AdditionalAuxiliaryOptionsParams,
+  AdditionalParams,
+  MessageBubbleAlignmentType,
+} from "../base/Types";
 import {
   CometChatMessageTypes,
   GroupMemberScope,
@@ -247,28 +253,57 @@ export class MessageDataSource implements DataSource {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): CometChatMessageOption[] {
     let messageOptionList: CometChatMessageOption[] = [];
 
     if (isDeletedMessage(messageObject)) return messageOptionList;
 
     if (
-      this.validateOption(loggedInUser, messageObject, MessageOptionConstants.replyInThread, group)
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.replyInThread,
+        group,
+        additionalParams
+      )
     ) {
       messageOptionList.push(this.getReplyInThreadOption(theme));
     }
 
     if (
-      this.validateOption(loggedInUser, messageObject, MessageOptionConstants.shareMessage, group)
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.shareMessage,
+        group,
+        additionalParams
+      )
     ) {
       messageOptionList.push(this.getShareOption(theme));
     }
 
-    messageOptionList.push(this.getCopyOption(theme));
+    if (
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.copyMessage,
+        group,
+        additionalParams
+      )
+    ) {
+      messageOptionList.push(this.getCopyOption(theme));
+    }
 
     if (
-      this.validateOption(loggedInUser, messageObject, MessageOptionConstants.editMessage, group)
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.editMessage,
+        group,
+        additionalParams
+      )
     ) {
       messageOptionList.push(this.getEditOption(theme));
     }
@@ -278,14 +313,21 @@ export class MessageDataSource implements DataSource {
         loggedInUser,
         messageObject,
         MessageOptionConstants.messageInformation,
-        group
+        group,
+        additionalParams
       )
     ) {
       messageOptionList.push(this.getInformationOption(theme));
     }
 
     if (
-      this.validateOption(loggedInUser, messageObject, MessageOptionConstants.deleteMessage, group)
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.deleteMessage,
+        group,
+        additionalParams
+      )
     ) {
       messageOptionList.push(this.getDeleteOption(theme));
     }
@@ -295,7 +337,8 @@ export class MessageDataSource implements DataSource {
         loggedInUser,
         messageObject,
         MessageOptionConstants.sendMessagePrivately,
-        group
+        group,
+        additionalParams
       )
     ) {
       messageOptionList.push(this.getPrivateMessageOption(theme));
@@ -308,12 +351,19 @@ export class MessageDataSource implements DataSource {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): CometChatMessageOption[] {
     let optionsList: Array<CometChatMessageOption> = [];
     if (!isDeletedMessage(messageObject))
       optionsList.push(
-        ...ChatConfigurator.dataSource.getCommonOptions(loggedInUser, messageObject, theme, group)
+        ...ChatConfigurator.dataSource.getCommonOptions(
+          loggedInUser,
+          messageObject,
+          theme,
+          group,
+          additionalParams
+        )
       );
     return optionsList;
   }
@@ -321,12 +371,19 @@ export class MessageDataSource implements DataSource {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): CometChatMessageOption[] {
     let optionsList: Array<CometChatMessageOption> = [];
     if (!isDeletedMessage(messageObject))
       optionsList.push(
-        ...ChatConfigurator.dataSource.getCommonOptions(loggedInUser, messageObject, theme, group)
+        ...ChatConfigurator.dataSource.getCommonOptions(
+          loggedInUser,
+          messageObject,
+          theme,
+          group,
+          additionalParams
+        )
       );
     return optionsList;
   }
@@ -334,12 +391,19 @@ export class MessageDataSource implements DataSource {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): CometChatMessageOption[] {
     let optionsList: Array<CometChatMessageOption> = [];
     if (!isDeletedMessage(messageObject))
       optionsList.push(
-        ...ChatConfigurator.dataSource.getCommonOptions(loggedInUser, messageObject, theme, group)
+        ...ChatConfigurator.dataSource.getCommonOptions(
+          loggedInUser,
+          messageObject,
+          theme,
+          group,
+          additionalParams
+        )
       );
     return optionsList;
   }
@@ -347,12 +411,19 @@ export class MessageDataSource implements DataSource {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): CometChatMessageOption[] {
     let optionsList: Array<CometChatMessageOption> = [];
     if (!isDeletedMessage(messageObject))
       optionsList.push(
-        ...ChatConfigurator.dataSource.getCommonOptions(loggedInUser, messageObject, theme, group)
+        ...ChatConfigurator.dataSource.getCommonOptions(
+          loggedInUser,
+          messageObject,
+          theme,
+          group,
+          additionalParams
+        )
       );
     return optionsList;
   }
@@ -360,7 +431,8 @@ export class MessageDataSource implements DataSource {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): CometChatMessageOption[] {
     let optionsList: Array<CometChatMessageOption> = [];
     if (isDeletedMessage(messageObject)) return optionsList;
@@ -373,7 +445,8 @@ export class MessageDataSource implements DataSource {
               loggedInUser,
               messageObject,
               theme,
-              group
+              group,
+              additionalParams
             )
           );
           break;
@@ -383,7 +456,8 @@ export class MessageDataSource implements DataSource {
               loggedInUser,
               messageObject,
               theme,
-              group
+              group,
+              additionalParams
             )
           );
           break;
@@ -393,7 +467,8 @@ export class MessageDataSource implements DataSource {
               loggedInUser,
               messageObject,
               theme,
-              group
+              group,
+              additionalParams
             )
           );
           break;
@@ -403,7 +478,8 @@ export class MessageDataSource implements DataSource {
               loggedInUser,
               messageObject,
               theme,
-              group
+              group,
+              additionalParams
             )
           );
           break;
@@ -413,14 +489,21 @@ export class MessageDataSource implements DataSource {
               loggedInUser,
               messageObject,
               theme,
-              group
+              group,
+              additionalParams
             )
           );
           break;
       }
     } else if (messageObject.getCategory() == MessageCategoryConstants.custom) {
       optionsList.push(
-        ...ChatConfigurator.dataSource.getCommonOptions(loggedInUser, messageObject, theme, group)
+        ...ChatConfigurator.dataSource.getCommonOptions(
+          loggedInUser,
+          messageObject,
+          theme,
+          group,
+          additionalParams
+        )
       );
     } else if (messageObject.getCategory() == MessageCategoryConstants.interactive) {
       let type: string = messageObject.getType();
@@ -433,11 +516,13 @@ export class MessageDataSource implements DataSource {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     optionId: string,
-    group?: CometChat.Group | null
+    group?: CometChat.Group | null,
+    additionalParams?: AdditionalParams
   ): boolean {
     if (
       MessageOptionConstants.replyInThread === optionId &&
-      (!messageObject.getParentMessageId() || messageObject.getParentMessageId() === 0)
+      (!messageObject.getParentMessageId() || messageObject.getParentMessageId() === 0) &&
+      !additionalParams?.hideReplyInThreadOption
     ) {
       return true;
     }
@@ -445,21 +530,27 @@ export class MessageDataSource implements DataSource {
     if (
       MessageOptionConstants.shareMessage === optionId &&
       (messageObject instanceof CometChat.TextMessage ||
-        messageObject instanceof CometChat.MediaMessage)
+        messageObject instanceof CometChat.MediaMessage) &&
+      !additionalParams?.hideShareMessageOption
     ) {
       return true;
     }
 
     if (
       MessageOptionConstants.copyMessage === optionId &&
-      messageObject instanceof CometChat.TextMessage
+      messageObject instanceof CometChat.TextMessage &&
+      !additionalParams?.hideCopyMessageOption
     ) {
       return true;
     }
 
     let isSentByMe: boolean = this.isSentByMe(loggedInUser, messageObject);
 
-    if (MessageOptionConstants.messageInformation === optionId && isSentByMe) {
+    if (
+      MessageOptionConstants.messageInformation === optionId &&
+      isSentByMe &&
+      !additionalParams?.hideMessageInfoOption
+    ) {
       return true;
     }
 
@@ -471,18 +562,16 @@ export class MessageDataSource implements DataSource {
 
     if (
       MessageOptionConstants.deleteMessage === optionId &&
-      (isSentByMe || memberIsNotParticipant)
+      (isSentByMe || memberIsNotParticipant) &&
+      !additionalParams?.hideDeleteMessageOption
     ) {
       return true;
     }
 
-    if (MessageOptionConstants.editMessage === optionId && (isSentByMe || memberIsNotParticipant)) {
-      return true;
-    }
-
     if (
-      MessageOptionConstants.copyMessage === optionId &&
-      messageObject instanceof CometChat.TextMessage
+      MessageOptionConstants.editMessage === optionId &&
+      (isSentByMe || memberIsNotParticipant) &&
+      !additionalParams?.hideEditMessageOption
     ) {
       return true;
     }
@@ -490,7 +579,8 @@ export class MessageDataSource implements DataSource {
     if (
       MessageOptionConstants.sendMessagePrivately === optionId &&
       group &&
-      loggedInUser.getUid() != messageObject.getSender()?.getUid()
+      loggedInUser.getUid() != messageObject.getSender()?.getUid() &&
+      !additionalParams?.hideMessagePrivatelyOption
     ) {
       return true;
     }
@@ -502,20 +592,33 @@ export class MessageDataSource implements DataSource {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): CometChatMessageOption[] {
     let messageOptionList: CometChatMessageOption[] = [];
 
     if (isDeletedMessage(messageObject)) return messageOptionList;
 
     if (
-      this.validateOption(loggedInUser, messageObject, MessageOptionConstants.replyInThread, group)
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.replyInThread,
+        group,
+        additionalParams
+      )
     ) {
       messageOptionList.push(this.getReplyInThreadOption(theme));
     }
 
     if (
-      this.validateOption(loggedInUser, messageObject, MessageOptionConstants.shareMessage, group)
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.shareMessage,
+        group,
+        additionalParams
+      )
     ) {
       messageOptionList.push(this.getShareOption(theme));
     }
@@ -525,14 +628,21 @@ export class MessageDataSource implements DataSource {
         loggedInUser,
         messageObject,
         MessageOptionConstants.messageInformation,
-        group
+        group,
+        additionalParams
       )
     ) {
       messageOptionList.push(this.getInformationOption(theme));
     }
 
     if (
-      this.validateOption(loggedInUser, messageObject, MessageOptionConstants.deleteMessage, group)
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.deleteMessage,
+        group,
+        additionalParams
+      )
     ) {
       messageOptionList.push(this.getDeleteOption(theme));
     }
@@ -542,7 +652,8 @@ export class MessageDataSource implements DataSource {
         loggedInUser,
         messageObject,
         MessageOptionConstants.sendMessagePrivately,
-        group
+        group,
+        additionalParams
       )
     ) {
       messageOptionList.push(this.getPrivateMessageOption(theme));
@@ -663,10 +774,7 @@ export class MessageDataSource implements DataSource {
         mentionsFormatterExists = true;
         formatter.setMessage(message);
         formatter.setTargetElement(MentionsTargetElement.textbubble);
-        formatter.setMentionsStyle();
         formatter.setLoggedInUser(CometChatUIKit.loggedInUser!);
-      }
-      if (formatter instanceof CometChatUrlsFormatter) {
       }
       formatter.setMessage(message);
       finalFormatters.push(CommonUtils.clone(formatter));
@@ -893,14 +1001,23 @@ export class MessageDataSource implements DataSource {
         }
       },
       options: (loggedInuser, message, theme, group) =>
-        ChatConfigurator.dataSource.getTextMessageOptions(loggedInuser, message, theme, group),
+        ChatConfigurator.dataSource.getTextMessageOptions(
+          loggedInuser,
+          message,
+          theme,
+          group,
+          additionalParams
+        ),
       BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
         return ChatConfigurator.dataSource.getBottomView(message, alignment);
       },
     });
   }
 
-  getAudioMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
+  getAudioMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate {
     return new CometChatMessageTemplate({
       type: MessageTypeConstants.audio,
       category: MessageCategoryConstants.message,
@@ -911,13 +1028,22 @@ export class MessageDataSource implements DataSource {
           return ChatConfigurator.dataSource.getAudioMessageContentView(message, alignment, theme);
       },
       options: (loggedInuser, message, theme, group) =>
-        ChatConfigurator.dataSource.getAudioMessageOptions(loggedInuser, message, theme, group),
+        ChatConfigurator.dataSource.getAudioMessageOptions(
+          loggedInuser,
+          message,
+          theme,
+          group,
+          additionalParams
+        ),
       BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
         return ChatConfigurator.dataSource.getBottomView(message, alignment);
       },
     });
   }
-  getVideoMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
+  getVideoMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate {
     return new CometChatMessageTemplate({
       type: MessageTypeConstants.video,
       category: MessageCategoryConstants.message,
@@ -928,13 +1054,22 @@ export class MessageDataSource implements DataSource {
           return ChatConfigurator.dataSource.getVideoMessageContentView(message, alignment, theme);
       },
       options: (loggedInuser, message, theme, group) =>
-        ChatConfigurator.dataSource.getVideoMessageOptions(loggedInuser, message, theme, group),
+        ChatConfigurator.dataSource.getVideoMessageOptions(
+          loggedInuser,
+          message,
+          theme,
+          group,
+          additionalParams
+        ),
       BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
         return ChatConfigurator.dataSource.getBottomView(message, alignment);
       },
     });
   }
-  getImageMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
+  getImageMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate {
     return new CometChatMessageTemplate({
       type: MessageTypeConstants.image,
       category: MessageCategoryConstants.message,
@@ -945,13 +1080,22 @@ export class MessageDataSource implements DataSource {
           return ChatConfigurator.dataSource.getImageMessageContentView(message, alignment, theme);
       },
       options: (loggedInuser, message, theme, group) =>
-        ChatConfigurator.dataSource.getImageMessageOptions(loggedInuser, message, theme, group),
+        ChatConfigurator.dataSource.getImageMessageOptions(
+          loggedInuser,
+          message,
+          theme,
+          group,
+          additionalParams
+        ),
       BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
         return ChatConfigurator.dataSource.getBottomView(message, alignment);
       },
     });
   }
-  getFileMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
+  getFileMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate {
     return new CometChatMessageTemplate({
       type: MessageTypeConstants.file,
       category: MessageCategoryConstants.message,
@@ -962,14 +1106,23 @@ export class MessageDataSource implements DataSource {
           return ChatConfigurator.dataSource.getFileMessageContentView(message, alignment, theme);
       },
       options: (loggedInuser, message, theme, group) =>
-        ChatConfigurator.dataSource.getFileMessageOptions(loggedInuser, message, theme, group),
+        ChatConfigurator.dataSource.getFileMessageOptions(
+          loggedInuser,
+          message,
+          theme,
+          group,
+          additionalParams
+        ),
       BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
         return ChatConfigurator.dataSource.getBottomView(message, alignment);
       },
     });
   }
 
-  getFormMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
+  getFormMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate {
     return new CometChatMessageTemplate({
       type: MessageTypeConstants.form,
       category: MessageCategoryConstants.interactive,
@@ -993,7 +1146,10 @@ export class MessageDataSource implements DataSource {
     });
   }
 
-  getSchedulerMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
+  getSchedulerMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate {
     return new CometChatMessageTemplate({
       type: MessageTypeConstants.scheduler,
       category: MessageCategoryConstants.interactive,
@@ -1017,7 +1173,10 @@ export class MessageDataSource implements DataSource {
     });
   }
 
-  getCardMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
+  getCardMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate {
     return new CometChatMessageTemplate({
       type: MessageTypeConstants.card,
       category: MessageCategoryConstants.interactive,
@@ -1041,7 +1200,10 @@ export class MessageDataSource implements DataSource {
     });
   }
 
-  getGroupActionTemplate(theme: CometChatTheme): CometChatMessageTemplate {
+  getGroupActionTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate {
     return new CometChatMessageTemplate({
       type: MessageTypeConstants.groupMember,
       category: MessageCategoryConstants.action,
@@ -1057,22 +1219,23 @@ export class MessageDataSource implements DataSource {
   ): CometChatMessageTemplate[] {
     return [
       ChatConfigurator.dataSource.getTextMessageTemplate(theme, additionalParams),
-      ChatConfigurator.dataSource.getAudioMessageTemplate(theme),
-      ChatConfigurator.dataSource.getVideoMessageTemplate(theme),
-      ChatConfigurator.dataSource.getFileMessageTemplate(theme),
-      ChatConfigurator.dataSource.getImageMessageTemplate(theme),
-      ChatConfigurator.dataSource.getGroupActionTemplate(theme),
-      ChatConfigurator.dataSource.getGroupActionTemplate(theme),
-      ChatConfigurator.dataSource.getFormMessageTemplate(theme),
-      ChatConfigurator.dataSource.getSchedulerMessageTemplate(theme),
-      ChatConfigurator.dataSource.getCardMessageTemplate(theme),
+      ChatConfigurator.dataSource.getAudioMessageTemplate(theme, additionalParams),
+      ChatConfigurator.dataSource.getVideoMessageTemplate(theme, additionalParams),
+      ChatConfigurator.dataSource.getFileMessageTemplate(theme, additionalParams),
+      ChatConfigurator.dataSource.getImageMessageTemplate(theme, additionalParams),
+      ChatConfigurator.dataSource.getGroupActionTemplate(theme, additionalParams),
+      ChatConfigurator.dataSource.getGroupActionTemplate(theme, additionalParams),
+      ChatConfigurator.dataSource.getFormMessageTemplate(theme, additionalParams),
+      ChatConfigurator.dataSource.getSchedulerMessageTemplate(theme, additionalParams),
+      ChatConfigurator.dataSource.getCardMessageTemplate(theme, additionalParams),
     ];
   }
 
   getMessageTemplate(
     messageType: string,
     MessageCategory: string,
-    theme: CometChatTheme
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
   ): CometChatMessageTemplate | null {
     // let _theme: CometChatTheme = useContext("theme")         ???
     let template: CometChatMessageTemplate;
@@ -1082,29 +1245,29 @@ export class MessageDataSource implements DataSource {
 
     switch (messageType) {
       case MessageTypeConstants.text:
-        template = ChatConfigurator.dataSource.getTextMessageTemplate(theme);
+        template = ChatConfigurator.dataSource.getTextMessageTemplate(theme, additionalParams);
         break;
       case MessageTypeConstants.audio:
-        template = ChatConfigurator.dataSource.getAudioMessageTemplate(theme);
+        template = ChatConfigurator.dataSource.getAudioMessageTemplate(theme, additionalParams);
         break;
       case MessageTypeConstants.video:
-        template = ChatConfigurator.dataSource.getVideoMessageTemplate(theme);
+        template = ChatConfigurator.dataSource.getVideoMessageTemplate(theme, additionalParams);
         break;
       case MessageTypeConstants.groupActions:
       case MessageTypeConstants.groupMember:
-        template = ChatConfigurator.dataSource.getGroupActionTemplate(theme);
+        template = ChatConfigurator.dataSource.getGroupActionTemplate(theme, additionalParams);
         break;
       case MessageTypeConstants.file:
-        template = ChatConfigurator.dataSource.getFileMessageTemplate(theme);
+        template = ChatConfigurator.dataSource.getFileMessageTemplate(theme, additionalParams);
         break;
       case MessageTypeConstants.form:
-        template = ChatConfigurator.dataSource.getFormMessageTemplate(theme);
+        template = ChatConfigurator.dataSource.getFormMessageTemplate(theme, additionalParams);
         break;
       case MessageTypeConstants.scheduler:
-        template = ChatConfigurator.dataSource.getSchedulerMessageTemplate(theme);
+        template = ChatConfigurator.dataSource.getSchedulerMessageTemplate(theme, additionalParams);
         break;
       case MessageTypeConstants.card:
-        template = ChatConfigurator.dataSource.getCardMessageTemplate(theme);
+        template = ChatConfigurator.dataSource.getCardMessageTemplate(theme, additionalParams);
         break;
     }
     return null;
@@ -1135,14 +1298,14 @@ export class MessageDataSource implements DataSource {
     user: CometChat.User,
     group: CometChat.Group,
     id: Map<string, any>,
-    additionalParams?: AdditionalParams
+    additionalAuxiliaryParams?: AdditionalAuxiliaryOptionsParams
   ): JSX.Element[] {
     return [];
   }
   getAuxiliaryHeaderAppbarOptions(
     user?: CometChat.User,
     group?: CometChat.Group,
-    additionalParams?: AdditionalParams
+    additionalAuxiliaryHeaderOptionsParams?: AdditionalAuxiliaryHeaderOptionsParams
   ): JSX.Element | null {
     return null;
   }
@@ -1173,247 +1336,289 @@ export class MessageDataSource implements DataSource {
     }
     return subtitle;
   }
-  usersActionList = (theme: CometChatTheme) => [
-    {
-      id: MessageTypeConstants.takePhoto,
-      title: localize("CAMERA"),
-      icon: (
-        <Icon
-          name='photo-camera-fill'
-          color={theme.color.primary}
-          height={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.height as DimensionValue
-          }
-          width={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.width as DimensionValue
-          }
-          containerStyle={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
-              ?.iconContainerStyle as ViewStyle
-          }
-        />
-      ),
-      onClick: null,
-    },
-    {
-      id: MessageTypeConstants.image,
-      title: localize("ATTACH_IMAGE"),
-      icon: (
-        <Icon
-          name='photo-fill'
-          color={theme.color.primary}
-          height={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.height as DimensionValue
-          }
-          width={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.width as DimensionValue
-          }
-          containerStyle={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
-              ?.iconContainerStyle as ViewStyle
-          }
-        />
-      ),
-      onClick: null,
-    },
-    {
-      id: MessageTypeConstants.video,
-      title: localize("ATTACH_VIDEO"),
-      icon: (
-        <Icon
-          name='videocam-fill'
-          color={theme.color.primary}
-          height={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.height as DimensionValue
-          }
-          width={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.width as DimensionValue
-          }
-          containerStyle={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
-              ?.iconContainerStyle as ViewStyle
-          }
-        />
-      ),
-      onClick: null,
-    },
-    {
-      id: MessageTypeConstants.audio,
-      title: localize("ATTACH_AUDIO"),
-      icon: (
-        <Icon
-          name='play-circle-fill'
-          color={theme.color.primary}
-          height={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.height as DimensionValue
-          }
-          width={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.width as DimensionValue
-          }
-          containerStyle={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
-              ?.iconContainerStyle as ViewStyle
-          }
-        />
-      ),
-      onClick: null,
-    },
-    {
-      id: MessageTypeConstants.file,
-      title: localize("ATTACH_DOCUMENT"),
-      icon: (
-        <Icon
-          name='description-fill'
-          color={theme.color.primary}
-          height={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.height as DimensionValue
-          }
-          width={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.width as DimensionValue
-          }
-          containerStyle={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
-              ?.iconContainerStyle as ViewStyle
-          }
-        />
-      ),
-      onClick: null,
-    },
-  ];
-  groupActionList = (theme: CometChatTheme) => [
-    {
-      id: MessageTypeConstants.takePhoto,
-      title: localize("CAMERA"),
-      icon: (
-        <Icon
-          name='photo-camera-fill'
-          color={theme.color.primary}
-          height={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.height
-          }
-          width={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle?.width
-          }
-          containerStyle={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
-              ?.iconContainerStyle
-          }
-        />
-      ),
-      onClick: null,
-    },
-    {
-      id: MessageTypeConstants.image,
-      title: localize("ATTACH_IMAGE"),
-      icon: (
-        <Icon
-          name='photo-fill'
-          color={theme.color.primary}
-          height={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.height
-          }
-          width={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle?.width
-          }
-          containerStyle={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
-              ?.iconContainerStyle
-          }
-        />
-      ),
-      onClick: null,
-    },
-    {
-      id: MessageTypeConstants.audio,
-      title: localize("ATTACH_AUDIO"),
-      icon: (
-        <Icon
-          name='play-circle-fill'
-          color={theme.color.primary}
-          height={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.height
-          }
-          width={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle?.width
-          }
-          containerStyle={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
-              ?.iconContainerStyle
-          }
-        />
-      ),
-      onClick: null,
-    },
-    {
-      id: MessageTypeConstants.video,
-      title: localize("ATTACH_VIDEO"),
-      icon: (
-        <Icon
-          name='videocam-fill'
-          color={theme.color.primary}
-          height={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.height
-          }
-          width={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle?.width
-          }
-          containerStyle={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
-              ?.iconContainerStyle
-          }
-        />
-      ),
-      onClick: null,
-    },
-    {
-      id: MessageTypeConstants.file,
-      title: localize("ATTACH_DOCUMENT"),
-      icon: (
-        <Icon
-          name='description-fill'
-          color={theme.color.primary}
-          height={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
-              ?.height
-          }
-          width={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle?.width
-          }
-          containerStyle={
-            theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
-              ?.iconContainerStyle
-          }
-        />
-      ),
-      onClick: null,
-    },
-  ];
+  usersActionList = (
+    theme: CometChatTheme,
+    additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
+  ) => {
+    const attachmentOptions = [];
+    if (!additionalAttachmentOptionsParams?.hideCameraOption) {
+      attachmentOptions.push({
+        id: MessageTypeConstants.takePhoto,
+        title: localize("CAMERA"),
+        icon: (
+          <Icon
+            name='photo-camera-fill'
+            color={theme.color.primary}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height as DimensionValue
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width as DimensionValue
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle as ViewStyle
+            }
+          />
+        ),
+        onClick: null,
+      });
+    }
+    if (!additionalAttachmentOptionsParams?.hideImageAttachmentOption) {
+      attachmentOptions.push({
+        id: MessageTypeConstants.image,
+        title: localize("ATTACH_IMAGE"),
+        icon: (
+          <Icon
+            name='photo-fill'
+            color={theme.color.primary}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height as DimensionValue
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width as DimensionValue
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle as ViewStyle
+            }
+          />
+        ),
+        onClick: null,
+      });
+    }
+
+    if (!additionalAttachmentOptionsParams?.hideVideoAttachmentOption) {
+      attachmentOptions.push({
+        id: MessageTypeConstants.video,
+        title: localize("ATTACH_VIDEO"),
+        icon: (
+          <Icon
+            name='videocam-fill'
+            color={theme.color.primary}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height as DimensionValue
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width as DimensionValue
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle as ViewStyle
+            }
+          />
+        ),
+        onClick: null,
+      });
+    }
+
+    if (!additionalAttachmentOptionsParams?.hideAudioAttachmentOption) {
+      attachmentOptions.push({
+        id: MessageTypeConstants.audio,
+        title: localize("ATTACH_AUDIO"),
+        icon: (
+          <Icon
+            name='play-circle-fill'
+            color={theme.color.primary}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height as DimensionValue
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width as DimensionValue
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle as ViewStyle
+            }
+          />
+        ),
+        onClick: null,
+      });
+    }
+    if (!additionalAttachmentOptionsParams?.hideFileAttachmentOption) {
+      attachmentOptions.push({
+        id: MessageTypeConstants.file,
+        title: localize("ATTACH_DOCUMENT"),
+        icon: (
+          <Icon
+            name='description-fill'
+            color={theme.color.primary}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height as DimensionValue
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width as DimensionValue
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle as ViewStyle
+            }
+          />
+        ),
+        onClick: null,
+      });
+    }
+    return attachmentOptions;
+  };
+  groupActionList = (
+    theme: CometChatTheme,
+    additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
+  ) => {
+    const attachmentOptions = [];
+    if (!additionalAttachmentOptionsParams?.hideCameraOption) {
+      attachmentOptions.push({
+        id: MessageTypeConstants.takePhoto,
+        title: localize("CAMERA"),
+        icon: (
+          <Icon
+            name='photo-camera-fill'
+            color={theme.color.primary}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle
+            }
+          />
+        ),
+        onClick: null,
+      });
+    }
+    if (!additionalAttachmentOptionsParams?.hideImageAttachmentOption) {
+      attachmentOptions.push({
+        id: MessageTypeConstants.image,
+        title: localize("ATTACH_IMAGE"),
+        icon: (
+          <Icon
+            name='photo-fill'
+            color={theme.color.primary}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle
+            }
+          />
+        ),
+        onClick: null,
+      });
+    }
+
+    if (!additionalAttachmentOptionsParams?.hideVideoAttachmentOption) {
+      attachmentOptions.push({
+        id: MessageTypeConstants.video,
+        title: localize("ATTACH_VIDEO"),
+        icon: (
+          <Icon
+            name='videocam-fill'
+            color={theme.color.primary}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle
+            }
+          />
+        ),
+        onClick: null,
+      });
+    }
+
+    if (!additionalAttachmentOptionsParams?.hideAudioAttachmentOption) {
+      attachmentOptions.push({
+        id: MessageTypeConstants.audio,
+        title: localize("ATTACH_AUDIO"),
+        icon: (
+          <Icon
+            name='play-circle-fill'
+            color={theme.color.primary}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle
+            }
+          />
+        ),
+        onClick: null,
+      });
+    }
+    if (!additionalAttachmentOptionsParams?.hideFileAttachmentOption) {
+      attachmentOptions.push({
+        id: MessageTypeConstants.file,
+        title: localize("ATTACH_DOCUMENT"),
+        icon: (
+          <Icon
+            name='description-fill'
+            color={theme.color.primary}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle
+            }
+          />
+        ),
+        onClick: null,
+      });
+    }
+
+    return attachmentOptions;
+  };
+  
   getAttachmentOptions(
     theme: CometChatTheme,
     user?: any,
     group?: any,
-    composerId?: any
+    composerId?: any,
+    additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
   ): CometChatMessageComposerAction[] {
     if (user) {
-      return this.usersActionList(theme);
+      return this.usersActionList(theme, additionalAttachmentOptionsParams);
     } else if (group) {
-      return this.groupActionList(theme);
+      return this.groupActionList(theme, additionalAttachmentOptionsParams);
     } else {
-      return this.usersActionList(theme);
+      return this.usersActionList(theme, additionalAttachmentOptionsParams);
     }
   }
   getAuxiliaryButtonOptions() {
@@ -1424,10 +1629,7 @@ export class MessageDataSource implements DataSource {
     conversation: CometChat.Conversation,
     theme?: CometChatTheme
   ): string | JSX.Element {
-    return CometChatConversationUtils.getMessagePreview(
-      conversation.getLastMessage(),
-      theme
-    );
+    return CometChatConversationUtils.getMessagePreview(conversation.getLastMessage(), theme);
   }
 
   getAllTextFormatters(loggedInUser?: CometChat.User): CometChatTextFormatter[] {

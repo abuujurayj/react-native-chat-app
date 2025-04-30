@@ -194,7 +194,7 @@ const AddMember: React.FC = () => {
             .setUIDs([])}
           selectionMode="multiple"
           onSelection={handleUserSelection}
-          hideBackButton={false}
+          showBackButton={true}
           onBack={() => navigation.goBack()}
         />
 

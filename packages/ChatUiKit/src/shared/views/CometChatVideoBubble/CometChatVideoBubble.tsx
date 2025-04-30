@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   EmitterSubscription,
@@ -20,33 +20,53 @@ import { CommonUtils } from "../../utils/CommonUtils";
 const { FileManager } = NativeModules;
 const eventEmitter = new NativeEventEmitter(FileManager);
 let statusListener: EmitterSubscription;
+/**
+ * Props for the CometChatVideoBubble component.
+ */
 export interface CometChatVideoBubbleInterface {
   /**
-   * url for video
+   * URL for the video.
    */
   videoUrl: string;
   /**
-   * thumbnail url for bubble
+   * Thumbnail URL for the video bubble.
    */
   thumbnailUrl?: ImageSourcePropType;
   /**
-   * placeholder image
+   * Placeholder image to display while the video is loading.
    */
   placeholderImage?: ImageSourcePropType;
-
   /**
-   * custom play icon
+   * Custom play icon, which can be a JSX element or an image source.
    */
   playIcon?: JSX.Element | ImageSourcePropType;
   /**
-   * callback function to be executed when play button clicked.
-   * function will receive an videoUrl as parameter.
+   * Callback function executed when the play button is clicked.
+   * The function receives the video URL as a parameter.
+   *
+   * @param videoUrl - The URL of the video.
    */
   onPress?: Function;
+  /**
+   * Custom style for the video thumbnail image.
+   */
   imageStyle?: ImageStyle;
+  /**
+   * Custom style for the play icon.
+   */
   playIconStyle?: ImageStyle;
+  /**
+   * Custom style for the container of the play icon.
+   */
   playIconContainerStyle?: ViewStyle;
 }
+/**
+ * CometChatVideoBubble is a component that displays a video bubble with a thumbnail image
+ * and a play icon. It handles video playback when the play icon is clicked.
+ *
+ * @param props - Props for the component.
+ * @returns The rendered video bubble.
+ */
 
 export const CometChatVideoBubble = (props: CometChatVideoBubbleInterface) => {
   const {

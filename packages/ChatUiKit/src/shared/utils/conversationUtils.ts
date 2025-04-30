@@ -47,7 +47,7 @@ export class CometChatConversationUtils {
       }
 
       if (lastMessage.getCategory() == "call") {
-        let color: ColorValue = theme.color.textSecondary;
+        let color: ColorValue | undefined = theme?.color?.textSecondary;
         let text = "Video call";
         let iconName: IconName = "phone-incoming-fill";
         if (lastMessage.getType() == "audio") {
@@ -56,7 +56,7 @@ export class CometChatConversationUtils {
         if (uid === lastMessage.getSender().getUid()) {
           iconName = "phone-outgoing-fill";
         } else if ((lastMessage as CometChat.Call).getAction() === "unanswered") {
-          color = theme.color.error;
+          color = theme?.color?.error;
           text = "Missed " + text.toLowerCase();
         }
 

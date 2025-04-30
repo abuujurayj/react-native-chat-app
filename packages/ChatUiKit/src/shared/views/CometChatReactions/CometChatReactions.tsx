@@ -5,20 +5,48 @@ import { MessageBubbleAlignmentType } from "../../base/Types";
 import { CometChatTheme } from "../../../theme/type";
 import { DeepPartial } from "../../helper/types";
 
+/**
+ * Props for rendering reactions on a message bubble.
+ */
 export interface CometChatReactionsInterface {
+  /**
+   * The message object for which reactions will be displayed.
+   */
   messageObject: CometChat.BaseMessage;
+  /**
+   * Custom styles for the reaction bubble.
+   */
   style?: DeepPartial<CometChatTheme["messageBubbleReactionStyles"]>;
+  /**
+   * Callback invoked when a reaction is pressed.
+   *
+   * @param reaction - The reaction count object that was pressed.
+   * @param messageObject - The message object associated with the reaction.
+   */
   onReactionPress?: (
     reaction: CometChat.ReactionCount,
     messageObject: CometChat.BaseMessage
   ) => void;
+  /**
+   * Callback invoked when a reaction is long pressed.
+   *
+   * @param reaction - The reaction count object that was long pressed.
+   * @param messageObject - The message object associated with the reaction.
+   */
   onReactionLongPress?: (
     reaction: CometChat.ReactionCount,
     messageObject: CometChat.BaseMessage
   ) => void;
+  /**
+   * Alignment of the reaction bubble.
+   */
   alignment?: MessageBubbleAlignmentType;
+  /**
+   * Maximum width for the content inside the reaction bubble.
+   */
   maxContentWidth?: number;
 }
+
 const CometChatReactions = (props: CometChatReactionsInterface) => {
   const { messageObject, style, onReactionPress, onReactionLongPress, alignment, maxContentWidth } =
     props;
@@ -73,7 +101,7 @@ const CometChatReactions = (props: CometChatReactionsInterface) => {
     return (
       <TouchableOpacity
         onPress={() => {
-          onReactionLongPress && onReactionLongPress(AllObj, messageObject);
+          onReactionPress && onReactionPress(AllObj, messageObject);
         }}
         onLongPress={() => {
           onReactionLongPress && onReactionLongPress(AllObj, messageObject);

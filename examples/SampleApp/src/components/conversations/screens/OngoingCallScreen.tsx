@@ -1,12 +1,12 @@
 import React, {useRef} from 'react';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
-import {navigate} from '../../../navigation/NavigationService';
+import {navigate, navigationRef} from '../../../navigation/NavigationService';
 import {CometChatCalls} from '@cometchat/calls-sdk-react-native';
 import {CometChatOngoingCall} from '@cometchat/chat-uikit-react-native';
-import {voipHandler} from '../../../utils/VoipNotificationHandler';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {SCREEN_CONSTANTS} from '../../../utils/AppConstants';
 
-const OutgoingCallScreen = ({navigation, route}: any) => {
+const OngoingCallScreen = ({navigation, route}: any) => {
   const {call} = route.params;
   const isAudioCall = call.callType === 'audio';
   let sessionID = call.sessionId;
@@ -19,12 +19,18 @@ const OutgoingCallScreen = ({navigation, route}: any) => {
       CometChat.clearActiveCall();
       CometChatCalls.endSession();
       navigate('BottomTabNavigator');
-      voipHandler?.removeCallDialer();
+      navigationRef.reset({
+        index: 0,
+        routes: [{name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR}],
+      });
     },
     onCallEndButtonPressed: () => {
-      voipHandler?.removeCallDialer();
       CometChat.endCall((call as CometChat.Call).getSessionId());
       navigate('BottomTabNavigator');
+      navigationRef.reset({
+        index: 0,
+        routes: [{name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR}],
+      });
     },
   });
 
@@ -48,4 +54,4 @@ const OutgoingCallScreen = ({navigation, route}: any) => {
   );
 };
 
-export default OutgoingCallScreen;
+export default OngoingCallScreen;

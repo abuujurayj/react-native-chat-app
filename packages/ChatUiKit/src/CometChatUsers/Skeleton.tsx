@@ -1,195 +1,210 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, Dimensions, Easing, ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { useTheme } from "../theme";
+import type { ColorValue } from "react-native";
+import { CometChatTheme } from "../theme/type";
 
-const { width: screenWidth } = Dimensions.get("window");
+/**
+ * Animated skeleton placeholder mimicking a *user list* in CometChat UI‑Kit.
+ *
+ * The component respects the defaults provided by `theme.userStyles.skeletonStyle`,
+ * but every visual property can be **overridden per instance** using the
+ * `style` prop.
+ *
+ * @example
+ * ```tsx
+ * <Skeleton
+ *   style={{
+ *     linearGradientColors: ["#4c669f", "#3b5998"],
+ *     shimmerOpacity: 0.4,
+ *   }}
+ * />
+ * ```
+ */
+export interface SkeletonProps {
+  /** Partial style overrides (theme fallback for omitted keys). */
+  style?: Partial<SkeletonStyle>;
+}
 
-// Constants for dimensions
-const padding = 20;
-const listItemHeight = 25; // Increased from 15 to 25
-const listItemSpacing = 54; // Adjust if necessary
-const avatarRadius = 25; // Increased from 12 to 20
-const listItemCount = 14;
+/** Alias for the skeleton style slice inside the theme. */
+type SkeletonStyle = CometChatTheme["userStyles"]["skeletonStyle"];
 
-const SkeletonItemBottom = () => {
-  const theme = useTheme();
+// ──────────────────────────────────────────────────────────────────────────────
+// Utility helpers
+// ──────────────────────────────────────────────────────────────────────────────
 
-  // Calculate the total height needed for the SVG
-  const totalHeight = padding + listItemCount * (listItemHeight + listItemSpacing);
+function getStyleValue<K extends keyof SkeletonStyle>(
+  key: K,
+  overrides: Partial<SkeletonStyle> | undefined,
+  theme: CometChatTheme
+): NonNullable<SkeletonStyle[K]> {
+  // Guaranteed fallback to theme defaults; cast is safe as UI‑Kit defines them.
+  return ((overrides?.[key] as SkeletonStyle[K]) ??
+    theme.userStyles.skeletonStyle[key]) as NonNullable<SkeletonStyle[K]>;
+}
 
-  return (
-    <Svg height={totalHeight} width={screenWidth} fill='none' preserveAspectRatio='xMidYMid meet'>
-      {/* List Items */}
-      {Array.from({ length: listItemCount }).map((_, index) => {
-        const itemY = padding + index * (listItemHeight + listItemSpacing) - 20;
+// ──────────────────────────────────────────────────────────────────────────────
+// Layout constants – tweak here if the design changes
+// ──────────────────────────────────────────────────────────────────────────────
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+const PADDING = 20;
+const AVATAR_RADIUS = 25;
+const LIST_ITEM_HEIGHT = 25;
+const LIST_ITEM_SPACING = 54; // gap between items (includes avatar & text)
+const LIST_ITEM_COUNT = 14;
+
+/** Total height required for the SVG canvas */
+const TOTAL_HEIGHT = PADDING + LIST_ITEM_COUNT * (LIST_ITEM_HEIGHT + LIST_ITEM_SPACING);
+
+// ──────────────────────────────────────────────────────────────────────────────
+// SVG rows factory (memoized for perf)
+// ──────────────────────────────────────────────────────────────────────────────
+
+const useRows = (fill: ColorValue) =>
+  useMemo(
+    () =>
+      Array.from({ length: LIST_ITEM_COUNT }).map((_, index) => {
+        const y = PADDING + index * (LIST_ITEM_HEIGHT + LIST_ITEM_SPACING) - 20;
         return (
+          // eslint-disable-next-line react/no-array-index-key
           <React.Fragment key={index}>
-            {/* Avatar Circle */}
             <Circle
-              cx={padding + avatarRadius}
-              cy={itemY + avatarRadius}
-              r={avatarRadius}
-              fill='url(#paint0_linear)'
+              cx={PADDING + AVATAR_RADIUS}
+              cy={y + AVATAR_RADIUS}
+              r={AVATAR_RADIUS}
+              fill={fill as string}
             />
-
-            {/* Username Rectangle */}
             <Rect
-              x={padding + 2 * avatarRadius + 12} // 12 units spacing after avatar
-              y={itemY + 12}
-              width={screenWidth - (padding + 2 * avatarRadius + 12 + padding)}
-              height={listItemHeight}
-              rx={listItemHeight / 2} // Rounded corners matching height
-              fill='url(#paint0_linear)'
+              x={PADDING + AVATAR_RADIUS * 2 + 12}
+              y={y + 12}
+              width={SCREEN_WIDTH - (PADDING + AVATAR_RADIUS * 2 + 12 + PADDING)}
+              height={LIST_ITEM_HEIGHT}
+              rx={LIST_ITEM_HEIGHT / 2}
+              fill={fill as string}
             />
           </React.Fragment>
         );
-      })}
-
-      {/* Gradient Definition */}
-      <Defs>
-        <LinearGradient
-          id='paint0_linear'
-          x1='0'
-          y1='0'
-          x2={screenWidth}
-          y2='0'
-          gradientUnits='userSpaceOnUse'
-        >
-          <Stop stopColor={theme.userStyles.skeletonStyle.linearGradientColors[0]} />
-          <Stop offset='1' stopColor={theme.userStyles.skeletonStyle.linearGradientColors[1]} />
-        </LinearGradient>
-      </Defs>
-    </Svg>
+      }),
+    [fill]
   );
-};
 
-const SkeletonItemTop = () => {
+// ──────────────────────────────────────────────────────────────────────────────
+// Component Implementation
+// ──────────────────────────────────────────────────────────────────────────────
+
+export const Skeleton: React.FC<SkeletonProps> = ({ style }) => {
   const theme = useTheme();
+  const get = <K extends keyof SkeletonStyle>(key: K) => getStyleValue(key, style, theme);
 
-  // Calculate the total height needed for the SVG
-  const totalHeight = padding + listItemCount * (listItemHeight + listItemSpacing);
-
-  return (
-    <Svg height={totalHeight} width={screenWidth} fill='none' preserveAspectRatio='xMidYMid meet'>
-      {/* List Items */}
-      {Array.from({ length: listItemCount }).map((_, index) => {
-        const itemY = padding + index * (listItemHeight + listItemSpacing) - 20;
-
-        return (
-          <React.Fragment key={index}>
-            {/* Avatar Circle */}
-            <Circle
-              cx={padding + avatarRadius}
-              cy={itemY + avatarRadius}
-              r={avatarRadius}
-              fill={theme.userStyles.skeletonStyle.backgroundColor}
-            />
-
-            {/* Username Rectangle */}
-            <Rect
-              x={padding + 2 * avatarRadius + 12} // 12 units spacing after avatar
-              y={itemY + 12}
-              width={screenWidth - (padding + 2 * avatarRadius + 12 + padding)}
-              height={listItemHeight}
-              rx={listItemHeight / 2} // Rounded corners matching height
-              fill={theme.userStyles.skeletonStyle.backgroundColor}
-            />
-          </React.Fragment>
-        );
-      })}
-    </Svg>
-  );
-};
-
-export const Skeleton = () => {
-  const theme = useTheme();
-  const animatedValue = useRef(new Animated.Value(0)).current;
+  // Shimmer animation ------------------------------------------
+  const translate = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const startShimmer = () => {
-      animatedValue.setValue(0);
-      Animated.loop(
-        Animated.timing(animatedValue, {
-          toValue: 1,
-          duration: (1 / theme.userStyles.skeletonStyle.speed) * 1000,
-          easing: Easing.linear,
-          useNativeDriver: false,
-        })
-      ).start();
-    };
+    const speed = get("speed");
+    const duration = 1000 / speed;
+    const loop = Animated.loop(
+      Animated.timing(translate, {
+        toValue: 1,
+        duration,
+        easing: Easing.linear,
+        useNativeDriver: false, // SVG not yet compatible with native driver
+      })
+    );
 
-    startShimmer();
-  }, [animatedValue, theme.userStyles.skeletonStyle.speed]);
+    loop.start();
+    return () => loop.stop();
+  }, [get("speed"), translate]);
 
-  const shimmerTranslateX = animatedValue.interpolate({
+  const translateX = translate.interpolate({
     inputRange: [0, 1],
-    outputRange: [-screenWidth * 2, screenWidth],
+    outputRange: [-SCREEN_WIDTH * 2, SCREEN_WIDTH],
   });
+
+  // Pre‑build row shapes (bottom gradient + top mask)
+  const rowsGradient = useRows("url(#gradient)");
+  const rowsSolid = useRows(String(get("backgroundColor")));
 
   return (
     <ScrollView
       scrollEnabled={false}
       showsVerticalScrollIndicator={false}
-      style={{ backgroundColor: theme.userStyles.containerStyle.backgroundColor }}
+      style={{ backgroundColor: get("containerBackgroundColor") }}
     >
-      <SkeletonItemBottom />
-      <Animated.View
-        style={[
-          {
-            transform: [
-              { translateX: shimmerTranslateX },
-              { translateY: -20 },
-              { rotate: "15deg" },
-            ],
-          },
-          styles.animatedView,
-          {
-            backgroundColor: theme.userStyles.skeletonStyle.shimmerBackgroundColor,
-            opacity: theme.userStyles.skeletonStyle.shimmerOpacity,
-          },
-        ]}
-      />
-      <Animated.View
-        style={[
-          {
-            transform: [
-              {
-                translateX: Animated.add(shimmerTranslateX, screenWidth / 2),
-              },
-              { translateY: -20 },
-              { rotate: "15deg" },
-            ],
-          },
-          styles.animatedView,
-          {
-            backgroundColor: theme.userStyles.skeletonStyle.shimmerBackgroundColor,
-            opacity: theme.userStyles.skeletonStyle.shimmerOpacity,
-          },
-        ]}
-      />
-      <View
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        }}
+      {/* Bottom layer (gradient fill) */}
+      <Svg
+        height={TOTAL_HEIGHT}
+        width={SCREEN_WIDTH}
+        fill='none'
+        preserveAspectRatio='xMidYMid meet'
       >
-        <SkeletonItemTop />
+        <Defs>
+          <LinearGradient
+            id='gradient'
+            x1='0'
+            y1='0'
+            x2={SCREEN_WIDTH}
+            y2='0'
+            gradientUnits='userSpaceOnUse'
+          >
+            {(() => {
+              const colors = get("linearGradientColors");
+              return [
+                <Stop key={0} stopColor={colors[0]} />,
+                <Stop key={1} offset='1' stopColor={colors[1]} />,
+              ];
+            })()}
+          </LinearGradient>
+        </Defs>
+        {rowsGradient}
+      </Svg>
+
+      {/* Moving shimmer highlight (rendered twice for coverage) */}
+      {[0, SCREEN_WIDTH / 2].map((offset) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <Animated.View
+          key={offset}
+          style={[
+            styles.shimmer,
+            {
+              transform: [
+                { translateX: Animated.add(translateX, offset) },
+                { translateY: -20 },
+                { rotate: "15deg" },
+              ],
+              backgroundColor: get("shimmerBackgroundColor"),
+              opacity: get("shimmerOpacity"),
+            },
+          ]}
+        />
+      ))}
+
+      {/* Top mask – solid shapes clip the shimmer to list items */}
+      <View style={StyleSheet.absoluteFill} pointerEvents='none'>
+        <Svg
+          height={TOTAL_HEIGHT}
+          width={SCREEN_WIDTH}
+          fill='none'
+          preserveAspectRatio='xMidYMid meet'
+        >
+          {rowsSolid}
+        </Svg>
       </View>
     </ScrollView>
   );
 };
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Styles
+// ──────────────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  animatedView: {
-    width: "25%",
+  shimmer: {
+    position: "absolute",
+    width: "25%", // thin bar for highlight
     top: 0,
     bottom: 0,
-    position: "absolute",
   },
 });
-

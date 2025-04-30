@@ -4,6 +4,7 @@ import {CometChat} from '@cometchat/chat-sdk-react-native';
 export type RootStackParamList = {
   Login: undefined;
   BottomTabNavigator: NavigatorScreenParams<BottomTabParamList>;
+  OngoingCallScreen: {call: any};
   AppCredentials: undefined;
   SampleUser: undefined;
 };

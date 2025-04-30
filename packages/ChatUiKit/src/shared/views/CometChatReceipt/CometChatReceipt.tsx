@@ -7,16 +7,20 @@ import { ReceiptStyles } from "./style";
 import { MessageReceipt } from "../../constants/UIKitConstants";
 
 /**
+ * Props for the CometChatReceipt component.
  *
- * CometChatReceipt is a component used to display the status of a message by a custom symbol.
- * This component returns the appropriate symbol depending upon the message status and can be customised.
- *
- * @version 1.0.0
- * @author CometChat
+ * CometChatReceipt is a component used to display the status of a message using a custom symbol.
+ * It returns an appropriate symbol depending on the message status and can be customized via style.
  *
  */
 export interface CometChatReceiptInterface {
+  /**
+   * The message receipt object representing the status of the message.
+   */
   receipt?: MessageReceipt;
+  /**
+   * Custom styles to override or extend the default receipt styles.
+   */
   style?: Partial<ReceiptStyles>;
 }
 

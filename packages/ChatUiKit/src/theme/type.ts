@@ -259,7 +259,7 @@ export interface CometChatTheme {
   threadHeaderStyles: {
     containerStyle: ViewStyle;
     messageBubbleContainerStyle: ViewStyle;
-    dividerStyle: ViewStyle;
+    replyCountBarStyle: ViewStyle;
     replyCountTextStyle: TextStyle;
     incomingMessageBubbleStyles: DeepPartial<BubbleStyles>;
     outgoingMessageBubbleStyles: DeepPartial<BubbleStyles>;
@@ -434,7 +434,7 @@ export interface CometChatTheme {
     messageOptionsStyles: DeepPartial<ActionSheetStyle>;
   };
   avatarStyle: Partial<AvatarStyle>;
-  statusIndicatorStyles: StatusIndicatorStyles;
+  statusIndicatorStyle: StatusIndicatorStyles;
   badgeStyle: BadgeStyle;
   callLogsStyles: CallLogsStyle;
   conversationStyles: ConversationStyle;

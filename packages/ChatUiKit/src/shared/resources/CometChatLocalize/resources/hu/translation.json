@@ -402,7 +402,7 @@
 	"TAP_TO_REMOVE": "Koppintson az eltávolításhoz",
 	"ADD_CONTACTS": "Adjon hozzá kapcsolatokat, hogy beszélgetéseket kezdjen és itt láthassa őket felsorolva.",
 	"SCOPE_CHANGE_INFO": "Megváltoztathatja a szerepeket a csoport jogosultságainak és felelősségeinek kezeléséhez",
-	"SOMETHING_WENT_WRONG": "Úgy tűnik, valami hiba történt. Kérjük, próbálja újra",
+	"SOMETHING_WENT_WRONG": "Úgy tűnik, valami hiba történt.",
 	"MENTION_UPTO": "Megemlítheti akár",
 	"TIME": "idő",
 	"TIMES": "alkalmak",
@@ -442,5 +442,6 @@
 	"APP_CREDENTIALS" : "Alkalmazás hitelesítő adatai",
 	"REGION": "Régió",
 	"WRONG_TEXT":"Úgy tűnik, valami félrement.",
-	"WRONG_TEXT_TRY_AGAIN":"Kérjük, próbáld meg újra."
+	"WRONG_TEXT_TRY_AGAIN":"Kérjük, próbáld meg újra.",
+	"BLOCKED_USER_DESC": "Nem lehet üzenetet küldeni, mert a felhasználó le van tiltva"
 }

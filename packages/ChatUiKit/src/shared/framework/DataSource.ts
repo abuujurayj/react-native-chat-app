@@ -1,6 +1,9 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatTheme } from "../../theme/type";
 import {
+  AdditionalAttachmentOptionsParams,
+  AdditionalAuxiliaryHeaderOptionsParams,
+  AdditionalAuxiliaryOptionsParams,
   AdditionalParams,
   MessageBubbleAlignmentType,
 } from "../base/Types";
@@ -19,47 +22,57 @@ export interface DataSource {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): Array<CometChatMessageOption>;
   getAudioMessageOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): Array<CometChatMessageOption>;
   getVideoMessageOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): Array<CometChatMessageOption>;
   getImageMessageOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): Array<CometChatMessageOption>;
   getFileMessageOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): Array<CometChatMessageOption>;
   getMessageOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): Array<CometChatMessageOption>;
   getCommonOptions(
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group?: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): Array<CometChatMessageOption>;
 
   //views
-  getBottomView(message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType): JSX.Element | null;
+  getBottomView(
+    message: CometChat.BaseMessage,
+    alignment: MessageBubbleAlignmentType
+  ): JSX.Element | null;
   getDeleteMessageBubble(message: CometChat.BaseMessage, theme: CometChatTheme): JSX.Element;
   getVideoMessageBubble(
     videoUrl: string,
@@ -129,10 +142,22 @@ export interface DataSource {
     theme: CometChatTheme,
     additionalParams?: AdditionalParams
   ): CometChatMessageTemplate;
-  getAudioMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate;
-  getVideoMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate;
-  getImageMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate;
-  getFileMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate;
+  getAudioMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate;
+  getVideoMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate;
+  getImageMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate;
+  getFileMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate;
   getAllMessageTemplates(
     theme: CometChatTheme,
     additionalParams?: AdditionalParams
@@ -140,12 +165,25 @@ export interface DataSource {
   getMessageTemplate(
     messageType: string,
     MessageCategory: string,
-    theme: CometChatTheme
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
   ): CometChatMessageTemplate | null;
-  getGroupActionTemplate(theme: CometChatTheme): CometChatMessageTemplate;
-  getFormMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate;
-  getSchedulerMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate;
-  getCardMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate;
+  getGroupActionTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate;
+  getFormMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate;
+  getSchedulerMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate;
+  getCardMessageTemplate(
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): CometChatMessageTemplate;
 
   //attachment options
   // getAttachmentOptions(theme: CometChatTheme, conversation: CometChat.User | CometChat.Group): Array<CometChatMessageComposerAction>
@@ -158,7 +196,7 @@ export interface DataSource {
     user?: CometChat.User,
     group?: CometChat.Group,
     id?: Map<string, any>,
-    additionalParams?: AdditionalParams
+    additionalAuxiliaryParams?: AdditionalAuxiliaryOptionsParams
   ): JSX.Element[];
 
   getId(): string;
@@ -166,7 +204,13 @@ export interface DataSource {
   //unknown
   getMessageTypeToSubtitle(messageType: string): string;
   //Message Composer
-  getAttachmentOptions: (theme: CometChatTheme, user?: any, group?: any, composerId?: any) => any;
+  getAttachmentOptions: (
+    theme: CometChatTheme,
+    user?: any,
+    group?: any,
+    composerId?: any,
+    additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
+  ) => any;
   getAuxiliaryButtonOptions: () => any;
 
   getLastConversationMessage(
@@ -177,7 +221,7 @@ export interface DataSource {
   getAuxiliaryHeaderAppbarOptions(
     user?: CometChat.User,
     group?: CometChat.Group,
-    additionalParams?: AdditionalParams
+    additionalAuxiliaryHeaderOptionsParams?: AdditionalAuxiliaryHeaderOptionsParams
   ): JSX.Element | null;
 
   getAllTextFormatters(loggedInUser?: CometChat.User): CometChatTextFormatter[];

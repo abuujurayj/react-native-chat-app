@@ -8,40 +8,46 @@ import { ValueOf } from "../../helper/types";
 import { DateStyle } from "./styles";
 
 /**
- * CometChatDate is a component useful for displaying date/time
- * This component displays the date/time based on pattern parameter.
- *
- * @Version 1.0.0
- * @author CometChat
- *
+ * Props for the CometChatDate component.
  */
-
 export interface CometChatDateInterface {
   /**
-   * Unix epoch time.
+   * Unix epoch time to be formatted and displayed.
    */
-  timeStamp: number;
+  timeStamp?: number;
   /**
-   * Pattern for Date.
-   * one of
-   * 1. timeFormat: "hh:mm a".
-   * 2. dayDateFormat: Today, Yesterday, week-day or "d MMM, yyyy".
-   * 3. dayWeekDayDateTimeFormat: Today, Yesterday, week-day or "dd/mm/yyyy".
+   * Pattern for formatting the date.
+   * One of the following values:
+   * - timeFormat: "hh:mm a".
+   * - dayDateFormat: Today, Yesterday, week-day or "d MMM, yyyy".
+   * - dayWeekDayDateTimeFormat: Today, Yesterday, week-day or "dd/mm/yyyy".
    */
   pattern?: ValueOf<typeof DateHelper.patterns>;
   /**
-   * A string for custom date reprasentation.
+   * A custom date string to override the formatted date.
    */
   customDateString?: string;
-
+  /**
+   * Custom styles for the date component.
+   */
   style?: DateStyle;
 }
 
+/**
+ * CometChatDate is a component for displaying a formatted date/time.
+ *
+ * If a customDateString is provided, it will be displayed instead of the formatted date.
+ * Otherwise, the component formats the provided timeStamp using the given pattern.
+ *
+ *  - Props for the component.
+ *  The rendered date view.
+ */
 export const CometChatDate = (props: CometChatDateInterface) => {
   const { timeStamp, pattern, customDateString, style = {} } = props;
   const theme = useTheme();
   const compTheme = useCompTheme();
 
+  // Merge theme date styles with component date styles and any custom style overrides.
   const dateStyles = useMemo(() => {
     return deepMerge(theme.dateStyles, compTheme.dateStyles ?? {}, style);
   }, [theme.dateStyles, style, compTheme.dateStyles]);
@@ -49,9 +55,11 @@ export const CometChatDate = (props: CometChatDateInterface) => {
   return (
     <View style={[dateStyles.containerStyle]}>
       <Text style={[dateStyles.textStyle]} numberOfLines={1}>
-        {customDateString
+        {timeStamp
           ? customDateString
-          : pattern && dateHelperInstance.getFormattedDate(timeStamp, pattern)}
+            ? customDateString
+            : pattern && dateHelperInstance.getFormattedDate(timeStamp, pattern)
+          : ""}
       </Text>
     </View>
   );

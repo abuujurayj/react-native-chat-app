@@ -80,6 +80,7 @@ import {
 } from "./CometChatSuggestionList";
 import { CometChatAvatar } from "./CometChatAvatar";
 import { BadgeStyle, CometChatBadge } from "./CometChatBadge";
+import { MenuItemInterface } from "./CometChatTooltipMenu";
 
 export type {
   CometChatConfirmDialogInterface,
@@ -132,4 +133,5 @@ export type {
   BadgeStyle,
   CometChatListProps,
   DateStyle,
+  MenuItemInterface,
 };

@@ -401,7 +401,7 @@
 	"TAP_TO_REMOVE": "點擊以移除",
 	"ADD_CONTACTS": "添加聯絡人以開始對話並在此處查看列表。",
 	"SCOPE_CHANGE_INFO": "您可以更改角色以管理群組權限和職責",
-	"SOMETHING_WENT_WRONG": "看起來出了點問題。請再試一次。",
+	"SOMETHING_WENT_WRONG": "看起來出了點問題。",
 	"MENTION_UPTO": "您最多可以提到",
 	"TIME": "時間",
 	"TIMES": "倍",
@@ -441,5 +441,6 @@
 	"APP_CREDENTIALS" : "應用程式憑證",
 	"REGION": "地區",
 	"WRONG_TEXT":"看起來出了點問題.",
-	"WRONG_TEXT_TRY_AGAIN":"請再試一次."
+	"WRONG_TEXT_TRY_AGAIN":"請再試一次.",
+	"BLOCKED_USER_DESC": "無法傳送訊息，因為該用戶已被封鎖"
 }

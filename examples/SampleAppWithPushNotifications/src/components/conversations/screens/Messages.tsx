@@ -30,7 +30,7 @@ import InfoIcon from '../../../assets/icons/InfoIcon';
 import {toggleBottomTab} from '../../../navigation/helper';
 import {CommonUtils} from '../../../utils/CommonUtils';
 import Info from '../../../assets/icons/Info';
-import { useActiveChat } from '../../../utils/ActiveChatContext';
+import {useActiveChat} from '../../../utils/ActiveChatContext';
 
 type Props = StackScreenProps<ChatStackParamList, 'Messages'>;
 
@@ -46,14 +46,14 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
   const userListenerId = 'app_messages' + new Date().getTime();
   const openmessageListenerId = 'message_' + new Date().getTime();
   const [localUser, setLocalUser] = useState<CometChat.User | undefined>(user);
-  const { setActiveChat } = useActiveChat();
+  const {setActiveChat} = useActiveChat();
 
   useEffect(() => {
     // if it’s a user chat
     if (user) {
-      setActiveChat({ type: 'user', id: user.getUid() });
+      setActiveChat({type: 'user', id: user.getUid()});
     } else if (group) {
-      setActiveChat({ type: 'group', id: group.getGuid() });
+      setActiveChat({type: 'group', id: group.getGuid()});
     }
 
     // Cleanup on unmount => setActiveChat(null)
@@ -61,7 +61,6 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
       setActiveChat(null);
     };
   }, [user, group, setActiveChat]);
-
 
   useEffect(() => {
     themeRef.current = theme;
@@ -129,16 +128,15 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
     let uid = userToUnblock.getUid();
     try {
       const response = await CometChat.unblockUsers([uid]);
+      const unBlockedUser = await CometChat.getUser(uid);
       if (response) {
-        // After success, set blockedByMe = false locally
-        userToUnblock.setBlockedByMe(false);
-        setLocalUser(userToUnblock);
+        setLocalUser(unBlockedUser);
 
         // Optionally emit an event or let the server call do the job
         CometChatUIEventHandler.emitUserEvent(
           CometChatUIEvents.ccUserUnBlocked,
           {
-            user: userToUnblock,
+            user: unBlockedUser,
           },
         );
       }
@@ -212,7 +210,7 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
           navigation.popToTop();
         }}
         TrailingView={getTrailingView}
-        hideBackButton={false}
+        showBackButton={true}
       />
       <View style={styles.flexOne}>
         <CometChatMessageList
@@ -233,6 +231,17 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
             styles.blockedContainer,
             {backgroundColor: theme.color.background3},
           ]}>
+          <Text
+            style={[
+              theme.typography.button.regular,
+              {
+                color: theme.color.textSecondary,
+                textAlign: 'center',
+                paddingBottom: 10,
+              },
+            ]}>
+            {localize('BLOCKED_USER_DESC')}
+          </Text>
           <TouchableOpacity
             onPress={() => unblock(localUser)}
             style={[styles.button, {borderColor: theme.color.borderDefault}]}>
@@ -244,7 +253,7 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
                   color: theme.color.textPrimary,
                 },
               ]}>
-              {localize('UNBLOCK_USER')}
+              {localize('UNBLOCK')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -262,7 +271,7 @@ const styles = StyleSheet.create({
   blockedContainer: {
     alignItems: 'center',
     height: '10%',
-    paddingVertical: 20,
+    paddingVertical: 10,
   },
   button: {
     flex: 1,

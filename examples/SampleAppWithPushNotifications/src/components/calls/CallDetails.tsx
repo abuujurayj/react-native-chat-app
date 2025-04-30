@@ -1,4 +1,11 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {View, TouchableOpacity, Text, TextStyle, ViewStyle} from 'react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {
@@ -15,6 +22,7 @@ import {CallRecordings} from './CallRecordings';
 import {CallStackParamList} from '../../navigation/types';
 import {StackScreenProps} from '@react-navigation/stack';
 import {ICONS} from '@cometchat/chat-uikit-react-native/src/shared/icons/icon-mapping';
+import {toggleBottomTab} from '../../navigation/helper';
 
 const listenerId = 'userListener_' + new Date().getTime();
 const TABS = {
@@ -32,6 +40,9 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
   const theme = useTheme();
   const [group, setGroup] = useState<CometChat.Group | null>(null);
   const [user, setUser] = useState<CometChat.User | null>(null);
+  const themeRef = useRef(theme);
+  const routeRef = useRef(route);
+  const navigationRef = useRef(navigation);
   const loggedInUser = useRef<CometChat.User | any>(null);
   const [selectedTab, setSelectedTab] = useState(TABS.PARTICIPANTS);
   const [tabStyle, setTableStyle] = useState<{
@@ -44,6 +55,23 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
     selectedItemTextStyle: TextStyle;
   }>();
   const BackIcon = ICONS['arrow-back'];
+
+  useEffect(() => {
+    themeRef.current = theme;
+    navigationRef.current = navigation;
+    routeRef.current = route;
+  }, [theme, navigation, route]);
+
+  const toggleTab = useCallback(() => {
+    return toggleBottomTab(navigationRef.current, themeRef.current);
+  }, [theme, navigation, route]);
+
+  useLayoutEffect(() => {
+    const cleanup = toggleTab();
+    return () => {
+      cleanup();
+    };
+  }, [toggleTab]);
 
   useEffect(() => {
     console.log('CALL RECEIVER: ', call);
@@ -199,23 +227,23 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
       itemStyle: {
         containerStyle: {
           flexDirection: 'row' as const,
-          paddingHorizontal: theme.spacing.padding.p4,
+          paddingRight: theme.spacing.padding.p4,
+          paddingLeft: theme.spacing.padding.p2,
           paddingVertical: theme.spacing.padding.p2,
           gap: theme.spacing.spacing.s3,
           flex: 1,
         },
         titleStyle: {
           color: theme.color.textPrimary,
-          flex: 1,
-          ...theme.typography.heading4.medium,
+          ...theme.typography.heading4.bold,
         },
         subtitleStyle: {
           color: theme.color.textSecondary,
-          ...theme.typography.body.regular,
+          ...theme.typography.caption1.regular,
         },
         tailViewTextStyle: {
           color: theme.color.textPrimary,
-          ...theme.typography.caption1.medium,
+          ...theme.typography.caption1.bold,
         },
         avatarStyle: {
           containerStyle: {},
@@ -293,6 +321,7 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
                 flexDirection: 'row',
                 width: '100%',
                 alignItems: 'center',
+                backgroundColor: theme.color.background2,
               }}>
               <Icon
                 icon={CallStatusIcon}
@@ -304,12 +333,11 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
                 headViewContainerStyle={{flexDirection: 'row'}}
                 titleStyle={_style.itemStyle.titleStyle}
                 title={callStatusDisplayString}
+                trailingViewContainerStyle={{
+                  alignSelf: 'center',
+                }}
                 SubtitleView={
-                  <Text
-                    style={{
-                      ...theme.typography.body.regular,
-                      color: theme.color.textSecondary,
-                    }}>
+                  <Text style={_style.itemStyle.subtitleStyle}>
                     {getFormattedInitiatedAt()}
                   </Text>
                 }

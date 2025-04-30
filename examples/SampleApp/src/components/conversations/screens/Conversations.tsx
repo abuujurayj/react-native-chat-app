@@ -76,13 +76,17 @@ const Conversations: React.FC<{}> = ({}) => {
   };
 
   const handleAvatarPress = () => {
-    if (avatarContainerRef.current) {
-      avatarContainerRef.current.measureInWindow((x, y, height) => {
-        // Set tooltip position 10px below the avatar
-        tooltipPositon.current = {pageX: x, pageY: y + height};
-      });
-      selectedConversation.current = null;
-      setTooltipVisible(true);
+    try {
+      if (avatarContainerRef.current) {
+        avatarContainerRef.current.measureInWindow((x, y, height) => {
+          // Set tooltip position 10px below the avatar
+          tooltipPositon.current = {pageX: x, pageY: y + height};
+        });
+        selectedConversation.current = null;
+        setTooltipVisible(true);
+      }
+    } catch (error) {
+      console.error('Error while handling avatar press:', error);
     }
   };
 
@@ -154,80 +158,80 @@ const Conversations: React.FC<{}> = ({}) => {
         />
       </View>
 
-        <View
-          style={{
-            position: 'absolute',
-            top: tooltipPositon.current.pageY,
-            left: tooltipPositon.current.pageX,
-            zIndex: 9999,
-          }}>
-          <TooltipMenu
-            visible={tooltipVisible}
-            onClose={() => {
-              setTooltipVisible(false);
-            }}
-            onDismiss={() => {
-              setTooltipVisible(false);
-            }}
-            event={{
-              nativeEvent: tooltipPositon.current,
-            }}
-            menuItems={[
-              {
-                text: 'Create Conversation',
-                onPress: () => {
-                  navigation.navigate('CreateConversation');
-                },
-                icon: (
-                  <AddComment
-                    height={24}
-                    width={24}
-                    color={theme.color.textPrimary}></AddComment>
-                ),
-                textColor: theme.color.textPrimary,
-                iconColor: theme.color.textPrimary,
+      <View
+        style={{
+          position: 'absolute',
+          top: tooltipPositon.current.pageY,
+          left: tooltipPositon.current.pageX,
+          zIndex: 9999,
+        }}>
+        <TooltipMenu
+          visible={tooltipVisible}
+          onClose={() => {
+            setTooltipVisible(false);
+          }}
+          onDismiss={() => {
+            setTooltipVisible(false);
+          }}
+          event={{
+            nativeEvent: tooltipPositon.current,
+          }}
+          menuItems={[
+            {
+              text: 'Create Conversation',
+              onPress: () => {
+                navigation.navigate('CreateConversation');
               },
-              {
-                text: loggedInUser?.getName() || 'User',
-                onPress: () => {
-                  setTooltipVisible(false);
-                },
-                icon: (
-                  <AccountCircle
-                    height={24}
-                    width={24}
-                    color={theme.color.textPrimary}></AccountCircle>
-                ),
-                textColor: theme.color.textPrimary,
-                iconColor: theme.color.textPrimary,
+              icon: (
+                <AddComment
+                  height={24}
+                  width={24}
+                  color={theme.color.textPrimary}></AddComment>
+              ),
+              textColor: theme.color.textPrimary,
+              iconColor: theme.color.textPrimary,
+            },
+            {
+              text: loggedInUser?.getName() || 'User',
+              onPress: () => {
+                setTooltipVisible(false);
               },
-              {
-                text: 'Logout',
-                onPress: () => {
-                  handleLogout();
-                },
-                icon: (
-                  <Logout
-                    height={24}
-                    width={24}
-                    color={theme.color.error}></Logout>
-                ),
-                textColor: theme.color.error,
-                iconColor: theme.color.error,
+              icon: (
+                <AccountCircle
+                  height={24}
+                  width={24}
+                  color={theme.color.textPrimary}></AccountCircle>
+              ),
+              textColor: theme.color.textPrimary,
+              iconColor: theme.color.textPrimary,
+            },
+            {
+              text: 'Logout',
+              onPress: () => {
+                handleLogout();
               },
-              {
-                text: AppConstants.versionNumber,
-                onPress: () => {},
-                icon: (
-                  <InfoIcon
-                    height={24}
-                    width={24}
-                    color={theme.color.textPrimary}></InfoIcon>
-                ),
-              },
-            ]}
-          />
-        </View>
+              icon: (
+                <Logout
+                  height={24}
+                  width={24}
+                  color={theme.color.error}></Logout>
+              ),
+              textColor: theme.color.error,
+              iconColor: theme.color.error,
+            },
+            {
+              text: AppConstants.versionNumber,
+              onPress: () => {},
+              icon: (
+                <InfoIcon
+                  height={24}
+                  width={24}
+                  color={theme.color.textPrimary}></InfoIcon>
+              ),
+            },
+          ]}
+        />
+      </View>
     </View>
   );
 };

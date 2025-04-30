@@ -6,44 +6,52 @@ import { useCompTheme } from "../../../theme/hook";
 import { deepMerge } from "../../helper/helperFunctions";
 import { StatusIndicatorStyles } from "./styles";
 
+/**
+ * Props for the CometChatStatusIndicator component.
+ */
 export interface CometChatStatusIndicatorInterface {
-  type?: "online" | "offline" | "private" | "protected" | "public";
+  /**
+   * The status type to be displayed. Can be one of:
+   * "online", "offline", "private", "protected", or "public".
+   */
+  type?: "online" | "offline" | "private" | "protected" | "public" | null;
+  /**
+   * Custom styles for the status indicator.
+   */
   style?: Partial<StatusIndicatorStyles>;
 }
 
 /**
- *
- * CometChatStatusIndicator is a component useful for indicating the status of user/group
- * This component displays the online/offline status of user/group
+ * CometChatStatusIndicator is a component used for indicating the status of a user or group.
+ * It displays the online/offline or custom status of the user/group using a predefined symbol or style.
  *
  * @author CometChat
- *
  */
 
 export const CometChatStatusIndicator = ({
   type = "offline",
-  style = {},
+  style,
 }: CometChatStatusIndicatorInterface) => {
   const theme = useTheme();
   const compTheme = useCompTheme();
   const statusIndicatorStyles = useMemo(() => {
-    return deepMerge(theme.statusIndicatorStyles, compTheme.statusIndicatorStyles ?? {}, style);
+    return deepMerge(theme.statusIndicatorStyle, compTheme.statusIndicatorStyle ?? {}, style ?? {});
   }, [theme, compTheme, style]);
 
   if (type === CometChat.USER_STATUS.ONLINE) {
     return (
       <View
-        style={[statusIndicatorStyles.containerStyle, statusIndicatorStyles.containerStyleOnline]}
+        style={[ statusIndicatorStyles.containerStyleOnline]}
       />
     );
   }
   if (type === CometChat.GROUP_TYPE.PRIVATE) {
     return (
       <View
-        style={[statusIndicatorStyles.containerStyle, statusIndicatorStyles.containerStylePrivate]}
+        style={[ statusIndicatorStyles.containerStylePrivate]}
       >
         <Image
-          style={[statusIndicatorStyles.imageStyle, statusIndicatorStyles.imageStylePrivate]}
+          style={[statusIndicatorStyles.imageStylePrivate]}
           source={require("./private.png")}
         />
       </View>
@@ -53,12 +61,11 @@ export const CometChatStatusIndicator = ({
     return (
       <View
         style={[
-          statusIndicatorStyles.containerStyle,
           statusIndicatorStyles.containerStyleProtected,
         ]}
       >
         <Image
-          style={[statusIndicatorStyles.imageStyle, statusIndicatorStyles.imageStyleProtected]}
+          style={[ statusIndicatorStyles.imageStyleProtected]}
           source={require("./protected.png")}
         />
       </View>

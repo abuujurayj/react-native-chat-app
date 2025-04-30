@@ -78,6 +78,7 @@ import {
   localize,
   messageStatus,
   Icon,
+  MenuItemInterface,
 } from "./shared";
 
 import {
@@ -302,5 +303,6 @@ export type {
   MessageListAlignmentType,
   MessageTimeAlignmentType,
   MessageBubbleAlignmentType,
-  CometChatTheme
+  CometChatTheme,
+  MenuItemInterface
 };

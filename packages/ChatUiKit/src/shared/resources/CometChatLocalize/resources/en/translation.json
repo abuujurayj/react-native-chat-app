@@ -401,7 +401,7 @@
 	"TAP_TO_REMOVE": "Tap to remove",
 	"ADD_CONTACTS": "Add contacts to start conversations and see them listed here.",
 	"SCOPE_CHANGE_INFO": "You can change roles to manage group permissions and responsibilities",
-	"SOMETHING_WENT_WRONG": "Looks like something went wrong.\nPlease try again",
+	"SOMETHING_WENT_WRONG": "Looks like something went wrong.",
 	"MENTION_UPTO": "You can mention up to",
 	"TIME": "time",
 	"TIMES": "times",
@@ -442,5 +442,6 @@
 	"APP_CREDENTIALS" : "App Credentials",
 	"REGION": "Region",
 	"WRONG_TEXT":"Looks like something went wrong.",
-	"WRONG_TEXT_TRY_AGAIN":"Please try again."
+	"WRONG_TEXT_TRY_AGAIN":"Please try again.",
+	"BLOCKED_USER_DESC": "Can't send a message as the user is blocked"
 }

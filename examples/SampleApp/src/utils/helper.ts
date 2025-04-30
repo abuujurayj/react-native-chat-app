@@ -10,12 +10,25 @@ import {
   CometChatUIEvents,
   CometChatUIKit,
 } from '@cometchat/chat-uikit-react-native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+  StackActions,
+} from '@react-navigation/native';
 
 interface Translations {
   lastSeen: string;
   minutesAgo: (minutes: number) => string;
   hoursAgo: (hours: number) => string;
 }
+
+interface NotifeeData {
+  receiverType?: 'user' | 'group';
+  conversationId?: string;
+  sender?: string;
+  [key: string]: any;
+}
+
 
 /**
  * Request common Android permissions (notifications, camera, etc.)
@@ -25,7 +38,7 @@ export async function requestAndroidPermissions() {
   if (Platform.OS !== 'android') return;
 
   try {
-    const granted = await PermissionsAndroid.requestMultiple([
+    await PermissionsAndroid.requestMultiple([
       PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
       PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
       PermissionsAndroid.PERMISSIONS.CAMERA,
@@ -106,15 +119,17 @@ export const unblock = async (
   uid: string,
   user: CometChat.User,
   setBlocked: React.Dispatch<React.SetStateAction<boolean>>,
+  setUserObj: React.Dispatch<React.SetStateAction<CometChat.User>>,
 ): Promise<void> => {
   try {
     const response = await CometChat.unblockUsers([uid]);
+    const unBlockedUser = await CometChat.getUser(uid);
     if (response) {
-      user.setBlockedByMe(false);
       CometChatUIEventHandler.emitUserEvent(CometChatUIEvents.ccUserUnBlocked, {
-        user,
+        user: unBlockedUser,
       });
       setBlocked(false);
+      setUserObj(unBlockedUser);
     } else {
       console.log(
         `Failed to unblock user with UID ${uid}. Response:`,
@@ -187,6 +202,9 @@ export const leaveGroup = (
   }
 };
 
+/**
+ * Sample Users Data
+ */
 export const sampleData = {
   users: [
     {uid: 'superhero1', name: 'Iron Man', avatar: Ironman},
@@ -196,3 +214,37 @@ export const sampleData = {
     {uid: 'superhero5', name: 'Cyclops', avatar: Cyclops},
   ],
 };
+
+/**
+ * Navigate to conversation based on notification data.
+ */
+export async function navigateToConversation(
+  navigationRef: React.RefObject<NavigationContainerRef<ParamListBase>>,
+  data?: NotifeeData,
+) {
+  if (!data) return;
+  if (!navigationRef.current) return;
+  try {
+    // Handle group
+    if (data.receiverType === 'group') {
+      const extractedId =
+        typeof data.conversationId === 'string'
+          ? data.conversationId.split('_').slice(1).join('_')
+          : '';
+      const group = await CometChat.getGroup(extractedId);
+
+      navigationRef.current?.dispatch(StackActions.push('Messages', {group}));
+    }
+
+    // Handle user
+    else if (data.receiverType === 'user') {
+      const ccUser = await CometChat.getUser(data.sender);
+
+      navigationRef.current?.dispatch(
+        StackActions.push('Messages', {user: ccUser}),
+      );
+    }
+  } catch (error) {
+    console.log('Error in navigateToConversation:', error);
+  }
+}

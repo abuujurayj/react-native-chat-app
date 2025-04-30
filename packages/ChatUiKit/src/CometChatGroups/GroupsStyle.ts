@@ -6,11 +6,12 @@ import { DeepPartial } from "../shared/helper/types";
 
 export type GroupStyle = CometChatListStylesInterface & {
   skeletonStyle: {
-    backgroudColor: ColorValue;
-    linearGradientColors: [string, string];
-    shimmerBackgroundColor: ColorValue;
-    shimmerOpacity: number;
-    speed: number;
+    backgroundColor?: ColorValue;
+    linearGradientColors?: [string, string];
+    shimmerBackgroundColor?: ColorValue;
+    shimmerOpacity?: number;
+    speed?: number;
+    containerBackgroundColor?: ColorValue;
   };
   headerContainerStyle: ViewStyle;
 };
@@ -67,10 +68,8 @@ export const getGroupListStyleLight = (
       },
       trailingViewContainerStyle: {},
     },
-    selectionIconStyle: {},
-    selectionIcon: undefined,
-    cancellationIcon: undefined,
-    cancellationIconStyle: {},
+    selectionCancelStyle: {},
+    confirmSelectionStyle: {},
     loadingIconTint: color.primary,
     sectionHeaderTextStyle: {
       display: "none",
@@ -136,6 +135,13 @@ export const getGroupListStyleLight = (
       },
     },
     errorStateStyle: {
+      containerStyle: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: "10%",
+        flexDirection: "column",
+      },
       titleStyle: {
         color: color.textPrimary,
         ...typography.heading3.bold,
@@ -143,17 +149,13 @@ export const getGroupListStyleLight = (
       },
       subTitleStyle: {
         color: color.textSecondary,
-        textAlign: "center" as const,
+        textAlign: "center",
         ...typography.body.regular,
-      },
-      containerStyle: {
-        justifyContent: "center",
-        alignItems: "center",
-        padding: spacing.padding.p3,
       },
     },
     skeletonStyle: {
-      backgroudColor: color.background3,
+      containerBackgroundColor: color.background1,
+      backgroundColor: "transparent",
       linearGradientColors: ["#E8E8E8", "#F5F5F5"] as [string, string],
       shimmerBackgroundColor: color.staticBlack,
       shimmerOpacity: 0.01,
@@ -169,11 +171,12 @@ export const getUserGroupStyleDark = (
 ): DeepPartial<GroupStyle> => {
   return deepMerge(getGroupListStyleLight(color, spacing, typography), {
     skeletonStyle: {
-      backgroudColor: color.background3,
+      backgroundColor: "transparent",
       linearGradientColors: ["#383838", "#272727"] as [string, string],
       shimmerBackgroundColor: color.staticWhite,
       shimmerOpacity: 0.01,
       speed: 1,
+      containerBackgroundColor: color.background1,
     },
   });
 };

@@ -1,6 +1,6 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { KeyboardAvoidingView, ListRenderItem, Platform, View } from "react-native";
+import { ColorValue, KeyboardAvoidingView, Platform, View } from "react-native";
 import {
   CometChatList,
   CometChatListActionsInterface,
@@ -14,26 +14,41 @@ import { Icon } from "../shared/icons/Icon";
 import { CometChatStatusIndicatorInterface } from "../shared/views/CometChatStatusIndicator";
 import { ErrorEmptyView } from "../shared/views/ErrorEmptyView/ErrorEmptyView";
 import { useTheme } from "../theme";
-import dark from "../theme/default/resources/icons/dark_error_icon.png";
-import light from "../theme/default/resources/icons/light_error_icon.png";
-import { useThemeInternal } from "../theme/hook";
 import { Skeleton } from "./Skeleton";
 import { UserStyle } from "./style";
 import { CommonUtils } from "../shared/utils/CommonUtils";
+import { CometChatTooltipMenu } from "../shared/views/CometChatTooltipMenu";
+
+/**
+ * Interface for the menu items (tooltip actions).
+ */
+export interface MenuItemInterface {
+  text: string;
+  onPress: () => void;
+  textColor?: ColorValue;
+  iconColor?: ColorValue;
+  disabled?: boolean;
+}
 
 /**
  * Interface for the props accepted by the CometChatUsers component.
- *
  * @interface CometChatUsersInterface
- * @extends {Omit<CometChatListProps, "title" | "requestBuilder" | "listStyle" | "SubtitleView" | "TailView" | "disableUsersPresence" | "ItemView" | "onItemPress" | "onItemLongPress" | "listItemKey" | "onSelection" | "statusIndicatorType" | "emptyStateText" | "errorStateText">}
  */
+
 export interface CometChatUsersInterface
   extends Omit<
     CometChatListProps,
     | "title"
     | "requestBuilder"
     | "listStyle"
+    | "TitleView"
     | "SubtitleView"
+    | "statusIndicatorStyle"
+    | "avatarStyle"
+    | "hideBackButton"
+    | "onListFetched"
+    | "listItemStyle"
+    | "ListItemView"
     | "TailView"
     | "disableUsersPresence"
     | "ItemView"
@@ -44,6 +59,7 @@ export interface CometChatUsersInterface
     | "statusIndicatorType"
     | "emptyStateText"
     | "errorStateText"
+    | "hideStickyHeader"
   > {
   /**
    * Callback function when a list item (user) is pressed.
@@ -63,6 +79,10 @@ export interface CometChatUsersInterface
    * @param {CometChat.User[]} list - The array of selected user objects.
    */
   onSelection?: (list: CometChat.User[]) => void;
+  /**
+   * Callback when submit selection button is pressed.
+   */
+  onSubmit?: (list: Array<CometChat.User>) => void;
   /**
    * Users request builder instance to customize the user request.
    *
@@ -140,6 +160,54 @@ export interface CometChatUsersInterface
    * @type {string}
    */
   searchPlaceholderText?: string;
+  /**
+   * Hide the users Status.
+   */
+  usersStatusVisibility?: boolean;
+  /**
+   * Search Keyword.
+   */
+  searchKeyword?: string;
+  /**
+   * Callback when an error occurs.
+   */
+  onError?: (e: CometChat.CometChatException) => void;
+  /**
+   * Callback triggered when the fetched list is empty.
+   */
+  onEmpty?: () => void;
+  /**
+   * Callback triggered once the users have loaded and are not empty.
+   */
+  onLoad?: (list: CometChat.User[]) => void;
+  /**
+   * Hide the loading skeleton.
+   */
+  hideLoadingState?: boolean;
+  /**
+   * Title for the header.
+   */
+  title?: string;
+  /**
+   * A function to **append** more menu items on top of the default menu items for a users.
+   */
+  addOptions?: (user: CometChat.User) => MenuItemInterface[];
+  /**
+   * A function to **replace** the default menu items entirely for a users.
+   */
+  options?: (user: CometChat.User) => MenuItemInterface[];
+  /**
+   * Toggle error view visibility.
+   */
+  hideError?: boolean;
+  /**
+   * Toggle back button visibility.
+   */
+  showBackButton?: boolean;
+  /**
+   * Toggle Sticky Header visibility.
+   */
+  stickyHeaderVisibility?: boolean;
 }
 
 /**
@@ -153,10 +221,6 @@ export interface CometChatUsersActionsInterface extends CometChatListActionsInte
 /**
  * CometChatUsers component renders a list of users with support for search,
  * selection, and custom empty/error/loading states.
- *
- * @param {CometChatUsersInterface} props - Props passed to the component.
- * @param {React.Ref<CometChatUsersActionsInterface>} ref - Forwarded ref for component actions.
- * @returns {JSX.Element} The rendered users list.
  */
 export const CometChatUsers = React.forwardRef<
   CometChatUsersActionsInterface,
@@ -164,56 +228,81 @@ export const CometChatUsers = React.forwardRef<
 >((props, ref) => {
   const userListenerId = "userStatus_" + new Date().getTime();
   const theme = useTheme();
-  const { mode } = useThemeInternal();
   const [hideSearchError, setHideSearchError] = useState(false);
 
   const {
-    usersRequestBuilder = new CometChat.UsersRequestBuilder()
-      .setLimit(30)
-      .hideBlockedUsers(false)
-      .setRoles([])
-      .friendsOnly(false)
-      .setStatus("")
-      .setTags([])
-      .setUIDs([]),
-    style = {},
+    usersRequestBuilder,
     LoadingView,
     ErrorView,
     EmptyView,
-    selectionMode,
+    selectionMode = "none",
+    title,
+    addOptions,
+    options,
+    TrailingView,
+    LeadingView,
     AppBarOptions,
     hideSearch = false,
+    stickyHeaderVisibility = true,
+    style = {},
+    onError,
+    onLoad,
+    onEmpty,
+    hideError,
+    hideLoadingState,
+    usersStatusVisibility = true,
+    showBackButton = false,
+    searchKeyword = "",
     searchRequestBuilder,
     hideHeader,
     onSelection,
+    onSubmit,
     searchPlaceholderText = localize("SEARCH"),
     ...newProps
   } = props;
   const userRef = useRef<CometChatUsersActionsInterface>(null);
   const mergedStyle = deepMerge(theme.userStyles, style);
 
-  const [selectedUsers, setSelectedUsers] = useState<CometChat.User[]>([]);
+  // ----- Tooltip functionality for users -----
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<CometChat.User | null>(null);
+  const tooltipPosition = useRef({ pageX: 0, pageY: 0 });
+
+  const buildMenuItems = (user: CometChat.User): MenuItemInterface[] => {
+    if (options) return options(user);
+    if (addOptions) return addOptions(user);
+    return [];
+  };
+
+  const handleItemLongPress = (user: CometChat.User, e?: any) => {
+    if (props.onItemLongPress) {
+      props.onItemLongPress(user);
+      return;
+    }
+    const items = buildMenuItems(user);
+    if (items.length === 0) return;
+    if (e && e.nativeEvent) {
+      tooltipPosition.current = {
+        pageX: e.nativeEvent.pageX,
+        pageY: e.nativeEvent.pageY,
+      };
+    } else {
+      tooltipPosition.current = { pageX: 200, pageY: 100 };
+    }
+    setSelectedUser(user);
+    setTooltipVisible(true);
+  };
 
   useEffect(() => {
     // Listen for changes in user online/offline status.
     CometChat.addUserListener(
       userListenerId,
       new CometChat.UserListener({
-        /**
-         * Callback when a user comes online.
-         *
-         * @param {CometChat.User} onlineUser - The user who is online.
-         */
         onUserOnline: (onlineUser: CometChat.User) => {
           if (!onlineUser.getBlockedByMe()) {
             userRef.current!.updateList(onlineUser);
           }
         },
-        /**
-         * Callback when a user goes offline.
-         *
-         * @param {CometChat.User} offlineUser - The user who is offline.
-         */
         onUserOffline: (offlineUser: CometChat.User) => {
           if (!offlineUser.getBlockedByMe()) {
             userRef.current!.updateList(offlineUser);
@@ -268,6 +357,9 @@ export const CometChatUsers = React.forwardRef<
    * @returns {JSX.Element} The empty state view.
    */
   const EmptyStateView = useCallback(() => {
+    useEffect(() => {
+      onEmpty?.();
+    }, []);
     return (
       <KeyboardAvoidingView
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
@@ -316,16 +408,15 @@ export const CometChatUsers = React.forwardRef<
         <ErrorEmptyView
           title={localize("OOPS")}
           subTitle={localize("SOMETHING_WENT_WRONG")}
+          tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
           Icon={
             <Icon
-              icon={mergedStyle.errorStateStyle.icon || mode === "dark" ? dark : light}
-              imageStyle={{
-                height: 120,
-                width: 120,
-              }}
+              name='error-state'
+              size={theme.spacing.margin.m15 << 1}
               containerStyle={{
                 marginBottom: theme.spacing.margin.m5,
               }}
+              icon={mergedStyle.errorStateStyle.icon}
             />
           }
           containerStyle={{
@@ -347,32 +438,93 @@ export const CometChatUsers = React.forwardRef<
         hideHeader={hideHeader ?? hideHeader}
         searchPlaceholderText={searchPlaceholderText}
         searchRequestBuilder={searchRequestBuilder}
-        hideBackButton={props.hideBackButton}
+        hideBackButton={!showBackButton}
+        hideError={hideError}
         hideSubmitButton={props.hideSubmitButton}
         AppBarOptions={AppBarOptions}
-        title={localize("USERS")}
+        title={title ? title : localize("USERS")}
+        onError={onError}
+        TrailingView={TrailingView}
         selectionMode={selectionMode}
-        onSelection={(updatedSelection) => {
-          setSelectedUsers(updatedSelection);
-          props.onSelection && props.onSelection(updatedSelection);
-        }}
+        LeadingView={LeadingView}
+        onSelection={onSelection}
+        onSubmit={onSubmit}
+        // Pass our custom long press handler which shows tooltip if options exist.
+        onItemLongPress={(user: CometChat.User, e: any) => handleItemLongPress(user, e)}
         ItemView={props.ItemView}
+        onListFetched={(users: CometChat.User[]) => {
+          if (users.length === 0) {
+            onEmpty?.();
+          } else {
+            onLoad?.(users);
+          }
+        }}
         ref={userRef}
         hideSearch={hideSearch ? hideSearch : hideSearchError}
-        requestBuilder={usersRequestBuilder}
+        requestBuilder={
+          (usersRequestBuilder && usersRequestBuilder.setSearchKeyword(searchKeyword)) ||
+          new CometChat.UsersRequestBuilder()
+            .setLimit(30)
+            .hideBlockedUsers(false)
+            .setRoles([])
+            .friendsOnly(false)
+            .setStatus("")
+            .setTags([])
+            .setUIDs([])
+            .setSearchKeyword(searchKeyword)
+        }
         listStyle={mergedStyle}
+        hideStickyHeader={!stickyHeaderVisibility}
         listItemKey='uid'
-        LoadingView={LoadingView ?? (() => <Skeleton />)}
+        LoadingView={
+          hideLoadingState
+            ? () => <></> // will not render anything if true
+            : LoadingView
+              ? LoadingView
+              : () => <Skeleton style={mergedStyle.skeletonStyle} />
+        }
         EmptyView={EmptyView ? EmptyView : () => <EmptyStateView />}
         ErrorView={ErrorView ? ErrorView : () => <ErrorStateView />}
-        statusIndicatorType={(user: CometChat.User) => {
-          if (user?.getBlockedByMe()) {
-            return "offline";
-          }
-          return user?.getStatus() as CometChatStatusIndicatorInterface["type"];
-        }}
+        statusIndicatorType={(user: CometChat.User) =>
+          usersStatusVisibility
+            ? user?.getBlockedByMe()
+              ? "offline"
+              : (user?.getStatus() as CometChatStatusIndicatorInterface["type"])
+            : null
+        }
         {...newProps}
       />
+
+      {/* Tooltip Menu: shows on long press if options exist and selectionMode is "none" */}
+      {selectedUser && selectionMode === "none" && tooltipVisible && (
+        <View
+          style={{
+            position: "absolute",
+            top: tooltipPosition.current.pageY,
+            left: tooltipPosition.current.pageX,
+            zIndex: 9999,
+          }}
+        >
+          <CometChatTooltipMenu
+            visible={tooltipVisible}
+            onClose={() => setTooltipVisible(false)}
+            onDismiss={() => setTooltipVisible(false)}
+            event={{
+              nativeEvent: tooltipPosition.current,
+            }}
+            menuItems={buildMenuItems(selectedUser).map((menuItem) => ({
+              text: menuItem.text,
+              onPress: () => {
+                menuItem.onPress();
+                setTooltipVisible(false);
+              },
+              textColor: menuItem.textColor,
+              iconColor: menuItem.iconColor,
+              disabled: menuItem.disabled,
+            }))}
+          />
+        </View>
+      )}
     </View>
   );
 });

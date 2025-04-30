@@ -1,14 +1,16 @@
 import {CometChatTheme} from '@cometchat/chat-uikit-react-native/src/theme/type';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {Platform, View, Text} from 'react-native';
-import {ChatStackParamList} from './types';
+import {CallStackParamList, ChatStackParamList} from './types';
+
+type ChatNav = StackNavigationProp<
+  ChatStackParamList,
+  'CreateConversation' | 'Messages'
+>;
+type CallNav = StackNavigationProp<CallStackParamList, 'CallDetails'>;
 
 export const toggleBottomTab = (
-  navigation: StackNavigationProp<
-    ChatStackParamList,
-    'CreateConversation' | 'Messages',
-    undefined
-  >,
+  navigation: ChatNav | CallNav,
   theme: CometChatTheme,
 ) => {
   navigation.getParent()?.setOptions({
@@ -39,7 +41,7 @@ export const toggleBottomTab = (
         shadowRadius: 3,
         backgroundColor: theme.color.background1,
       },
-      tabBarLabel: ({focused} : {focused: boolean}) =>
+      tabBarLabel: ({focused}: {focused: boolean}) =>
         focused ? (
           <View>
             <Text

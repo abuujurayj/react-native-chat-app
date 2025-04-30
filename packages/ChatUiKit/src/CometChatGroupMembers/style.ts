@@ -417,10 +417,8 @@ export const getGroupMemberStyleLight = (
         marginBottom: 10,
       },
     },
-    selectionIconStyle: {},
-    selectionIcon: undefined,
-    cancellationIcon: undefined,
-    cancellationIconStyle: {},
+    confirmSelectionStyle: {},
+    selectionCancelStyle: {},
     loadingIconTint: color.primary,
     sectionHeaderTextStyle: {
       marginHorizontal: spacing.spacing.s5,

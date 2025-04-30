@@ -401,7 +401,7 @@
 	"TAP_TO_REMOVE": "Zum Entfernen antippen",
 	"ADD_CONTACTS": "Fügen Sie Kontakte hinzu, um Gespräche zu starten und sie hier aufgelistet zu sehen.",
 	"SCOPE_CHANGE_INFO": "Sie können Rollen ändern, um Gruppenberechtigungen und Verantwortlichkeiten zu verwalten",
-	"SOMETHING_WENT_WRONG": "Es sieht so aus, als wäre etwas schiefgelaufen. Bitte versuchen Sie es erneut.",
+	"SOMETHING_WENT_WRONG": "Es scheint, dass etwas schiefgelaufen ist.",
 	"MENTION_UPTO": "Sie können bis zu erwähnen",
 	"TIME": "Zeit",
 	"TIMES": "mal",
@@ -442,5 +442,6 @@
 	"APP_CREDENTIALS" : "App-Anmeldeinformationen",
 	"REGION": "Region",
 	"WRONG_TEXT":"Sieht so aus, als ob etwas schiefgelaufen ist.",
-	"WRONG_TEXT_TRY_AGAIN":"Bitte versuchen Sie es noch einmal."
+	"WRONG_TEXT_TRY_AGAIN":"Bitte versuchen Sie es noch einmal.",
+	"BLOCKED_USER_DESC": "Nachricht kann nicht gesendet werden, da der Benutzer blockiert ist"
 }

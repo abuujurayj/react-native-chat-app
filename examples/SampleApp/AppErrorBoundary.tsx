@@ -47,9 +47,10 @@ class AppErrorBoundary extends React.Component<Props, State> {
         <View style={styles.container}>
           <View style={styles.card}>
             <Text style={styles.title}>Something went wrong</Text>
-            <Text style={styles.errorText}>
+             {/* Uncomment the next line to show the error message */}
+            {/* <Text style={styles.errorText}>
               {this.state.error ? this.state.error.toString() : 'Unknown error'}
-            </Text>
+            </Text> */}
             <View style={styles.buttonContainer}>
               <Button title="Retry" onPress={this.handleRetry} color={this.state.colorScheme === 'dark' ? "#bbbbbb" : "#333333"} />
             </View>

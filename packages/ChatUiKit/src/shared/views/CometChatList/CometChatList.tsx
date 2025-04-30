@@ -6,7 +6,6 @@ import {
   GestureResponderEvent,
   ImageSourcePropType,
   ImageStyle,
-  ListRenderItem,
   StyleProp,
   Text,
   TextStyle,
@@ -28,7 +27,6 @@ import {
   StatusIndicatorStyles,
 } from "../CometChatStatusIndicator";
 import Header from "./Header";
-import { ICONS } from "./resources";
 import styles from "./styles";
 
 export interface CometChatListActionsInterface {
@@ -47,10 +45,16 @@ export interface CometChatListStylesInterface {
   separatorColor?: string;
   loadingIconTint?: ColorValue;
   sectionHeaderTextStyle?: TextStyle;
-  selectionIcon?: ImageSourcePropType | JSX.Element;
-  selectionIconStyle: ImageStyle;
-  cancellationIcon?: ImageSourcePropType | JSX.Element;
-  cancellationIconStyle?: ImageStyle;
+  confirmSelectionStyle: {
+    icon?: ImageSourcePropType | JSX.Element;
+    iconStyle?: ImageStyle;
+    iconContainerStyle?: ImageStyle;
+  };
+  selectionCancelStyle: {
+    icon?: ImageSourcePropType | JSX.Element;
+    iconStyle?: ImageStyle;
+    iconContainerStyle?: ImageStyle;
+  };
   titleSeparatorStyle: ViewStyle;
   searchStyle?: {
     textStyle: TextStyle;
@@ -105,6 +109,7 @@ export interface CometChatListProps {
   hideBackButton?: boolean;
   selectionMode?: "none" | "single" | "multiple";
   onSelection?: (list: any) => void;
+  onSubmit?: (list: any) => void;
   hideSearch?: boolean;
   hideHeader?: boolean;
   title?: string;
@@ -123,8 +128,13 @@ export interface CometChatListProps {
   listItemKey: "uid" | "guid" | "conversationId";
   listStyle?: DeepPartial<CometChatListStylesInterface>;
   hideSubmitButton?: boolean;
-  statusIndicatorType?: (item: any) => CometChatStatusIndicatorInterface["type"];
+  statusIndicatorType?: (item: any) => CometChatStatusIndicatorInterface["type"] | null;
   hideStickyHeader?: boolean;
+  /**
+   * Called once the list has been fetched or updated.
+   * Returns the final array of items currently in the list.
+   */
+  onListFetched?: (fetchedList: any[]) => void;
 }
 
 let lastCall: any;
@@ -143,6 +153,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
     const connectionListenerId = "connectionListener_" + new Date().getTime();
     const theme = useTheme();
     const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [hasMoreData, setHasMoreData] = useState(true);
 
     const {
       LeadingView,
@@ -156,6 +167,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
       hideBackButton,
       selectionMode = "none",
       onSelection = () => {},
+      onSubmit,
       hideSearch = false,
       title = "Title",
       EmptyView,
@@ -192,38 +204,33 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
     });
 
     const [searchInput, setSearchInput] = useState(
-      requestBuilder && searchRequestBuilder
-        ? searchRequestBuilder.searchKeyword
-          ? searchRequestBuilder.searchKeyword
-          : ""
-        : requestBuilder
+      requestBuilder
         ? requestBuilder.searchKeyword
           ? requestBuilder.searchKeyword
           : ""
         : searchRequestBuilder
-        ? searchRequestBuilder.searchKeyword
           ? searchRequestBuilder.searchKeyword
+            ? searchRequestBuilder.searchKeyword
+            : ""
           : ""
-        : ""
     );
+
     const searchInputRef = useRef(
-      requestBuilder && searchRequestBuilder
-        ? searchRequestBuilder.searchKeyword
-          ? searchRequestBuilder.searchKeyword
-          : ""
-        : requestBuilder
+      requestBuilder
         ? requestBuilder.searchKeyword
           ? requestBuilder.searchKeyword
           : ""
         : searchRequestBuilder
-        ? searchRequestBuilder.searchKeyword
           ? searchRequestBuilder.searchKeyword
+            ? searchRequestBuilder.searchKeyword
+            : ""
           : ""
-        : ""
     );
 
     const [selectedItems, setSelectedItems] = useState<{ [key: string]: any }>({});
-    const shouldSelect = props.selectionMode === "single" || props.selectionMode === "multiple";
+    const [shouldSelect, setShouldSelect] = useState(
+      props.selectionMode === "single" || props.selectionMode === "multiple"
+    );
 
     const listHandlerRef = useRef<any>(null);
     const initialRunRef = useRef(true);
@@ -241,6 +248,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
     // Debounced search handler
     const searchHandler = (searchText: string) => {
       setSearchInput(searchText);
+      setHasMoreData(true);
       let _searchRequestBuilder = searchRequestBuilder || requestBuilder;
       if (searchRequestBuilder && searchText) {
         _searchRequestBuilder = searchRequestBuilder.setSearchKeyword(searchText).build();
@@ -400,23 +408,39 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
      */
     const handleList = (throughKeyword?: boolean) => {
       // Prevent multiple fetches
-      if (isLoadingMore) return;
-
+      if (isLoadingMore || (!throughKeyword && !hasMoreData)) return;
       setIsLoadingMore(true);
 
       getList(listHandlerRef.current)
         .then((newlist: any[] = []) => {
-          if ((throughKeyword || list.length === 0) && newlist.length === 0) {
-            setDataLoadingStatus(NO_DATA_FOUND);
+          let finalList: any[] = [];
+
+          if (throughKeyword || list.length === 0) {
+            // If we're resetting the list or there is no existing list
+            if (throughKeyword) setHasMoreData(true);
+            else if (newlist.length === 0) setHasMoreData(false);
+
+            finalList = newlist;
+            if (finalList.length === 0) {
+              setDataLoadingStatus(NO_DATA_FOUND);
+            } else {
+              setDataLoadingStatus("");
+            }
+            setList(finalList);
           } else {
-            setDataLoadingStatus("");
+            // Append to existing list
+            finalList = [...list, ...newlist];
+            setList(finalList);
+
+            // When the backend returns nothing more, mark the end of data
+            if (newlist.length === 0) setHasMoreData(false);
           }
-          if (throughKeyword === true) {
-            setList(newlist);
-          } else {
-            setList([...list, ...newlist]);
-          }
-          setIsLoadingMore(false); // Fetch complete
+
+          // If we *did* get results but less than a full “page”, also stop further loads
+          if (newlist.length === 0) setHasMoreData(false);
+
+          props.onListFetched?.(finalList);
+          setIsLoadingMore(false);
         })
         .catch((error) => {
           if (error && error["message"] === "Promise cancelled") {
@@ -425,18 +449,18 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
             setDataLoadingStatus(SOMETHING_WRONG);
             errorHandler(error);
           }
-          setIsLoadingMore(false); // Fetch complete or errored
+          setIsLoadingMore(false);
         });
     };
 
-    const renderFooter = () => {
-      if (!isLoadingMore) return null;
+    const renderFooter = useCallback(() => {
+      if (!isLoadingMore || !hasMoreData) return null;
       return (
         <View style={styles.footerContainer}>
           <ActivityIndicator size='small' color={theme.color.primary} />
         </View>
       );
-    };
+    }, [isLoadingMore, hasMoreData]);
 
     /**
      * Handle errors
@@ -489,7 +513,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
      * Handle Confirm action
      */
     const handleConfirmSelection = () => {
-      onSelection(Object.values(selectedItems));
+      onSubmit && onSubmit(Object.values(selectedItems));
       // Optionally, you might want to clear the selection after confirmation
       setSelectedItems({});
     };
@@ -525,7 +549,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
         }
         return (
           <CometChatListItem
-            statusIndicatorType={statusIndicatorType ? statusIndicatorType(item.value) : undefined}
+            statusIndicatorType={statusIndicatorType ? statusIndicatorType(item.value) : null}
             id={item.value[listItemKey]}
             avatarName={item.value.name}
             selected={!!selectedItems[item.value[listItemKey]]}
@@ -590,7 +614,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
     /**
      * Gets the list of users
      */
-    const getList = (props: any): Promise<any[]> => {
+    const getList = (reqBuilder: any): Promise<any[]> => {
       const promise = new Promise<any[]>((resolve, reject) => {
         const cancel = () => {
           clearTimeout(lastCall);
@@ -601,7 +625,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
         }
 
         lastCall = setTimeout(() => {
-          props
+          reqBuilder
             ?.fetchNext()
             .then((listItems: any) => {
               resolve(listItems);
@@ -663,7 +687,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
             <View style={styles.listContainerStyle}>
               <FlatList
                 data={listWithHeaders}
-                extraData={{ selectedItems, theme, list }}
+                extraData={{ selectedItems, theme, list, selectionMode }}
                 renderItem={
                   ItemView
                     ? ({ item, index, separators }) => {
@@ -693,6 +717,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
                 }}
                 showsVerticalScrollIndicator={false}
                 ListFooterComponent={renderFooter}
+                keyboardShouldPersistTaps='always'
               />
             </View>
           );
@@ -700,7 +725,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
       }
 
       return messageContainer;
-    }, [list, selectedItems, theme, dataLoadingStatus]);
+    }, [list, selectedItems, theme, dataLoadingStatus, isLoadingMore, hasMoreData, shouldSelect]);
 
     /**
      * Handle the rendering based on loading status
@@ -732,9 +757,8 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
           searchHandler={searchHandler}
           searchInput={searchInput}
           onSubmitEditing={() => searchHandler(searchInput)}
-          selectionIcon={listStyle?.selectionIcon}
-          selectionIconStyle={listStyle?.selectionIconStyle}
-          cancellationIconStyle={listStyle?.cancellationIconStyle}
+          selectionCancelStyle={listStyle?.selectionCancelStyle}
+          confirmSelectionStyle={listStyle?.confirmSelectionStyle}
           searchStyle={listStyle?.searchStyle}
           selectedCount={selectedCount}
         />

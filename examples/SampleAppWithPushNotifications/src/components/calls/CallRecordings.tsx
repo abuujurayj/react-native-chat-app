@@ -199,6 +199,9 @@ export const CallRecordings = (props: {call: any}) => {
           }
           titleStyle={_style.itemStyle.titleStyle}
           containerStyle={_style.itemStyle.containerStyle}
+          trailingViewContainerStyle={{
+            alignSelf: 'center',
+          }}
           TrailingView={
             <Pressable
               onPress={() => {

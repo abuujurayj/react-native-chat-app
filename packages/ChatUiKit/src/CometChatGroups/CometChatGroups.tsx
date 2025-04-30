@@ -1,12 +1,13 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ImageSourcePropType, ListRenderItem, Text, View } from "react-native";
+import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { ColorValue, ImageSourcePropType, Text, View } from "react-native";
 import { CometChatList, CometChatListActionsInterface, localize } from "../shared";
 import { SelectionMode } from "../shared/base/Types";
 import { CometChatUIEventHandler } from "../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import { DeepPartial } from "../shared/helper/types";
-import { Icon } from "../shared/icons/Icon";
+import { Icon, IconName } from "../shared/icons/Icon";
+import { CometChatTooltipMenu, MenuItemInterface } from "../shared/views/CometChatTooltipMenu";
 import { CometChatStatusIndicatorInterface } from "../shared/views/CometChatStatusIndicator";
 import { ErrorEmptyView } from "../shared/views/ErrorEmptyView/ErrorEmptyView";
 import { useTheme } from "../theme";
@@ -27,34 +28,28 @@ const uiEventListener = "uiEvents_" + new Date().getTime();
 export interface CometChatGroupsInterface {
   /**
    * Custom title view for a group item.
-   * @param conversation - The group object.
+   * @param group - The group object.
    * @returns JSX.Element to render as title.
    */
-  TitleView?: (conversation: CometChat.Group) => JSX.Element;
+  TitleView?: (group: CometChat.Group) => JSX.Element;
   /**
    * Custom subtitle view for a group item.
-   * @param item - The group object.
-   * @returns JSX.Element to render as subtitle.
    */
-  SubtitleView?: (item: CometChat.Group) => JSX.Element;
+  SubtitleView?: (group: CometChat.Group) => JSX.Element;
   /**
-   * Custom tail view to render at the end of a group list item.
-   * @param item - The group object.
-   * @returns JSX.Element for the tail view.
+   * Custom trailing view for a group item.
    */
-  TrailingView?: (item: CometChat.Group) => JSX.Element;
+  TrailingView?: (group: CometChat.Group) => JSX.Element;
   /**
-   * Custom list item view for rendering a group.
-   * @param item - The group object.
-   * @returns JSX.Element.
+   * Custom list item view for a group.
    */
-  ItemView?: (item: CometChat.Group) => JSX.Element;
+  ItemView?: (group: CometChat.Group) => JSX.Element;
   /**
-   * Custom component for the AppBar options, shown at the top-right.
+   * Custom component for the AppBar options.
    */
   AppBarOptions?: () => JSX.Element;
   /**
-   * Hide the submit (selection) button.
+   * Hide the "submit" (selection) button.
    */
   hideSubmitButton?: boolean;
   /**
@@ -68,18 +63,21 @@ export interface CometChatGroupsInterface {
   /**
    * Toggle back button visibility.
    */
-  hideBackButton?: boolean;
+  showBackButton?: boolean;
   /**
    * Selection mode: "none" | "single" | "multiple".
    */
   selectionMode?: SelectionMode;
   /**
    * Callback when group selection is completed.
-   * @param items - Array of selected groups.
    */
-  onSelection?: (items: Array<CometChat.Group>) => void;
+  onSelection?: (list: Array<CometChat.Group>) => void;
   /**
-   * Toggle search box visibility.
+   * Callback when submit selection button is pressed.
+   */
+  onSubmit?: (list: Array<CometChat.Conversation>) => void;
+  /**
+   * Hide the search box.
    */
   hideSearch?: boolean;
   /**
@@ -116,17 +114,14 @@ export interface CometChatGroupsInterface {
   hideError?: boolean;
   /**
    * Callback when a group item is pressed.
-   * @param item - The group object.
    */
   onItemPress?: (item: CometChat.Group) => void;
   /**
    * Callback when a group item is long pressed.
-   * @param item - The group object.
    */
   onItemLongPress?: (item: CometChat.Group) => void;
   /**
    * Callback when an error occurs.
-   * @param e - The error object.
    */
   onError?: (e: CometChat.CometChatException) => void;
   /**
@@ -139,80 +134,124 @@ export interface CometChatGroupsInterface {
   hideHeader?: boolean;
   /**
    * Custom leading view for a group item.
-   * @param item - The group object.
-   * @returns JSX.Element.
    */
-  LeadingView?: (item: CometChat.Group) => JSX.Element;
+  LeadingView?: (group: CometChat.Group) => JSX.Element;
+  /**
+   * Search Keyword.
+   */
+  searchKeyword?: string;
+  /**
+   * Callback triggered when the fetched list is empty.
+   */
+  onEmpty?: () => void;
+  /**
+   * Callback triggered once the groups have loaded and are not empty.
+   */
+  onLoad?: (list: CometChat.GroupMember[]) => void;
+  /**
+   * Hide the loading skeleton.
+   */
+  hideLoadingState?: boolean;
+  /**
+   * Hide the Group type (public/private/password).
+   */
+  groupTypeVisibility?: boolean;
+  /**
+   * A function to **append** more menu items on top of the default menu items for a group.
+   * @param group - The group object.
+   * @returns An array of menu items that will be appended to the default list
+   *          (note: if you have no defaults, these become the entire set).
+   */
+  addOptions?: (group: CometChat.Group) => MenuItemInterface[];
+  /**
+   * A function to **replace** the default menu items entirely for a group.
+   * @param group - The group object.
+   * @returns An array of menu items (with text, onPress, etc.).
+   */
+  options?: (group: CometChat.Group) => MenuItemInterface[];
 }
 
 /**
- * CometChatGroups renders a list of groups with support for search, error/empty/loading views,
- * selection mode, and handling of group events.
- *
- * @param props - Properties as defined in CometChatGroupsInterface.
- * @param ref - Forwarded ref to allow external access to list methods.
- * @returns JSX.Element rendering the groups list.
+ * CometChatGroups renders a list of groups with search, selection mode,
+ * error/empty/loading views, and a long-press tooltip menu (if you provide menu items).
  */
 export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface, ref: any) => {
   const {
-    AppBarOptions = undefined,
-    hideSubmitButton,
+    AppBarOptions,
     style = {},
     searchPlaceholderText = localize("SEARCH"),
-    hideBackButton = true,
+    showBackButton = false,
     selectionMode = "none",
     onSelection = () => {},
+    onSubmit,
     hideSearch = false,
-    EmptyView = undefined,
-    ErrorView = undefined,
-    LoadingView = undefined,
-    groupsRequestBuilder = undefined,
+    EmptyView,
+    ErrorView,
+    LoadingView,
+    groupsRequestBuilder,
     searchRequestBuilder,
-    onError = undefined,
-    onBack = undefined,
-    onItemPress = undefined,
-    onItemLongPress = undefined,
-    SubtitleView = undefined,
-    ItemView = undefined,
+    onError,
+    onBack,
+    onItemPress,
+    onItemLongPress,
+    SubtitleView,
+    ItemView,
     hideError = false,
+    searchKeyword = "",
+    hideLoadingState,
+    groupTypeVisibility = true,
+    addOptions,
+    options,
+    onEmpty,
+    onLoad,
     hideHeader,
     ...newProps
   } = props;
 
-  // Get theme and mode values from context.
+  // Theme references.
   const theme = useTheme();
   const { mode } = useThemeInternal();
 
-  // Reference to access CometChatList actions.
+  // Internal ref to CometChatList methods.
   const groupListRef = useRef<CometChatListActionsInterface>(null);
 
-  // State to control selection mode and error handling.
-  const [selecting, setSelecting] = useState(selectionMode != "none" ? true : false);
-  const [selectedGroups, setSelectedGroups] = useState([]);
+  // States
   const [hideSearchError, setHideSearchError] = useState(false);
+  const [selectedGroups, setSelectedGroups] = useState<CometChat.Group[]>([]);
 
-  // Merge theme styles with provided style overrides.
+  // Tooltip state
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<CometChat.Group | null>(null);
+  const tooltipPosition = useRef({ pageX: 0, pageY: 0 });
+
+  // Merge theme styles with any overrides.
   const mergedStyle = deepMerge(theme.groupStyles, style);
 
-  // Expose imperative methods via ref.
-  React.useImperativeHandle(ref, () => ({
-    addGroup: addGroup,
-    updateGroup: updateGroup,
-    removeGroup: removeGroup,
+  /**
+   * Expose imperative methods via ref.
+   */
+  useImperativeHandle(ref, () => ({
+    addGroup,
+    updateGroup,
+    removeGroup,
     getSelectedItems,
   }));
 
   /**
-   * Returns the array of selected group items.
+   * Returns the currently selected group items.
    */
   const getSelectedItems = () => {
     return selectedGroups;
   };
 
   /**
-   * Renders the empty state view when no groups are available.
+   * Renders an empty state view when no groups are available.
+   * Also triggers `onEmpty` if provided.
    */
   const EmptyStateView = useCallback(() => {
+    useEffect(() => {
+      onEmpty?.();
+    }, []);
     return (
       <View style={{ flex: 1 }}>
         <ErrorEmptyView
@@ -243,28 +282,27 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
   }, [mergedStyle, theme]);
 
   /**
-   * Renders the error state view when an error occurs.
-   * Also hides the search box when active.
+   * Renders the error state view.
+   * Also hides the search box while this is active.
    */
   const ErrorStateView = useCallback(() => {
     useEffect(() => {
-      setHideSearchError(true); // Hide search when error view is active
+      setHideSearchError(true); // Hide search while showing error
     }, []);
     return (
       <View style={{ flex: 1 }}>
         <ErrorEmptyView
           title={localize("OOPS")}
           subTitle={localize("SOMETHING_WENT_WRONG")}
+          tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
           Icon={
             <Icon
-              icon={mergedStyle.errorStateStyle.icon || (mode === "dark" ? dark : light)}
-              imageStyle={{
-                height: 120,
-                width: 120,
-              }}
+              name='error-state'
+              size={theme.spacing.margin.m15 << 1}
               containerStyle={{
                 marginBottom: theme.spacing.margin.m5,
               }}
+              icon={mergedStyle.errorStateStyle.icon}
             />
           }
           containerStyle={{
@@ -281,54 +319,55 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
   }, [mergedStyle, mode, theme]);
 
   /**
-   * Listener callback for group member removal events.
-   * Updates the group list to reflect member changes.
-   * @param options - Contains event details.
+   * Build final list of menu items for a given group:
+   *  - If `options` is provided, it overrides everything.
+   *  - Otherwise, if `addOptions` is provided, it returns those items only as no default as of now
    */
-  const handleGroupMemberRemoval = (...options: any) => {
-    const group = options[3];
-    groupListRef.current!.updateList(group);
+  const buildMenuItems = (group: CometChat.Group): MenuItemInterface[] => {
+    if (options) {
+      return options(group);
+    }
+    if (addOptions) {
+      return addOptions(group);
+    }
+    // No default menu items, so return empty if no user-defined items.
+    return [];
   };
 
   /**
-   * Listener callback for group member ban events.
-   * @param options - Contains event details.
+   * Invoked when a group item is long pressed.
+   * If the developer passed `onItemLongPress`, call that and stop.
+   * Otherwise, show the tooltip if there are any menu items for that group.
    */
-  const handleGroupMemberBan = (...options: any) => {
-    const group = options[3];
-    groupListRef.current!.updateList(group);
+  const handleItemLongPress = (group: CometChat.Group, e?: any) => {
+    // Call developer callback if provided
+    if (onItemLongPress) {
+      onItemLongPress(group);
+      return;
+    }
+
+    // If user has no options / addOptions, no tooltip to show
+    const items = buildMenuItems(group);
+    if (items.length === 0) return;
+
+    // Save position for the tooltip
+    if (e && e.nativeEvent) {
+      tooltipPosition.current = {
+        pageX: e.nativeEvent.pageX,
+        pageY: e.nativeEvent.pageY,
+      };
+    } else {
+      // fallback if event coords are missing
+      tooltipPosition.current = { pageX: 200, pageY: 100 };
+    }
+
+    // Show tooltip
+    setSelectedGroup(group);
+    setTooltipVisible(true);
   };
 
   /**
-   * Listener callback for group member addition events.
-   * @param options - Contains event details.
-   */
-  const handleGroupMemberAddition = (...options: any) => {
-    const group = options[3];
-    groupListRef.current!.updateList(group);
-  };
-
-  /**
-   * Listener callback for group member scope change events.
-   * @param options - Contains event details.
-   */
-  const handleGroupMemberScopeChange = (...options: any) => {
-    const group = options[4];
-    groupListRef.current!.updateList(group);
-  };
-
-  /**
-   * Updates a group in the list.
-   * If the group is not found, nothing is done.
-   * @param group - The group object to update.
-   */
-  const updateGroup = (group: CometChat.Group) => {
-    groupListRef.current!.updateList((grp: CometChat.Group) => grp.getGuid() === group.getGuid());
-  };
-
-  /**
-   * Adds a group to the list at the first position.
-   * @param group - The group object to add.
+   * Methods below let you update/manipulate groups in the list.
    */
   const addGroup = (group: CometChat.Group) => {
     groupListRef.current!.addItemToList(
@@ -337,27 +376,41 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
     );
   };
 
-  /**
-   * Removes a group from the list.
-   * Also removes it from the selection list if present.
-   * @param group - The group object to remove.
-   */
-  const removeGroup = (group: CometChat.Group) => {
-    groupListRef.current!.removeItemFromList(group.getGuid());
-    if (selecting) {
-      let index = selectedGroups.findIndex(
-        (grp: CometChat.Group) => grp.getGuid() === group.getGuid()
-      );
-      if (index > -1) {
-        let selectedItems = [...selectedGroups];
-        selectedItems.splice(index, 1);
-        setSelectedGroups(selectedItems);
-      }
-    }
+  const updateGroup = (group: CometChat.Group) => {
+    groupListRef.current!.updateList((grp: CometChat.Group) => grp.getGuid() === group.getGuid());
   };
 
-  // Set up group listeners when the component mounts.
-  React.useEffect(() => {
+  const removeGroup = (group: CometChat.Group) => {
+    groupListRef.current?.removeItemFromList(group.getGuid());
+  };
+
+  /**
+   * Group listener callbacks below, to keep the UI synced with group changes.
+   */
+  const handleGroupMemberRemoval = (...options: any) => {
+    const group = options[3];
+    groupListRef.current!.updateList(group);
+  };
+
+  const handleGroupMemberBan = (...options: any) => {
+    const group = options[3];
+    groupListRef.current!.updateList(group);
+  };
+
+  const handleGroupMemberAddition = (...options: any) => {
+    const group = options[3];
+    groupListRef.current!.updateList(group);
+  };
+
+  const handleGroupMemberScopeChange = (...options: any) => {
+    const group = options[4];
+    groupListRef.current!.updateList(group);
+  };
+
+  /**
+   * Set up group listeners when the component mounts.
+   */
+  useEffect(() => {
     CometChat.addGroupListener(
       groupListenerId,
       new CometChat.GroupListener({
@@ -410,9 +463,10 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
         },
       })
     );
+
     CometChatUIEventHandler.addGroupListener(uiEventListener, {
       ccGroupCreated: ({ group }: { group: CometChat.Group }) => {
-        groupListRef.current!.addItemToList(group, 0);
+        groupListRef.current?.addItemToList(group, 0);
       },
       ccGroupDeleted: ({ group }: { group: CometChat.Group }) => {
         groupListRef.current?.removeItemFromList(group.getGuid());
@@ -420,14 +474,14 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
       ccGroupLeft: ({ leftGroup }: { leftGroup: CometChat.Group }) => {
         leftGroup.setHasJoined(false);
         leftGroup.setMembersCount(leftGroup.getMembersCount() - 1);
-        if (leftGroup.getType() == CometChat.GROUP_TYPE.PRIVATE) {
+        if (leftGroup.getType() === CometChat.GROUP_TYPE.PRIVATE) {
           groupListRef.current?.removeItemFromList(leftGroup.getGuid());
         } else {
           groupListRef.current?.updateList(leftGroup);
         }
       },
       ccGroupMemberKicked: ({ kickedFrom }: { kickedFrom: CometChat.Group }) => {
-        if (kickedFrom?.getType() == CometChat.GROUP_TYPE.PRIVATE) {
+        if (kickedFrom?.getType() === CometChat.GROUP_TYPE.PRIVATE) {
           groupListRef.current?.removeItemFromList(kickedFrom.getGuid());
         } else {
           kickedFrom?.setHasJoined(false);
@@ -441,12 +495,12 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
         groupListRef.current?.updateList(userAddedIn);
       },
       ccGroupMemberJoined: ({ joinedGroup }: { joinedGroup: CometChat.Group }) => {
-        joinedGroup.setMembersCount(joinedGroup.getMembersCount() + 1);
         joinedGroup.setScope("participant");
         joinedGroup.setHasJoined(true);
         groupListRef.current?.updateList(joinedGroup);
       },
     });
+
     return () => {
       CometChat.removeGroupListener(groupListenerId);
       CometChatUIEventHandler.removeGroupListener(uiEventListener);
@@ -457,8 +511,8 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
     <View style={[Style.container, theme.groupStyles.containerStyle]}>
       <CometChatList
         hideHeader={hideHeader ?? hideHeader}
-        onItemLongPress={onItemLongPress}
         onItemPress={onItemPress}
+        onItemLongPress={handleItemLongPress}
         SubtitleView={
           SubtitleView
             ? SubtitleView
@@ -475,34 +529,84 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
                 </Text>
               )
         }
-        statusIndicatorType={(group: CometChat.Group) => {
-          return group.getType() as CometChatStatusIndicatorInterface["type"];
-        }}
+        statusIndicatorType={(group: CometChat.Group) =>
+          !groupTypeVisibility
+            ? null
+            : (group.getType() as CometChatStatusIndicatorInterface["type"])
+        }
         title={localize("GROUPS")}
         hideSearch={hideSearch ? hideSearch : hideSearchError}
         listStyle={mergedStyle}
-        LoadingView={LoadingView ?? (() => <Skeleton />)}
+        LoadingView={
+          hideLoadingState
+            ? () => <></> // will not render anything if true
+            : LoadingView
+              ? LoadingView
+              : () => <Skeleton style={mergedStyle.skeletonStyle} />
+        }
         EmptyView={EmptyView ? EmptyView : () => <EmptyStateView />}
         ErrorView={ErrorView ? ErrorView : () => <ErrorStateView />}
         searchPlaceholderText={searchPlaceholderText}
         ref={groupListRef}
         listItemKey='guid'
         requestBuilder={
-          groupsRequestBuilder ||
-          new CometChat.GroupsRequestBuilder().setLimit(30).setSearchKeyword("")
+          (groupsRequestBuilder && groupsRequestBuilder.setSearchKeyword(searchKeyword)) ||
+          new CometChat.GroupsRequestBuilder().setLimit(30).setSearchKeyword(searchKeyword)
         }
         searchRequestBuilder={searchRequestBuilder}
         AppBarOptions={AppBarOptions}
-        hideBackButton={hideBackButton}
+        hideBackButton={!showBackButton}
         selectionMode={selectionMode}
         onSelection={onSelection}
-        hideSubmitButton={hideSubmitButton}
+        onSubmit={onSubmit}
         ItemView={ItemView}
         onError={onError}
         hideError={hideError}
+        onListFetched={(fetchedList: CometChat.GroupMember[]) => {
+          if (fetchedList.length === 0) {
+            onEmpty?.();
+          } else {
+            onLoad?.(fetchedList);
+          }
+        }}
         onBack={onBack}
         {...newProps}
       />
+
+      {/* Tooltip Menu: only shows if selectionMode is "none" and items exist */}
+      {selectedGroup && selectionMode === "none" && tooltipVisible && (
+        <View
+          style={{
+            position: "absolute",
+            top: tooltipPosition.current.pageY,
+            left: tooltipPosition.current.pageX,
+            zIndex: 9999,
+          }}
+        >
+          <CometChatTooltipMenu
+            visible={tooltipVisible}
+            onClose={() => setTooltipVisible(false)}
+            onDismiss={() => setTooltipVisible(false)}
+            event={{
+              nativeEvent: tooltipPosition.current,
+            }}
+            menuItems={buildMenuItems(selectedGroup).map((menuItem) => ({
+              text: menuItem.text,
+              onPress: () => {
+                // Perform the user-defined action,
+                // then close the tooltip.
+                menuItem.onPress();
+                setTooltipVisible(false);
+              },
+              icon: menuItem?.icon,
+              textStyle: menuItem?.textStyle,
+              iconStyle: menuItem?.iconStyle,
+              iconContainerStyle: menuItem?.iconContainerStyle,
+              disabled: menuItem.disabled,
+            }))}
+          />
+        </View>
+      )}
     </View>
   );
 });

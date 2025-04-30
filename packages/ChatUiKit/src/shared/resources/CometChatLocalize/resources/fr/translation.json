@@ -401,7 +401,7 @@
 	"TAP_TO_REMOVE": "Touchez pour supprimer",
 	"ADD_CONTACTS": "Ajoutez des contacts pour commencer des conversations et les voir listés ici.",
 	"SCOPE_CHANGE_INFO": "Vous pouvez modifier les rôles pour gérer les autorisations et les responsabilités du groupe",
-	"SOMETHING_WENT_WRONG": "Il semble que quelque chose ait mal tourné. Veuillez réessayer.",
+	"SOMETHING_WENT_WRONG": "Il semble que quelque chose se soit mal passé.",
 	"MENTION_UPTO": "Vous pouvez citer jusqu'à",
 	"TIME": "temps",
 	"TIMES": "temps",
@@ -441,5 +441,6 @@
 	"APP_CREDENTIALS" : "Identifiants de l'application",
 	"REGION": "Région",
 	"WRONG_TEXT":"On dirait que quelque chose a mal tourné.",
-	"WRONG_TEXT_TRY_AGAIN":"Veuillez réessayer."
+	"WRONG_TEXT_TRY_AGAIN":"Veuillez réessayer.",
+	"BLOCKED_USER_DESC": "Impossible d'envoyer un message car l'utilisateur est bloqué"
 }

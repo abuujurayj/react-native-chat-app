@@ -257,78 +257,63 @@ public class CometChatSoundModule
 
   @ReactMethod
   public void play(final Double key, final Callback callback) {
+    final boolean[] callbackWasCalled = { false };
     MediaPlayer player = this.playerPool.get(key);
     if (player == null) {
       setOnPlay(false, key);
       if (callback != null) {
         callback.invoke(false);
+        callbackWasCalled[0] = true;
       }
       return;
     }
+
     if (player.isPlaying()) {
       return;
     }
 
-    
     // Request audio focus in Android system
     if (!this.mixWithOthers) {
       AudioManager audioManager = (AudioManager) context.getSystemService(
-        Context.AUDIO_SERVICE
+              Context.AUDIO_SERVICE
       );
-
       audioManager.requestAudioFocus(
-        this,
-        AudioManager.STREAM_MUSIC,
-        AudioManager.AUDIOFOCUS_GAIN
+              this,
+              AudioManager.STREAM_MUSIC,
+              AudioManager.AUDIOFOCUS_GAIN
       );
-
       this.focusedPlayerKey = key;
     }
 
-    player.setOnCompletionListener(
-      new OnCompletionListener() {
-        boolean callbackWasCalled = false;
-
-        @Override
-        public synchronized void onCompletion(MediaPlayer mp) {
-          if (!mp.isLooping()) {
-            setOnPlay(false, key);
-            if (callbackWasCalled) return;
-            callbackWasCalled = true;
-            try {
-              callback.invoke(true);
-            } catch (Exception e) {
-              //Catches the exception: java.lang.RuntimeException·Illegal callback invocation from native module
-            }
-          }
+    player.setOnCompletionListener(mp -> {
+      if (!mp.isLooping()) {
+        setOnPlay(false, key);
+        if (callbackWasCalled[0]) return;
+        callbackWasCalled[0] = true;
+        try {
+          callback.invoke(true);
+        } catch (Exception e) {
+          // Illegal callback invocation from native module
         }
       }
-    );
-    player.setOnErrorListener(
-      new OnErrorListener() {
-        boolean callbackWasCalled = false;
+    });
 
-        @Override
-        public synchronized boolean onError(
-          MediaPlayer mp,
-          int what,
-          int extra
-        ) {
-          setOnPlay(false, key);
-          if (callbackWasCalled) return true;
-          callbackWasCalled = true;
-          try {
-            callback.invoke(true);
-          } catch (Exception e) {
-            //Catches the exception: java.lang.RuntimeException·Illegal callback invocation from native module
-          }
-          return true;
-        }
+    player.setOnErrorListener((mp, what, extra) -> {
+      setOnPlay(false, key);
+      if (callbackWasCalled[0]) return true;
+      callbackWasCalled[0] = true;
+      try {
+        callback.invoke(true);
+      } catch (Exception e) {
+        // Illegal callback invocation from native module
       }
-    );
+      return true;
+    });
+
     player.start();
     setOnPlay(true, key);
   }
+
 
   @ReactMethod
   public void checkMode(Promise promise){

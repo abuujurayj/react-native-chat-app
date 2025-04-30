@@ -20,25 +20,48 @@ import { getFileTypeIcon } from "../../constants/UIKitConstants";
 const { FileManager } = NativeModules;
 const eventEmitter = new NativeEventEmitter(FileManager);
 
+/**
+ * Props for the CometChatFileBubble component.
+ */
 export interface CometChatFileBubbleInterface {
   /**
-   * url of file
+   * URL of the file to be displayed/downloaded.
    */
   fileUrl: string;
   /**
-   * file title
+   * Title of the file.
    */
   title: string;
   /**
-   * description for file
+   * Subtitle or description for the file.
    */
   subtitle?: string;
+  /**
+   * Custom style for the title text.
+   */
   titleStyle?: TextStyle;
+  /**
+   * Custom style for the subtitle text.
+   */
   subtitleStyle?: TextStyle;
+  /**
+   * Custom icon for download. Can be an image source or a JSX element.
+   */
   downloadIcon?: ImageSourcePropType | JSX.Element;
+  /**
+   * Custom style for the download icon.
+   */
   downloadIconStyle?: ImageStyle;
 }
 
+/**
+ * CometChatFileBubble is a component that displays a file bubble with title,
+ * subtitle and an icon indicating the file type. It handles file download,
+ * existence check and opening of the file.
+ *
+ *  Props for the component.
+ *  The rendered file bubble.
+ */
 export const CometChatFileBubble = ({
   fileUrl,
   title,
@@ -53,25 +76,28 @@ export const CometChatFileBubble = ({
   const theme = useTheme();
   let listener: EmitterSubscription;
 
-  /********Android Specific********/
+  // Android-specific download identifier
   const downloadIdRef = useRef(0);
-  /********************************/
+  // Flag to indicate if file should be opened after downloading
   const openFileAfterDownloading = useRef(false);
 
   useEffect(() => {
     checkFileExists();
 
     if (Platform.OS == "android") {
-      listener = eventEmitter.addListener("downloadComplete", (data: { downloadId: number }) => {
-        if (data.downloadId && downloadIdRef.current && data.downloadId == downloadIdRef.current) {
-          setProcessing(false);
-          setFileExists(true);
-          if (openFileAfterDownloading.current) {
-            openFile();
-            openFileAfterDownloading.current = false;
+      listener = eventEmitter.addListener(
+        "downloadComplete",
+        (data: { downloadId: number }) => {
+          if (data.downloadId && downloadIdRef.current && data.downloadId == downloadIdRef.current) {
+            setProcessing(false);
+            setFileExists(true);
+            if (openFileAfterDownloading.current) {
+              openFile();
+              openFileAfterDownloading.current = false;
+            }
           }
         }
-      });
+      );
     }
     return () => {
       if (Platform.OS == "android") {
@@ -80,6 +106,11 @@ export const CometChatFileBubble = ({
     };
   }, [fileUrl]);
 
+  /**
+   * Checks if the file exists locally.
+   *
+   * If true, download and open the file if it doesn't exist.
+   */
   const checkFileExists = async (downloadAndOpenFile = false) => {
     if (!fileUrl) return;
 
@@ -102,6 +133,9 @@ export const CometChatFileBubble = ({
     });
   };
 
+  /**
+   * Initiates the file download if it is not already processed or exists.
+   */
   const downloadFile = () => {
     if (processing || fileExists) return; // Do not process if file already exists
 
@@ -125,9 +159,11 @@ export const CometChatFileBubble = ({
     });
   };
 
+  /**
+   * Opens the file using the FileManager.
+   */
   const openFile = () => {
     if (processing) return;
-
     if (!fileUrl) return;
 
     setProcessing(true);
@@ -136,12 +172,17 @@ export const CometChatFileBubble = ({
     });
   };
 
+  /**
+   * Extracts the file name from the file URL.
+   *
+   * The file name.
+   */
   const getFileName = () => {
     return fileUrl.substring(fileUrl.lastIndexOf("/") + 1).replace(" ", "_");
   };
 
+  // Touch handling for iOS
   const wrapperPressTime = useRef<number | null>(0);
-  //toDoLater
   const viewProps = useMemo(() => {
     return Platform.OS === "ios"
       ? {
@@ -163,8 +204,9 @@ export const CometChatFileBubble = ({
       : {};
   }, []);
 
+  // Touch handling for Android
   const pressTimeOnAndroid = useRef(0);
-  let viewPropsForAndroid = useMemo(() => {
+  const viewPropsForAndroid = useMemo(() => {
     return Platform.OS === "android"
       ? {
           onTouchStart: () => {
@@ -181,6 +223,11 @@ export const CometChatFileBubble = ({
       : {};
   }, []);
 
+  /**
+   * Handler to download the file when the download icon is pressed.
+   *
+   * @param {NativeSyntheticEvent<NativeTouchEvent>} e - The touch event.
+   */
   const shouldDownload = (e: NativeSyntheticEvent<NativeTouchEvent>) => {
     e.stopPropagation();
     setProcessing(true);
@@ -207,25 +254,8 @@ export const CometChatFileBubble = ({
           </Text>
         )}
       </View>
-      {/* Show download button only if file does not exist */}
-      {/* {!processing && !fileExists && (
-        <View
-          {...viewPropsForAndroid}
-          onTouchEnd={shouldDownload}
-          style={{ padding: 4, paddingBottom: 0 }}
-        >
-          <Icon
-            name='download'
-            height={downloadIconStyle?.height}
-            width={downloadIconStyle?.width}
-            icon={downloadIcon}
-            imageStyle={downloadIconStyle}
-            color={downloadIconStyle?.tintColor}
-          />
-        </View>
-      )} */}
       {processing && !fileExists && (
-        <ActivityIndicator color={downloadIconStyle?.tintColor}></ActivityIndicator>
+        <ActivityIndicator color={downloadIconStyle?.tintColor} />
       )}
     </View>
   );

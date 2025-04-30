@@ -32,7 +32,7 @@ const Calls: React.FC = () => {
   };
   return (
     <View style={{flex: 1, backgroundColor: theme.color.background1}}>
-      {!shouldHide && <CometChatCallLogs onItemPress={onItemPress} hideBackButton/>}
+      {!shouldHide && <CometChatCallLogs onItemPress={onItemPress}/>}
     </View>
   );
 };

@@ -12,38 +12,58 @@ import {
 import { ImageViewerModal } from "../CometChatImageViewerModal";
 import { CommonUtils } from "../../utils/CommonUtils";
 
+/**
+ * Props for the CometChatImageLoader component.
+ */
 export interface CometChatImageLoaderPropType {
   /**
-   * image url pass as {uri: "dummyUrl"}
+   * Image URL passed as an object with a `uri` property.
+   * Example: `{ uri: "dummyUrl" }`
    */
   imageUrl: ImageSourcePropType;
   /**
-   *
+   * Thumbnail image URL.
    *
    * @type {ImageSourcePropType}
-   * @description thumbnail image
+   * @description Thumbnail image to display while the full image loads.
    */
   thumbnailUrl?: ImageSourcePropType;
   /**
-   * place holder image
+   * Placeholder image to display while loading.
    */
   placeHolderImage?: ImageSourcePropType;
   /**
-   * custom logic on touch of image
+   * Custom callback function to execute when the image is pressed.
    */
   onPress?: Function;
+  /**
+   * Custom style for the image.
+   */
   style?: ImageStyle;
   /**
-   * resizeMode of image
+   * Resize mode for the image.
+   *
    * @default "cover"
    */
   imageResizeMode?: "cover" | "contain" | "stretch" | "repeat" | "center";
-
+  /**
+   * Size of the activity indicator.
+   */
   activityIndicatorSize: number;
-
+  /**
+   * Custom style for the view containing the activity indicator.
+   */
   activityIndicatorViewStyle: ViewStyle;
 }
 
+/**
+ * CometChatImageLoader is a component that displays an image with an activity indicator
+ * until the image is loaded. It supports thumbnail prefetching and opens an image viewer
+ * modal on a quick tap.
+ *
+ *  Props for the component.
+ *  The rendered image loader component.
+ */
 export const CometChatImageLoader = (props: CometChatImageLoaderPropType) => {
   const {
     thumbnailUrl,
@@ -58,12 +78,19 @@ export const CometChatImageLoader = (props: CometChatImageLoaderPropType) => {
   const [isVisible, setIsVisible] = useState(false);
   const [imageSource, setImageSource] = useState<ImageSourcePropType>();
 
+  // Ref to record touch press time for detecting quick taps
   const pressTime = useRef<number | null>(0);
 
+  /**
+   * Handles the touch start event.
+   */
   const handleTouchStart = () => {
     pressTime.current = Date.now();
   };
 
+  /**
+   * Handles the touch end event and opens the image viewer if tap duration is short.
+   */
   const handleTouchEnd = () => {
     if (pressTime.current === null && Platform.OS === "ios") return;
     const endTime = Date.now();
@@ -73,14 +100,17 @@ export const CometChatImageLoader = (props: CometChatImageLoaderPropType) => {
     }
   };
 
+  /**
+   * Handles the touch move event. On iOS, cancels the tap detection.
+   */
   const onTouchMove = () => {
     if (Platform.OS === "ios") {
       pressTime.current = null;
     }
   };
 
-
   useEffect(() => {
+    // Prefetch the thumbnail if available, else fallback to the full image
     if (thumbnailUrl && typeof thumbnailUrl === "object" && "uri" in thumbnailUrl) {
       CommonUtils.prefetchThumbnail(thumbnailUrl.uri!).then((success: any) => {
         if (success) {
@@ -117,15 +147,14 @@ export const CometChatImageLoader = (props: CometChatImageLoaderPropType) => {
           width: style?.width,
         }}
       >
-        {/* Image (initially hidden until loaded) */}
+        {/* Render the image. It is initially hidden until loaded. */}
         <Image
           resizeMode={imageResizeMode || "cover"}
           source={imageSource}
           style={[styles.image, style]}
           onLoad={() => setIsLoaded(true)}
         />
-
-        {/* Activity Indicator (remains visible until image is loaded) */}
+        {/* Render the activity indicator until the image is loaded */}
         {!isLoaded && (
           <ActivityIndicator
             size={activityIndicatorSize || "large"}
@@ -137,18 +166,18 @@ export const CometChatImageLoader = (props: CometChatImageLoaderPropType) => {
   );
 };
 
-// Default styles
+// Default styles for the component
 const styles = StyleSheet.create({
   container: {
-    position: "relative", // Use relative position for the container
+    position: "relative", // Use relative positioning for the container
     justifyContent: "center",
     alignItems: "center",
   },
   loader: {
-    position: "absolute", // Keep the loader in the center of the View
-    zIndex: 1, // Ensure it's above the image until the image loads
+    position: "absolute", // Keep the loader centered over the image
+    zIndex: 1, // Ensure it is rendered above the image until the image loads
   },
   image: {
-    position: "absolute", // The image stays in place while loading
+    position: "absolute", // The image remains fixed in place while loading
   },
 });

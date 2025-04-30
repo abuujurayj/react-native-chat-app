@@ -22,6 +22,8 @@ import { CallUIEvents } from "../CallEvents";
 import { CometChatOutgoingCall, OutgoingCallConfiguration } from "../CometChatOutgoingCall";
 import { CallButtonStyle } from "./style";
 import { DeepPartial } from "../../shared/helper/types";
+import { CallingPackage } from "../CallingPackage";
+const CometChatCalls = CallingPackage.CometChatCalls;
 
 const listenerId = "callEventListener_" + new Date().getTime();
 
@@ -42,11 +44,11 @@ export interface CometChatCallButtonsInterface {
   /**
    * Should the voice call icon be shown.
    */
-  hideVoiceCall?: boolean;
+  hideVoiceCallButton?: boolean;
   /**
    * Should the video call icon be shown.
    */
-  hideVideoCall?: boolean;
+  hideVideoCallButton?: boolean;
   /**
    * Callback to handle errors.
    *
@@ -59,13 +61,13 @@ export interface CometChatCallButtonsInterface {
    * @param {CometChat.User} [user] - The user object.
    * @param {CometChat.Group} [group] - The group object.
    * @param {boolean} [isAudioOnly] - Flag indicating if the call is audio only.
-   * @returns {CometChat.CallSettingsBuilder} The call settings builder.
+   * @returns {CometChatCalls.CallSettingsBuilder} The call settings builder.
    */
   callSettingsBuilder?: (
     user?: CometChat.User,
     group?: CometChat.Group,
     isAudioOnly?: boolean
-  ) => CometChat.CallSettingsBuilder;
+  ) => typeof CometChatCalls.CallSettingsBuilder;
   /**
    * Configuration for outgoing calls.
    */
@@ -89,8 +91,8 @@ export const CometChatCallButtons = (props: CometChatCallButtonsInterface): JSX.
   const {
     user,
     group,
-    hideVoiceCall = false,
-    hideVideoCall = false,
+    hideVoiceCallButton = false,
+    hideVideoCallButton = false,
     onError,
     callSettingsBuilder,
     outgoingCallConfiguration,
@@ -292,7 +294,7 @@ export const CometChatCallButtons = (props: CometChatCallButtonsInterface): JSX.
 
   return (
     <View style={callButtonStyles.containerStyle as ViewStyle}>
-      {!hideVoiceCall && (
+      {!hideVoiceCallButton && (
         <TouchableOpacity onPress={() => makeVoiceCall()}>
           <Icon
             name='call'
@@ -305,7 +307,7 @@ export const CometChatCallButtons = (props: CometChatCallButtonsInterface): JSX.
           />
         </TouchableOpacity>
       )}
-      {!hideVideoCall && (
+      {!hideVideoCallButton && (
         <TouchableOpacity onPress={() => makeVideoCall()}>
           <Icon
             name='videocam'

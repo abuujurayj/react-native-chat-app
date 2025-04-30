@@ -19,6 +19,7 @@ import { ErrorEmptyView } from "../shared/views/ErrorEmptyView/ErrorEmptyView";
 import { MessageReceipt } from "../shared/constants/UIKitConstants";
 import { CometChatTheme } from "../theme/type";
 import { deepMerge } from "../shared/helper/helperFunctions";
+import { DeepPartial } from "../shared/helper/types";
 
 const listenerId = "uiEvents_" + new Date().getTime();
 
@@ -43,7 +44,7 @@ export interface CometChatMessageInformationInterface {
   ErrorStateView?: () => JSX.Element;
   errorStateText?: string;
   LoadingStateView?: () => JSX.Element;
-  style?: CometChatTheme["messageInformationStyles"];
+  style?: DeepPartial<CometChatTheme["messageInformationStyles"]>;
 }
 
 /**
@@ -131,12 +132,13 @@ export const CometChatMessageInformation = (props: CometChatMessageInformationIn
           ) : (
             <CometChatDate
               style={{ textStyle: mergedStyle.receiptItemStyle.subtitleStyle }}
-              customDateString={new Date(time * 1000).toLocaleString(undefined, {
+              customDateString={new Date(time * 1000).toLocaleString("en-GB", {
                 year: "numeric",
                 month: "numeric",
                 day: "numeric",
                 hour: "numeric",
                 minute: "numeric",
+                hour12: true,
               })}
               timeStamp={time}
             />

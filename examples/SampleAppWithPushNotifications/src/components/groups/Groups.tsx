@@ -2,7 +2,13 @@ import React, {useCallback, useState} from 'react';
 import {SafeAreaView} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {CometChatGroups, CometChatUIEventHandler, CometChatUIEvents, CometChatUIKit, useTheme} from '@cometchat/chat-uikit-react-native';
+import {
+  CometChatGroups,
+  CometChatUIEventHandler,
+  CometChatUIEvents,
+  CometChatUIKit,
+  useTheme,
+} from '@cometchat/chat-uikit-react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {GroupStackParamList} from '../../navigation/types';
 import {styles} from './styles';
@@ -13,7 +19,10 @@ import {
   JoinGroupBottomSheet,
 } from './GroupHelper';
 
-type GroupNavigationProp = StackNavigationProp<GroupStackParamList, 'GroupsScreen'>;
+type GroupNavigationProp = StackNavigationProp<
+  GroupStackParamList,
+  'GroupsScreen'
+>;
 
 interface GroupsProps {
   hideHeader?: boolean;
@@ -24,7 +33,8 @@ const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
   const navigation = useNavigation<GroupNavigationProp>();
 
   // State to handle showing/hiding bottom sheets
-  const [isCreateGroupSheetVisible, setCreateGroupSheetVisible] = useState(false);
+  const [isCreateGroupSheetVisible, setCreateGroupSheetVisible] =
+    useState(false);
   const [isJoinGroupSheetVisible, setJoinGroupSheetVisible] = useState(false);
 
   // State for the group that user wants to join
@@ -75,12 +85,20 @@ const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
 
   const joinPublicGroup = async (group: CometChat.Group) => {
     try {
-      await CometChat.joinGroup(group.getGuid(), group.getType() as CometChat.GroupType, '');
-      handleNavigateToMessages(group);
-      CometChatUIEventHandler.emitGroupEvent(CometChatUIEvents.ccGroupMemberJoined, {
-        joinedUser:CometChatUIKit.loggedInUser,
-        joinedGroup: group,
-      });
+      const joinedGroup = await CometChat.joinGroup(
+        group.getGuid(),
+        group.getType() as CometChat.GroupType,
+        '',
+      );
+      
+      handleNavigateToMessages(joinedGroup);
+      CometChatUIEventHandler.emitGroupEvent(
+        CometChatUIEvents.ccGroupMemberJoined,
+        {
+          joinedUser: CometChatUIKit.loggedInUser,
+          joinedGroup: joinedGroup,
+        },
+      );
     } catch (error) {
       console.log('Error joining public group:', error);
     }
@@ -97,7 +115,9 @@ const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
       {/* CometChatGroups list component */}
       <CometChatGroups
         AppBarOptions={() => (
-          <GroupScreenAppBarOptions onPress={() => setCreateGroupSheetVisible(true)} />
+          <GroupScreenAppBarOptions
+            onPress={() => setCreateGroupSheetVisible(true)}
+          />
         )}
         onItemPress={handleGroupItemPress}
         hideHeader={hideHeader}

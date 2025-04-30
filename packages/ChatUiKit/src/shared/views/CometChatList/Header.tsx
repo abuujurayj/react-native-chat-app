@@ -14,31 +14,103 @@ import { useTheme } from "../../../theme";
 import { Icon } from "../../icons/Icon";
 import styles from "./styles";
 
+/**
+ * Props for the Header component.
+ */
 interface HeaderProps {
-  titleSeparatorStyle: StyleProp<ViewStyle>;
+  /**
+   * Style for the separator view between the back button and title.
+   */
+  titleSeparatorStyle?: ViewStyle;
+  /**
+   * Count of selected items (used in selection mode).
+   */
   selectedCount?: number;
+  /**
+   * If true, hides the back button.
+   */
   hideBackButton?: boolean;
+  /**
+   * Callback function invoked when the back button is pressed.
+   */
   onBack?: () => void;
+  /**
+   * Custom component for additional AppBar options.
+   */
   AppBarOptions?: React.FC;
+  /**
+   * If true, indicates that the list is in selection mode.
+   */
   shouldSelect?: boolean;
+  /**
+   * If true, hides the submit (confirm) button in selection mode.
+   */
   hideSubmitButton?: boolean;
+  /**
+   * Callback function invoked when the cancel button is pressed in selection mode.
+   */
   onCancel?: () => void;
+  /**
+   * Callback function invoked when the confirm button is pressed in selection mode.
+   */
   onConfirm?: () => void;
+  /**
+   * If true, hides the search box.
+   */
   hideSearch?: boolean;
+  /**
+   * Callback function to handle changes in the search input.
+   */
   searchHandler?: (text: string) => void;
+  /**
+   * Current search input value.
+   */
   searchInput?: string;
+  /**
+   * Callback function invoked when submitting the search (e.g., via keyboard's search button).
+   */
   onSubmitEditing?: () => void;
+  /**
+   * Back button icon, can be an image source or a JSX element.
+   */
   backButtonIcon?: ImageSourcePropType | JSX.Element;
+  /**
+   * Custom style for the back button icon.
+   */
   backButtonIconStyle?: ImageStyle;
+  /**
+   * Title text to display in the header.
+   */
   title?: string;
+  /**
+   * Custom style for the title text.
+   */
   titleStyle?: StyleProp<TextStyle>;
+  /**
+   * Custom style for the container wrapping the title.
+   */
   titleViewStyle?: StyleProp<ViewStyle>;
+  /**
+   * Custom style for the header container.
+   */
   containerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Placeholder text for the search input.
+   */
   searchPlaceholderText?: string;
-  selectionIcon?: ImageSourcePropType | JSX.Element;
-  cancellationIcon?: ImageSourcePropType | JSX.Element;
-  selectionIconStyle?: ImageStyle;
-  cancellationIconStyle?: ImageStyle;
+  confirmSelectionStyle?: {
+    icon?: ImageSourcePropType | JSX.Element;
+    iconStyle?: ImageStyle;
+    iconContainerStyle?: ImageStyle;
+  };
+  selectionCancelStyle?: {
+    icon?: ImageSourcePropType | JSX.Element;
+    iconStyle?: ImageStyle;
+    iconContainerStyle?: ImageStyle;
+  };
+  /**
+   * Custom style for the search component.
+   */
   searchStyle?: Partial<{
     textStyle: TextStyle;
     placehodlerTextStyle?: TextStyle;
@@ -46,10 +118,23 @@ interface HeaderProps {
     icon: ImageSourcePropType | JSX.Element;
     iconStyle: ImageStyle;
   }>;
+  /**
+   * Custom style for the container of the back button icon.
+   */
   backButtonIconContainerStyle?: ViewStyle;
+  /**
+   * If true, hides the entire header.
+   */
   hideHeader?: boolean;
 }
 
+/**
+ * Header component renders the top portion of the list with a title, back button, selection actions,
+ * AppBar options, and a search box.
+ *
+ *   Props to customize the header.
+ *   The rendered header component.
+ */
 export default function Header({
   selectedCount = 0,
   hideBackButton = true,
@@ -70,11 +155,9 @@ export default function Header({
   titleViewStyle,
   containerStyle,
   searchPlaceholderText = "Search",
-  selectionIcon,
-  selectionIconStyle,
-  cancellationIcon,
-  cancellationIconStyle,
-  titleSeparatorStyle,
+  confirmSelectionStyle,
+  selectionCancelStyle,
+  titleSeparatorStyle = {},
   searchStyle,
   hideHeader = false,
   backButtonIconContainerStyle = { marginLeft: 10 },
@@ -84,8 +167,8 @@ export default function Header({
     <View style={[styles.listBaseHeaderStyle, containerStyle]}>
       {!hideHeader && (
         <View style={styles.upperContainer}>
-          <View style={titleSeparatorStyle ?? { flexDirection: "row" }}>
-            {/* If not in selection mode, show back button and title */}
+          <View style={{ flexDirection: "row", ...titleSeparatorStyle }}>
+            {/* Render back button and title if not in selection mode */}
             {!shouldSelect && (!hideBackButton || title.length !== 0) && (
               <View style={styles.headerLeftContainer}>
                 {!hideBackButton && (
@@ -116,7 +199,7 @@ export default function Header({
               </View>
             )}
 
-            {/* If in selection mode, show cancel button and selected count */}
+            {/* Render selection mode actions: cancel button and selected count */}
             {shouldSelect && (
               <View
                 style={[
@@ -127,12 +210,13 @@ export default function Header({
                 <TouchableOpacity onPress={onCancel}>
                   <Icon
                     name='close'
-                    size={cancellationIconStyle?.width || 24}
-                    height={cancellationIconStyle?.height || 24}
-                    width={cancellationIconStyle?.width || 24}
-                    color={cancellationIconStyle?.tintColor || theme.color.iconPrimary}
-                    icon={cancellationIcon}
-                    imageStyle={cancellationIconStyle}
+                    size={selectionCancelStyle?.iconStyle?.width || 24}
+                    height={selectionCancelStyle?.iconStyle?.height || 24}
+                    width={selectionCancelStyle?.iconStyle?.width || 24}
+                    color={selectionCancelStyle?.iconStyle?.tintColor || theme.color.iconPrimary}
+                    icon={selectionCancelStyle?.icon}
+                    imageStyle={selectionCancelStyle?.iconStyle}
+                    containerStyle={selectionCancelStyle?.iconContainerStyle}
                   />
                 </TouchableOpacity>
                 <Text
@@ -143,28 +227,29 @@ export default function Header({
               </View>
             )}
 
-            {/* AppBar Options or Tick Icon */}
+            {/* Render AppBar options or the selection confirm (tick) icon */}
             <View style={styles.headerRightContainer}>
-                {!shouldSelect && AppBarOptions && <AppBarOptions />}
-                { selectedCount > 0 && shouldSelect && !hideSubmitButton && (
-                  <TouchableOpacity onPress={onConfirm} style={{ paddingHorizontal: 20 }}>
-                    <Icon
-                      name='list-item-check'
-                      size={selectionIconStyle?.width || 24}
-                      height={selectionIconStyle?.height || 24}
-                      width={selectionIconStyle?.width || 24}
-                      color={selectionIconStyle?.tintColor || theme.color.iconPrimary}
-                      icon={selectionIcon}
-                      imageStyle={selectionIconStyle}
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
+              {!shouldSelect && AppBarOptions && <AppBarOptions />}
+              {selectedCount > 0 && shouldSelect && !hideSubmitButton && (
+                <TouchableOpacity onPress={onConfirm} style={{ paddingHorizontal: 20 }}>
+                  <Icon
+                    name='list-item-check'
+                    size={confirmSelectionStyle?.iconStyle?.width || 24}
+                    height={confirmSelectionStyle?.iconStyle?.height || 24}
+                    width={confirmSelectionStyle?.iconStyle?.width || 24}
+                    color={confirmSelectionStyle?.iconStyle?.tintColor || theme.color.iconPrimary}
+                    icon={confirmSelectionStyle?.icon}
+                    imageStyle={confirmSelectionStyle?.iconStyle}
+                    containerStyle={confirmSelectionStyle?.iconContainerStyle}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
       )}
 
-      {/* Search Box */}
+      {/* Render search box */}
       {!hideSearch && (
         <View
           style={[
@@ -194,7 +279,7 @@ export default function Header({
               searchStyle?.placehodlerTextStyle?.color || theme.color.textTertiary
             }
             onChangeText={searchHandler}
-            returnKeyType="search"
+            returnKeyType='search'
             value={searchInput}
             numberOfLines={1}
             style={[

@@ -1,15 +1,15 @@
-import {AppRegistry, AppState, Platform} from 'react-native';
+import {AppRegistry, Platform} from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import App from './App';
 import {name as appName} from './app.json';
 import {voipHandler} from './src/utils/VoipNotificationHandler';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
-import {navigate, navigationRef} from './src/navigation/NavigationService';
+import {navigationRef} from './src/navigation/NavigationService';
 import {displayLocalNotification} from './src/utils/helper';
 import notifee, {EventType} from '@notifee/react-native';
 import {StackActions} from '@react-navigation/native';
 import AppErrorBoundary from './AppErrorBoundary';
-import { ActiveChatProvider } from './src/utils/ActiveChatContext';
+import {ActiveChatProvider} from './src/utils/ActiveChatContext';
 
 if (global?.ErrorUtils) {
   const defaultHandler = global.ErrorUtils.getGlobalHandler();
@@ -40,147 +40,110 @@ const Root = () => (
   </AppErrorBoundary>
 );
 
+// Run Notifee background event handler only on Android
 if (Platform.OS === 'android') {
-notifee.onBackgroundEvent(async ({type, detail}) => {
-  const {notification, pressAction} = detail;
+  notifee.onBackgroundEvent(async ({type, detail}) => {
+    try {
+      if (type === EventType.PRESS) {
+        const {notification} = detail;
+        if (notification?.id) {
+          await notifee.cancelNotification(notification.id);
+        }
+        const data = detail?.notification?.data || {};
 
-  // If the user pressed the main body of the notification
-  try {
-    if (type === EventType.ACTION_PRESS && pressAction.id === 'default') {
-      // Remove just the tapped notification
-      // await notifee.cancelNotification(notification.id);
-      // Or remove all if you prefer:
-      try {
-        await notifee.cancelAllNotifications();
-      } catch (error) {
-        console.error('Error clearing notifications:', error);
+        if (data.receiverType === 'group') {
+          const extractedId =
+            typeof data.conversationId === 'string'
+              ? data.conversationId.split('_').slice(1).join('_')
+              : '';
+          CometChat.getGroup(extractedId).then(
+            group => {
+              navigationRef.current?.dispatch(
+                StackActions.push('Messages', {group}),
+              );
+            },
+            error => console.log('Error fetching group details:', error),
+          );
+        } else if (data.receiverType === 'user') {
+          CometChat.getUser(data.sender).then(
+            ccUser => {
+              navigationRef.current?.dispatch(
+                StackActions.push('Messages', {user: ccUser}),
+              );
+            },
+            error => console.log('Error fetching user details:', error),
+          );
+        }
       }
+    } catch (error) {
+      console.log('Error handling notifee background event:', error);
     }
-  } catch (error) {
-    console.error('Error in background message handler:', error);
-  }
-});
+  });
 }
 
-const handleNavigation = (screen, params) => {
-  console.log('AppState.currentState', AppState.currentState);
-  if (AppState.currentState === 'background') {
-    console.log(
-      '🚀 ~ handleNavigation ~ navigationRef.isReady():',
-      navigationRef.isReady(),
-    );
-    navigationRef.isReady()
-      ? [
-          console.log(
-            '🚀 ~ handleNavigation ~ navigationRef.isReady():',
-            navigationRef.isReady(),
-          ),
-          navigationRef.dispatch(StackActions.push(screen, params)),
-        ]
-      : [
-          console.log(
-            '🚀 ~ handleNavigation ~ navigationRef.isReady():',
-            navigationRef.isReady(),
-          ),
-          navigate(screen, params),
-        ];
-  }
-};
 // This runs for background/killed states on Android.
 if (Platform.OS === 'android') {
-messaging().setBackgroundMessageHandler(async remoteMessage => {
-  try {
-    const data = remoteMessage.data || {};
-
-    if (data && data.type === 'chat') {
-      if (data.receiverType === 'group') {
-        // Fetch Group details
-        CometChat.getGroup(data?.receiver).then(
-          group => {
-            handleNavigation('BottomTabNavigator', {
-              screen: 'Chats',
-              params: {
-                screen: 'Messages',
-                params: {group},
-              },
+  messaging().setBackgroundMessageHandler(async remoteMessage => {
+    try {
+      const data = remoteMessage.data || {};
+      if (data.type === 'call') {
+        switch (data.callAction) {
+          case 'initiated':
+            voipHandler.msg = data;
+            voipHandler.displayCallAndroid();
+            break;
+          case 'ended':
+            CometChat.clearActiveCall();
+            voipHandler.endCall(voipHandler.callerId);
+            break;
+          case 'unanswered':
+            CometChat.clearActiveCall();
+            if (voipHandler?.callerId) {
+              voipHandler.removeCallDialerWithUUID(voipHandler.callerId);
+            } else {
+              console.warn('Caller ID is missing. Cannot remove call dialer.');
+            }
+            break;
+          case 'busy':
+            CometChat.clearActiveCall();
+            if (voipHandler?.callerId) {
+              voipHandler.removeCallDialerWithUUID(voipHandler.callerId);
+            } else {
+              console.warn('Caller ID is missing. Cannot remove call dialer.');
+            }
+            break;
+          case 'ongoing':
+            voipHandler.displayNotification({
+              title: data?.receiverName || '',
+              body: 'ongoing call',
             });
-          },
-          error => console.log('Error fetching group details:', error),
-        );
-      } else if (data.receiverType === 'user') {
-        CometChat.getUser(data?.sender).then(
-          user => {
-            handleNavigation('BottomTabNavigator', {
-              screen: 'Chats',
-              params: {
-                screen: 'Messages',
-                params: {user},
-              },
-            });
-          },
-          error => console.log('Error fetching user details:', error),
-        );
+            break;
+          case 'rejected':
+            CometChat.clearActiveCall();
+            if (voipHandler?.callerId) {
+              voipHandler.removeCallDialerWithUUID(voipHandler.callerId);
+            } else {
+              console.warn('Caller ID is missing. Cannot remove call dialer.');
+            }
+            break;
+          case 'cancelled':
+            CometChat.clearActiveCall();
+            if (voipHandler?.callerId) {
+              voipHandler.removeCallDialerWithUUID(voipHandler.callerId);
+            } else {
+              console.warn('Caller ID is missing. Cannot remove call dialer.');
+            }
+            break;
+          default:
+            break;
+        }
+        return;
+      } else {
+        await displayLocalNotification(remoteMessage);
       }
+    } catch (error) {
+      console.error('Error in background message handler:', error);
     }
-    if (data.type === 'call') {
-      switch (data.callAction) {
-        case 'initiated':
-          voipHandler.msg = data;
-          voipHandler.displayCallAndroid();
-          break;
-        case 'ended':
-          CometChat.clearActiveCall();
-          voipHandler.endCall(voipHandler.callerId);
-          break;
-        case 'unanswered':
-          CometChat.clearActiveCall();
-          if (voipHandler?.callerId) {
-            voipHandler.removeCallDialerWithUUID(voipHandler.callerId);
-          } else {
-            console.warn('Caller ID is missing. Cannot remove call dialer.');
-          }
-          break;
-        case 'busy':
-          CometChat.clearActiveCall();
-          if (voipHandler?.callerId) {
-            voipHandler.removeCallDialerWithUUID(voipHandler.callerId);
-          } else {
-            console.warn('Caller ID is missing. Cannot remove call dialer.');
-          }
-          break;
-        case 'ongoing':
-          voipHandler.displayNotification({
-            title: data?.receiverName || '',
-            body: 'ongoing call',
-          });
-          break;
-        case 'rejected':
-          CometChat.clearActiveCall();
-          if (voipHandler?.callerId) {
-            voipHandler.removeCallDialerWithUUID(voipHandler.callerId);
-          } else {
-            console.warn('Caller ID is missing. Cannot remove call dialer.');
-          }
-          break;
-        case 'cancelled':
-          CometChat.clearActiveCall();
-          if (voipHandler?.callerId) {
-            voipHandler.removeCallDialerWithUUID(voipHandler.callerId);
-          } else {
-            console.warn('Caller ID is missing. Cannot remove call dialer.');
-          }
-          break;
-        default:
-          break;
-      }
-      return;
-    } else {
-      await displayLocalNotification(remoteMessage);
-    }
-  } catch (error) {
-    console.error('Error in background message handler:', error);
-  }
-});
+  });
 }
-
 AppRegistry.registerComponent(appName, () => Root);

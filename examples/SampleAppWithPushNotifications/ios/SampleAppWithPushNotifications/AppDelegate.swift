@@ -7,6 +7,9 @@ import PushKit
 import UserNotifications
 import RNCPushNotificationIOS
 
+// Make sure you've properly bridged the RNVoipPushNotificationManager in your Swift Bridging Header
+// #import "RNVoipPushNotificationManager.h"
+
 @main
 class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegistryDelegate {
 
@@ -17,34 +20,28 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    print("⚡️[AppDelegate] didFinishLaunchingWithOptions called")
-
     self.moduleName = "sampleapp"
     self.dependencyProvider = RCTAppDependencyProvider()
 
     // ============================================
     // (Recommended) Register for VoIP right away
     // ============================================
-    print("⚡️[AppDelegate] Calling RNVoipPushNotificationManager.voipRegistration()")
     RNVoipPushNotificationManager.voipRegistration()
 
     // ============================================
     // Set up PushKit with desiredPushTypes = [.voIP]
     // ============================================
-    print("⚡️[AppDelegate] Creating PKPushRegistry")
     pushRegistry = PKPushRegistry(queue: .main)
     pushRegistry?.delegate = self
     pushRegistry?.desiredPushTypes = [.voIP]
 
     // Setup user notifications center delegate
-    print("⚡️[AppDelegate] Setting UNUserNotificationCenter delegate")
     UNUserNotificationCenter.current().delegate = self
 
     // You can add your custom initial props in the dictionary below.
     self.initialProps = [:]
 
     let superReturn = super.application(application, didFinishLaunchingWithOptions: launchOptions)
-    print("⚡️[AppDelegate] super.application(...) returned \(superReturn)")
     return superReturn
   }
 
@@ -66,7 +63,6 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-    print("⚡️[AppDelegate] didRegisterForRemoteNotificationsWithDeviceToken => token: \(deviceToken)")
     // Forward token to RNCPushNotificationIOS
     RNCPushNotificationIOS.didRegisterForRemoteNotifications(withDeviceToken: deviceToken)
   }
@@ -85,7 +81,6 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
     didReceiveRemoteNotification userInfo: [AnyHashable : Any],
     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
   ) {
-    print("⚡️[AppDelegate] didReceiveRemoteNotification => userInfo: \(userInfo)")
     // Forward notification to RNCPushNotificationIOS
     RNCPushNotificationIOS.didReceiveRemoteNotification(userInfo, fetchCompletionHandler: completionHandler)
   }
@@ -98,7 +93,6 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
     didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
-    print("⚡️[AppDelegate] userNotificationCenter didReceive response: \(response)")
     RNCPushNotificationIOS.didReceive(response)
     completionHandler()
   }
@@ -109,7 +103,6 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
     willPresent notification: UNNotification,
     withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
   ) {
-    print("⚡️[AppDelegate] userNotificationCenter willPresent notification: \(notification.request.content.userInfo)")
     // Show the notification while in foreground
     completionHandler([.alert, .badge, .sound])
   }
@@ -120,7 +113,6 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
     continue userActivity: NSUserActivity,
     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
   ) -> Bool {
-    print("⚡️[AppDelegate] application continue userActivity: \(userActivity.activityType)")
     return RNCallKeep.application(application, continue: userActivity) {
       (restoredObjects: [Any]?) in
         restorationHandler(restoredObjects as? [UIUserActivityRestoring])
@@ -136,7 +128,6 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
   ) {
     guard type == .voIP else { return }
     let voipToken = pushCredentials.token.map { String(format: "%02x", $0) }.joined()
-    print("⚡️[AppDelegate] pushRegistry didUpdate => VoIP Token (hex): \(voipToken)")
     // Let RN VoipPushNotificationManager know
     RNVoipPushNotificationManager.didUpdate(pushCredentials, forType: type.rawValue)
   }
@@ -153,11 +144,8 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
   for type: PKPushType,
   completion: @escaping () -> Void
 ) {
-    print("⚡️[AppDelegate] pushRegistry didReceiveIncomingPushWith => type: \(type.rawValue), payload: \(payload.dictionaryPayload)")
-
     // Only proceed with reporting the call if the app is not in the foreground.
     if UIApplication.shared.applicationState == .active {
-        print("⚡️[AppDelegate] App is in foreground; skipping VoIP call UI")
         // If desired, you could still forward the push to your RN module here.
         completion()
         return
@@ -189,7 +177,6 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
 
         // --- Decide how to handle the call action
         if callAction == "initiated" {
-            print("⚡️[AppDelegate] Reporting new incoming call => \(AppDelegate.callUUID ?? "nil"), callerName: \(callerName)")
             RNCallKeep.reportNewIncomingCall(
               AppDelegate.callUUID,
               handle: handle,
@@ -204,33 +191,26 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
               payload: nil
             )
         } else if callAction == "unanswered" {
-            print("⚡️[AppDelegate] callAction = unanswered. Ending call (reason 3).")
+            
             RNCallKeep.endCall(withUUID: AppDelegate.callUUID, reason: 3)
             AppDelegate.callUUID = nil
         } else if callAction == "rejected" {
-            print("⚡️[AppDelegate] callAction = rejected. Ending call (reason 6).")
             RNCallKeep.endCall(withUUID: AppDelegate.callUUID, reason: 6)
             AppDelegate.callUUID = nil
         } else if callAction == "busy" {
-            print("⚡️[AppDelegate] callAction = busy. Ending call (reason 1).")
             RNCallKeep.endCall(withUUID: AppDelegate.callUUID, reason: 1)
             AppDelegate.callUUID = nil
         } else if callAction == "cancelled" {
-            print("⚡️[AppDelegate] callAction = cancelled. Ending call (reason 6).")
             RNCallKeep.endCall(withUUID: AppDelegate.callUUID, reason: 6)
             AppDelegate.callUUID = nil
         } else if callAction == "ended" {
-            print("⚡️[AppDelegate] callAction = ended. Ending call (reason 2).")
             RNCallKeep.endCall(withUUID: AppDelegate.callUUID, reason: 2)
             AppDelegate.callUUID = nil
         } else {
-            print("⚡️[AppDelegate] callAction = \(callAction). Not reporting a new call.")
-            print("⚡️[AppDelegate] Unknown action => ending call (reason 3).")
             RNCallKeep.endCall(withUUID: AppDelegate.callUUID, reason: 3)
             AppDelegate.callUUID = nil
         }
     } else {
-        print("⚡️[AppDelegate] pushRegistry => Not a VoIP push. Calling completion()")
         completion()
     }
 }

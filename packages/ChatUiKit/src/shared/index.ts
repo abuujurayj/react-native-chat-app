@@ -79,7 +79,8 @@ import {
   CometChatVideoBubbleInterface,
   DateStyle,
   SuggestionItem,
-  CometChatReceipt
+  CometChatReceipt,
+  MenuItemInterface
 } from "./views";
 
 import {
@@ -128,6 +129,7 @@ export type {
   AdditionalParams,
   CometChatAudioBubbleInterface,
   BadgeStyle,
+  MenuItemInterface
 };
 
 export {

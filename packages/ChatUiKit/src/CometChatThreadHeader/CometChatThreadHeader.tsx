@@ -2,9 +2,13 @@ import React, { useEffect, useState, useMemo } from "react";
 import { ScrollView, Text, View } from "react-native";
 import {
   ChatConfigurator,
+  CometChatMentionsFormatter,
   CometChatMessageTemplate,
+  CometChatTextFormatter,
   CometChatUIKit,
+  CometChatUrlsFormatter,
   localize,
+  MessageBubbleAlignmentType,
 } from "../shared";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatUIEventHandler } from "../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
@@ -47,6 +51,47 @@ export interface CometChatThreadHeaderInterface {
    * @type {DeepPartial<CometChatTheme["threadHeaderStyles"]>}
    */
   style?: DeepPartial<CometChatTheme["threadHeaderStyles"]>;
+  /**
+   * toggle visibility for the reply count.
+   *
+   * @type {boolean}
+   */
+  replyCountVisibility?: boolean;
+  /**
+   * toggle visibility for the reply count bar.
+   *
+   * @type {boolean}
+   */
+  replyCountBarVisibility?: boolean;
+  /**
+   * Custom styles for the thread header, partially overriding the default theme.
+   */
+  receiptsVisibility?: boolean;
+  /**
+   * toggle visibility for the receipts.
+   *
+   * @type {boolean}
+   */
+  avatarVisibility?: boolean;
+  /**
+   * Alignment type for the parent message bubble
+   */
+  alignment?: MessageBubbleAlignmentType;
+  /**
+   * Function that returns a custom string representation for a parent message's sent date.
+   *
+   * @param message - The base message object.
+   * @returns A string representing the custom date.
+   */
+  datePattern?: (message: CometChat.BaseMessage) => string;
+  /**
+   * Collection of text formatter classes to apply custom formatting.
+   *
+   * @type {Array<CometChatMentionsFormatter | CometChatUrlsFormatter | CometChatTextFormatter>}
+   */
+  textFormatters?: Array<
+    CometChatMentionsFormatter | CometChatUrlsFormatter | CometChatTextFormatter
+  >;
 }
 
 /**
@@ -57,7 +102,17 @@ export interface CometChatThreadHeaderInterface {
  * @returns {JSX.Element} The rendered thread header.
  */
 export const CometChatThreadHeader = (props: CometChatThreadHeaderInterface): JSX.Element => {
-  const { parentMessage, template } = props;
+  const {
+    parentMessage,
+    template,
+    replyCountVisibility = true,
+    replyCountBarVisibility = true,
+    textFormatters,
+    datePattern,
+    alignment,
+    receiptsVisibility = true,
+    avatarVisibility = true,
+  } = props;
   const [message, setMessage] = useState<CometChat.BaseMessage>(parentMessage);
   const [replyCount, setReplyCount] = useState<number>(parentMessage.getReplyCount() || 0);
 
@@ -187,22 +242,33 @@ export const CometChatThreadHeader = (props: CometChatThreadHeaderInterface): JS
             templates:
               template && template.type === parentMessage.getType()
                 ? [template]
-                : ChatConfigurator.dataSource.getAllMessageTemplates(mergedTheme),
-            alignment:
-              message.getSender().getUid() === CometChatUIKit.loggedInUser!.getUid()
+                : ChatConfigurator.dataSource.getAllMessageTemplates(mergedTheme, {
+                    textFormatters,
+                  }),
+            alignment: alignment
+              ? alignment
+              : message.getSender().getUid() === CometChatUIKit.loggedInUser!.getUid()
                 ? "right"
                 : "left",
             theme: mergedTheme,
+            datePattern,
+            receiptsVisibility,
+            avatarVisibility
+            
           })}
         </View>
       </ScrollView>
-      <View style={style?.dividerStyle}>
-        <Text style={style?.replyCountTextStyle}>
-          {replyCount.toString() +
-            " " +
-            (replyCount == 1 ? localize("REPLY") : localize("REPLIES"))}
-        </Text>
-      </View>
+      {replyCountBarVisibility && (
+        <View style={style?.replyCountBarStyle}>
+          <Text style={style?.replyCountTextStyle}>
+            {replyCountVisibility
+              ? replyCount.toString() +
+                " " +
+                (replyCount == 1 ? localize("REPLY") : localize("REPLIES"))
+              : ""}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

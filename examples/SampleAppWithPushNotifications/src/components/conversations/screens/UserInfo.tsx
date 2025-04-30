@@ -34,7 +34,7 @@ type Props = ScreenProps & {navigation: NavigationProps};
 const UserInfo: FC<Props> = ({route, navigation}) => {
   const {user} = route.params;
   const theme = useTheme();
-
+  const [userObj, setUserObj] = useState<CometChat.User>(user);
   /** STATES **/
   const [disableButton, setDisableButton] = useState<boolean>(false);
   const [blocked, setBlocked] = useState<boolean>(false);
@@ -43,7 +43,7 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
   const [isBlockModalOpen, setBlockModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
-  const [userStatus, setUserStatus] = useState(user.getStatus());
+  const [userStatus, setUserStatus] = useState(userObj.getStatus());
   const listenerId = useRef<string>('CallListener_' + Date.now());
   const userStatusListenerId = 'user_status_' + new Date().getTime();
 
@@ -52,7 +52,8 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
   const callType = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    setBlocked(user.getBlockedByMe());
+    setUserStatus(userObj.getStatus());
+    setBlocked(userObj.getBlockedByMe());
 
     CometChat.addCallListener(
       listenerId.current,
@@ -87,12 +88,12 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
       userStatusListenerId,
       new CometChat.UserListener({
         onUserOnline: (onlineUser: CometChat.User) => {
-          if (onlineUser.getUid() === user.getUid()) {
+          if (onlineUser.getUid() === userObj.getUid()) {
             setUserStatus(onlineUser.getStatus());
           }
         },
         onUserOffline: (offlineUser: CometChat.User) => {
-          if (offlineUser.getUid() === user.getUid()) {
+          if (offlineUser.getUid() === userObj.getUid()) {
             setUserStatus(offlineUser.getStatus());
           }
         },
@@ -104,7 +105,7 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
       CometChatUIEventHandler.removeCallListener(listenerId.current);
       CometChat.removeUserListener(userStatusListenerId);
     };
-  }, [user]);
+  }, [userObj]);
 
   const translations = {
     lastSeen: 'Last seen',
@@ -130,7 +131,7 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
 
   const makeCall = (type: string): void => {
     if (type === CallTypeConstants.audio || type === CallTypeConstants.video) {
-      const receiverID = user.getUid();
+      const receiverID = userObj.getUid();
       const callTypeValue = type;
       const receiverType = CometChat.RECEIVER_TYPE.USER;
       if (!receiverID || !receiverType) return;
@@ -165,20 +166,20 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
     setBlockModalOpen(false); // close the dialog
     if (blocked) {
       // user is already blocked by me -> now unblocking
-      unblock(user.getUid(), user, setBlocked);
+      unblock(userObj.getUid(), userObj, setBlocked, setUserObj);
     } else {
       // user is not blocked -> blocking user
-      blockUser(user.getUid(), user, setBlocked);
+      blockUser(userObj.getUid(), userObj, setBlocked);
     }
   };
 
   /** DELETE CONVERSATION LOGIC **/
   const handleDeleteConversationConfirm = () => {
     setDeleteModalOpen(false); // close the dialog
-    if (user) {
-      CometChat.getConversation(user.getUid(), 'user')
+    if (userObj) {
+      CometChat.getConversation(userObj.getUid(), 'user')
         .then(conversation => {
-          CometChat.deleteConversation(user.getUid(), 'user')
+          CometChat.deleteConversation(userObj.getUid(), 'user')
             .then(deletedConversation => {
               console.log(deletedConversation);
               CometChatUIEventHandler.emitConversationEvent(
@@ -234,8 +235,8 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
               textStyle: styles.avatarText,
               imageStyle: styles.avatarImage,
             }}
-            image={user?.getAvatar() ? {uri: user.getAvatar()} : undefined}
-            name={user?.getName() ?? ''}
+            image={userObj?.getAvatar() ? {uri: userObj.getAvatar()} : undefined}
+            name={userObj?.getName() ?? ''}
           />
           <Text
             style={[
@@ -243,7 +244,7 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
               styles.mt10Centered,
               {color: theme.color.textPrimary},
             ]}>
-            {user?.getName()}
+            {userObj?.getName()}
           </Text>
           <Text
             style={[
@@ -251,11 +252,11 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
               styles.mt5Centered,
               {color: theme.color.textSecondary},
             ]}>
-            {user &&
-              !user.getBlockedByMe() &&
+            {userObj &&
+              !(userObj.getBlockedByMe() || userObj.getHasBlockedMe()) &&
               (userStatus === 'online'
                 ? 'Online'
-                : getLastSeenTime(user.getLastActiveAt(), translations))}
+                : getLastSeenTime(userObj.getLastActiveAt(), translations))}
           </Text>
         </View>
 

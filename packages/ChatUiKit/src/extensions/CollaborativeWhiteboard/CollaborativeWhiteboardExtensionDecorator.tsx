@@ -16,7 +16,11 @@ import { getExtensionData } from "../ExtensionModerator";
 import React from "react";
 import { Text, View } from "react-native";
 import { CometChatUIKit } from "../../shared";
-import { AdditionalParams, MessageBubbleAlignmentType } from "../../shared/base/Types";
+import {
+  AdditionalAttachmentOptionsParams,
+  AdditionalParams,
+  MessageBubbleAlignmentType,
+} from "../../shared/base/Types";
 import { CometChatUIEventHandler } from "../../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
 import { Icon } from "../../shared/icons/Icon";
 import { getMessagePreviewInternal } from "../../shared/utils/MessageUtils";
@@ -76,12 +80,15 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
     conversation: CometChat.Conversation,
     theme?: CometChatTheme
   ): string | JSX.Element {
-    if (conversation["lastMessage"] == undefined) {
+    if (conversation.getLastMessage() == undefined) {
       return "";
     }
     if (
-      conversation["lastMessage"]["type"] == ExtensionTypeConstants.whiteboard &&
-      conversation["lastMessage"]["category"] == MessageCategoryConstants.custom
+      (conversation.getLastMessage() as CometChat.BaseMessage).getType() ==
+        ExtensionTypeConstants.whiteboard &&
+      (conversation.getLastMessage() as CometChat.BaseMessage).getCategory() ==
+        MessageCategoryConstants.custom &&
+      (conversation.getLastMessage() as CometChat.BaseMessage).getDeletedAt() === undefined
     ) {
       return getMessagePreviewInternal(
         "collaborative-whiteboard-fill",
@@ -130,14 +137,18 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
     theme: CometChatTheme,
     user?: any,
     group?: any,
-    composerId?: any
+    composerId?: any,
+    additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
   ): CometChatMessageComposerAction[] {
     const attachmentOptions: CometChatMessageComposerAction[] = super.getAttachmentOptions(
       theme,
       user,
       group,
-      composerId
+      composerId,
+      additionalAttachmentOptionsParams
     );
+    if (additionalAttachmentOptionsParams?.hideCollaborativeWhiteboardOption)
+      return attachmentOptions;
     if (
       composerId === undefined ||
       (composerId as Map<any, any>).get("parentMessageId") === undefined
@@ -147,11 +158,20 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
         title: localize("COLLABORATIVE_WHITEBOARD"),
         icon: (
           <Icon
-            name="collaborative-whiteboard-icon"
+            name='collaborative-whiteboard-icon'
             color={theme.color.primary}
-            height={theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle?.height}
-            width={theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle?.width}
-            containerStyle={theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconContainerStyle}
+            height={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.height
+            }
+            width={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle?.iconStyle
+                ?.width
+            }
+            containerStyle={
+              theme.messageComposerStyles?.attachmentOptionsStyles?.optionsItemStyle
+                ?.iconContainerStyle
+            }
           />
         ),
         onPress: (user, group) => {
@@ -233,7 +253,14 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
           messageObject: CometChat.BaseMessage,
           theme: CometChatTheme,
           group?: CometChat.Group
-        ) => ChatConfigurator.dataSource.getMessageOptions(loggedInUser, messageObject, theme, group),
+        ) =>
+          ChatConfigurator.dataSource.getMessageOptions(
+            loggedInUser,
+            messageObject,
+            theme,
+            group,
+            additionalParams
+          ),
         BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
           return ChatConfigurator.dataSource.getBottomView(message, alignment);
         },
@@ -277,7 +304,7 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
             buttonText={localize("OPEN_WHITEBOARD")}
             icon={
               <Icon
-                name="collaborative-whiteboard-fill"
+                name='collaborative-whiteboard-fill'
                 height={_style?.iconStyle?.height}
                 width={_style?.iconStyle?.width}
                 color={_style?.iconStyle?.tintColor}

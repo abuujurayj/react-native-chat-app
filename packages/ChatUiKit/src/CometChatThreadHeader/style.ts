@@ -18,7 +18,7 @@ export const getThreadHeaderStyleLight = (
       marginVertical: spacing.padding.p4,
       paddingHorizontal: spacing.padding.p4,
     },
-    dividerStyle: {
+    replyCountBarStyle: {
       paddingVertical: spacing.padding.p1,
       paddingHorizontal: spacing.padding.p5,
       backgroundColor: color.extendedPrimary100,
@@ -51,7 +51,7 @@ export const getThreadHeaderStyleDark = (
       marginVertical: spacing.padding.p4,
       paddingHorizontal: spacing.padding.p4,
     },
-    dividerStyle: {
+    replyCountBarStyle: {
       paddingVertical: spacing.padding.p1,
       paddingHorizontal: spacing.padding.p5,
       backgroundColor: color.extendedPrimary100,

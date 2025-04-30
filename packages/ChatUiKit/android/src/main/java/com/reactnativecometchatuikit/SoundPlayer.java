@@ -45,6 +45,10 @@ public class SoundPlayer extends ReactContextBaseJavaModule {
 
         currentUrl = url;
         mediaPlayer = MediaPlayer.create(getReactApplicationContext(), Uri.parse(url));
+
+        if(mediaPlayer == null)
+           return;
+
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
             obj = new JSONObject();
@@ -62,6 +66,10 @@ public class SoundPlayer extends ReactContextBaseJavaModule {
 
         currentUrl = url;
         mediaPlayer = MediaPlayer.create(getReactApplicationContext(), Uri.parse(url));
+
+        if(mediaPlayer == null)
+           return;
+
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
@@ -120,12 +128,16 @@ public class SoundPlayer extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void stop() {
+        if(mediaPlayer == null)
+           return;
         mediaPlayer.stop();
         mediaPlayer.reset();
     }
 
     @ReactMethod
     public void releaseMediaPlayer() {
+        if(mediaPlayer == null)
+           return;
         mediaPlayer.release();
     }
 

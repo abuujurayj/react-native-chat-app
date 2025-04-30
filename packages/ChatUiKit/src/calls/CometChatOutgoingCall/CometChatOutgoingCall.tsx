@@ -67,6 +67,11 @@ export interface CometChatOutgoingCallInterface {
    * Custom view for the end call button.
    */
   EndCallView?: (call: CometChat.Call | CometChat.CustomMessage) => JSX.Element;
+  /**
+   * Callback fired when an error occurs.
+   * @param {CometChat.CometChatException} error - The error object.
+   */
+  onError?: (error: CometChat.CometChatException) => void;
 }
 
 /**
@@ -91,12 +96,15 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
     SubtitleView,
     AvatarView,
     EndCallView,
+    onError,
   } = props;
 
   // State to track whether the call is connected.
   const [isCallConnected, setCallConnected] = useState(false);
 
-  // Refs to store ongoing call, session ID, call listener and settings.
+  // Controls visibility of this modal.
+  const [isModalVisible, setModalVisible] = useState(true);
+
   const ongoingCall = useRef<CometChat.Call | CometChat.CustomMessage>();
   const callSessionId = useRef<string>();
   const callListener = useRef<any>(null);
@@ -110,14 +118,8 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
     return deepMerge(theme.outgoingCallStyle, style ?? {});
   }, [theme.outgoingCallStyle, style]);
 
-  /**
-   * Checks if the provided call is a default CometChat call.
-   *
-   * @param {CometChat.BaseMessage} call - The call object.
-   * @returns {Boolean} True if it is a default call; otherwise false.
-   */
-  function checkIfDefaultCall(call: CometChat.BaseMessage): Boolean {
-    return call.getCategory() == MessageCategoryConstants.call;
+  function checkIfDefaultCall(call: CometChat.BaseMessage): boolean {
+    return call.getCategory() === MessageCategoryConstants.call;
   }
 
   /**
@@ -135,6 +137,7 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
         })
         .catch((err) => {
           console.log("Error", err);
+          onError && onError(err);
         });
     }
   };
@@ -143,16 +146,16 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
   useEffect(() => {
     if (
       call &&
-      (call["status"] == "ongoing" ||
-        (call.getCategory() == (CometChat.CATEGORY_CUSTOM as CometChat.MessageCategory) &&
-          call.getType() == MessageTypeConstants.meeting))
+      (call["status"] === "ongoing" ||
+        (call.getCategory() === (CometChat.CATEGORY_CUSTOM as CometChat.MessageCategory) &&
+          call.getType() === MessageTypeConstants.meeting))
     ) {
       ongoingCall.current = call;
       if (call.getType() == MessageTypeConstants.meeting) {
         callSessionId.current = ((call as CometChat.CustomMessage).getCustomData() as any)?.sessionId;
       }
-      if (call?.getCategory() == MessageCategoryConstants.call) {
-        callSessionId.current = call?.["sessionId"];
+      if (call.getCategory() === MessageCategoryConstants.call) {
+        callSessionId.current = call["sessionId"];
       }
       setCallConnected(true);
     }
@@ -169,13 +172,13 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
     CometChat.addCallListener(
       listenerId,
       new CometChat.CallListener({
-        onOutgoingCallAccepted(call: any) {
+        onOutgoingCallAccepted: (acceptedCall: any) => {
           CometChatSoundManager.pause();
-          ongoingCall.current = call;
-          callSessionId.current = call["sessionId"];
+          ongoingCall.current = acceptedCall;
+          callSessionId.current = acceptedCall["sessionId"];
           setCallConnected(true);
         },
-        onOutgoingCallRejected: (call: any) => {
+        onOutgoingCallRejected: () => {
           CometChatSoundManager.pause();
           ongoingCall.current = undefined;
           callSessionId.current = undefined;
@@ -186,8 +189,9 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
 
     // Listen for call failure events.
     CometChatUIEventHandler.addCallListener(listenerId, {
-      ccCallFailed: () => {
+      ccCallFailed: (error: CometChat.CometChatException) => {
         setCallConnected(false);
+        onError && onError(error);
       },
     });
 
@@ -230,7 +234,9 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
 
     // Determine call type (audio or meeting) and initialize call settings.
     const callType =
-      call?.getType() === "meeting" ? call?.["customData"]?.["callType"] : call.getType();
+      call?.getType() === MessageTypeConstants.meeting
+        ? call["customData"]?.["callType"]
+        : call.getType();
 
     callSettings.current =
       callSettingsBuilder?.setCallEventListener(callListener.current) ??
@@ -248,17 +254,26 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
     };
   }, []);
 
-  // Retrieve the receiver's name or fallback to "Unknown".
+  /**
+   * Handles closing the modal (via hardware back button on Android or a custom button).
+   * This is where you can call onEndCallButtonPressed or do any other cleanup.
+   */
+  const handleModalClose = () => {
+    if (onEndCallButtonPressed) {
+      onEndCallButtonPressed(call as CometChat.Call);
+    }
+    // Hide the modal – onDismiss fires after the animation completes
+    setModalVisible(false);
+  };
+
   const callReceiverName = call?.getReceiver?.().getName?.() ?? "Unknown";
 
   return (
     <Modal
       transparent
-      animated
       animationType="fade"
-      onRequestClose={() =>
-        onEndCallButtonPressed && onEndCallButtonPressed(call as CometChat.Call)
-      }
+      visible={isModalVisible}
+      onRequestClose={handleModalClose}
     >
       <SafeAreaView style={{ flex: 1 }}>
         {isCallConnected ? (
@@ -285,7 +300,7 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
                 name={callReceiverName}
                 image={{
                   uri:
-                    call?.getReceiverType?.() == "user"
+                    call?.getReceiverType?.() === "user"
                       ? (call?.getReceiver?.() as CometChat.User)?.getAvatar()
                       : (call?.getReceiver?.() as CometChat.Group)?.getIcon(),
                 }}
@@ -297,9 +312,7 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
             ) : (
               <TouchableOpacity
                 style={outgoingCallStyle.endCallButtonStyle}
-                onPress={() =>
-                  onEndCallButtonPressed && onEndCallButtonPressed(call as CometChat.Call)
-                }
+                onPress={handleModalClose}
               >
                 <Icon
                   name="call-end-fill"

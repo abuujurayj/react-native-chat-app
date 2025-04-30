@@ -17,6 +17,7 @@ const CallsStackNavigator = () => {
       screenOptions={{
         headerShown: false,
         gestureEnabled: true,
+        gestureDirection: 'horizontal',
         cardStyleInterpolator: ({current: {progress}}) => ({
           overlayStyle: {
             opacity: progress.interpolate({

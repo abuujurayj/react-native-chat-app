@@ -402,7 +402,7 @@
 	"TAP_TO_REMOVE": "点按即可移除",
 	"ADD_CONTACTS": " 添加联系人以开始对话并在此处查看列表。",
 	"SCOPE_CHANGE_INFO": "您可以更改角色以管理组权限和职责",
-	"SOMETHING_WENT_WRONG": " 看起来出了点问题。请再试一次。",
+	"SOMETHING_WENT_WRONG": "看起来出了点问题。",
 	"MENTION_UPTO": "你最多可以提一下",
 	"TIME": "时间",
 	"TIMES": "倍",
@@ -442,5 +442,6 @@
 	"APP_CREDENTIALS" : "应用凭据",
 	"REGION": "地区",
 	"WRONG_TEXT":"看起来出了点问题.",
-	"WRONG_TEXT_TRY_AGAIN":"请再试一次."
+	"WRONG_TEXT_TRY_AGAIN":"请再试一次.",
+	"BLOCKED_USER_DESC": "无法发送消息，因为用户已被屏蔽"
 }

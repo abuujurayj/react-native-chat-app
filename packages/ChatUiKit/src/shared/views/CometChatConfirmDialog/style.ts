@@ -64,7 +64,7 @@ export const getConfirmDialogStyleLight = (
     },
     cancelButtonTextStyle: {
       color: color.textPrimary,
-      textTransform: "uppercase",
+      //textTransform: "uppercase",
       ...typography.button.medium,
     },
     confirmButtonStyle: {
@@ -77,7 +77,7 @@ export const getConfirmDialogStyleLight = (
     },
     confirmButtonTextStyle: {
       color: color.primaryButtonIcon,
-      textTransform: "uppercase",
+      //textTransform: "uppercase",
       ...typography.button.medium,
     },
   });

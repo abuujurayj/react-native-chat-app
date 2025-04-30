@@ -1,6 +1,15 @@
-import { ImageSourcePropType, ImageStyle, StyleSheet, TextStyle, ViewStyle } from "react-native";
+import {
+  ColorValue,
+  ImageSourcePropType,
+  ImageStyle,
+  StyleSheet,
+  TextStyle,
+  ViewStyle,
+} from "react-native";
 import { AvatarStyle } from "../../shared/views/CometChatAvatar";
 import { CometChatTheme } from "../../theme/type";
+import { DeepPartial } from "../../shared/helper/types";
+import { deepMerge } from "../../shared/helper/helperFunctions";
 
 export const Style = StyleSheet.create({
   container: {
@@ -22,6 +31,7 @@ export const Style = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 10
   },
   imageStyle: {
     height: 24,
@@ -51,62 +61,94 @@ export type CallLogsStyle = {
     titleTextStyle: TextStyle;
     missedCallTitleTextStyle: TextStyle;
     subTitleTextStyle: TextStyle;
-    avatarStyle: AvatarStyle
+    avatarStyle: AvatarStyle;
     callIconStyle: ImageStyle;
     outgoingCallStatusIconStyle: ImageStyle;
     incomingCallStatusIconStyle: ImageStyle;
     missedCallStatusIconStyle: ImageStyle;
-  }
+  };
+  skeletonStyle: {
+    linearGradientColors?: [string, string];
+    shimmerBackgroundColor?: ColorValue;
+    shimmerOpacity?: number;
+    speed?: number;
+    containerBackgroundColor?: ColorValue;
+  };
 };
 
-export const getCallLogsStyle = (
+export const getCallLogsStyleLight = (
   color: CometChatTheme["color"],
   spacing: CometChatTheme["spacing"],
   typography: CometChatTheme["typography"]
-): CallLogsStyle => {
-  return {
-    errorStateStyle: {
-      titleStyle: {
-        color: color.textPrimary,
-        textAlign: "center",
-        ...typography.heading3.bold,
-      },
-      subTitleStyle: {
-        color: color.textSecondary,
-        textAlign: "center",
-        ...typography.body.regular,
-      },
+): DeepPartial<CallLogsStyle> =>
+  deepMerge(
+    {
       containerStyle: {},
-    },
-    emptyStateStyle: {
-      titleStyle: {
+      titleTextStyle: {
         color: color.textPrimary,
-        textAlign: "center",
-        ...typography.heading3.bold,
+        ...typography.heading1.bold,
       },
-      subTitleStyle: {
-        color: color.textSecondary,
-        textAlign: "center",
-        ...typography.body.regular,
+      titleSeparatorStyle: {
+        borderBottomWidth: 1,
+        borderBottomColor: color.borderLight,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        width: "100%",
       },
-      containerStyle: {},
+      errorStateStyle: {
+        containerStyle: {},
+        titleStyle: {
+          color: color.textPrimary,
+          textAlign: "center",
+          ...typography.heading3.bold,
+        },
+        subTitleStyle: {
+          color: color.textSecondary,
+          textAlign: "center",
+          ...typography.body.regular,
+        },
+      },
+      emptyStateStyle: {
+        containerStyle: {},
+        titleStyle: {
+          color: color.textPrimary,
+          textAlign: "center",
+          ...typography.heading3.bold,
+        },
+        subTitleStyle: {
+          color: color.textSecondary,
+          textAlign: "center",
+          ...typography.body.regular,
+        },
+      },
+
+      itemStyle: getCallLogsItemStyle(color, spacing, typography),
+      skeletonStyle: {
+        linearGradientColors: ["#E8E8E8", "#F5F5F5"] as [string, string],
+        shimmerBackgroundColor: color.staticBlack,
+        shimmerOpacity: 0.01,
+        speed: 1,
+        containerBackgroundColor: color.background2,
+      },
+    } as const,
+    {}
+  );
+
+export const getCallLogsStyleDark = (
+  color: CometChatTheme["color"],
+  spacing: CometChatTheme["spacing"],
+  typography: CometChatTheme["typography"]
+): DeepPartial<CallLogsStyle> =>
+  deepMerge(getCallLogsStyleLight(color, spacing, typography), {
+    skeletonStyle: {
+      linearGradientColors: ["#383838", "#272727"] as [string, string],
+      shimmerBackgroundColor: color.staticWhite,
+      shimmerOpacity: 0.01,
+      speed: 1,
+      containerBackgroundColor: color.background2,
     },
-    containerStyle: {},
-    titleTextStyle: {
-      color: color.textPrimary,
-      ...typography.heading1.bold,
-    },
-    titleSeparatorStyle: {
-      borderBottomWidth: 1,
-      borderBottomColor: color.borderLight,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      width: "100%",
-    },
-    itemStyle: getCallLogsItemStyle(color, spacing, typography)
-  };
-};
+  });
 
 export type CallLogsItemStyle = {
   containerStyle: ViewStyle;
@@ -141,7 +183,7 @@ export const getCallLogsItemStyle = (
     },
     missedCallTitleTextStyle: {
       color: color.error,
-       ...typography.heading4.medium
+      ...typography.heading4.medium,
     },
     subTitleTextStyle: {
       color: color.textSecondary,

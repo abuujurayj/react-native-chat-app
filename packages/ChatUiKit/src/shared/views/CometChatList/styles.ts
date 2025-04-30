@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
   },
   footerContainer: {
     paddingVertical: 20,
+    flex:1,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -5,15 +5,35 @@ import { SuggestionItem } from "./SuggestionItem";
 import { SuggestionListStyle } from "../../../theme/type";
 import { Skeleton } from "./Skeleton";
 
+/**
+ * Props for the CometChatSuggestionList component.
+ */
 export interface CometChatSuggestionListInterface {
+  /**
+   * Color for the separator between suggestion items.
+   */
   separatorColor?: string;
   /**
-   * Array of selection items
+   * Array of suggestion items to be displayed.
    */
   data: Array<SuggestionItem>;
+  /**
+   * Custom styles for the suggestion list.
+   */
   listStyle: SuggestionListStyle;
+  /**
+   * Callback function invoked when a suggestion item is pressed.
+   *
+   * @param item - The suggestion item that was pressed.
+   */
   onPress: (item: SuggestionItem) => void;
+  /**
+   * Optional callback function invoked when the end of the list is reached.
+   */
   onEndReached?: () => void;
+  /**
+   * Indicates whether the suggestion list is currently loading.
+   */
   loading?: boolean;
 }
 
@@ -39,6 +59,9 @@ export const CometChatSuggestionList = (props: CometChatSuggestionListInterface)
         containerStyle={listStyle?.listItemStyle.containerStyle}
         titleStyle={listStyle?.listItemStyle.titleStyle}
         avatarStyle={listStyle?.listItemStyle.avatarStyle}
+        titleSubtitleContainerStyle={{
+          alignSelf: "center",
+        }}
         onPress={() => onPress(item)}
         {...shouldLoadAvatarName}
       />
@@ -46,7 +69,7 @@ export const CometChatSuggestionList = (props: CometChatSuggestionListInterface)
   };
 
   return (
-    <View >
+    <View>
       {initialLoad ? (
         <View>
           <Skeleton />

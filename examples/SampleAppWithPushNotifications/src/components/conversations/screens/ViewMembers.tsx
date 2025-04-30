@@ -21,6 +21,7 @@ const ViewMembers: React.FC = () => {
           navigation.goBack();
         }}
         selectionMode="none"
+        showBackButton={true}
       />
     </View>
   );

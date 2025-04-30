@@ -135,10 +135,8 @@ export const getBannedMemberStyleLight = (
         alignSelf: 'center',
       },
     },
-    selectionIconStyle: {},
-    selectionIcon: undefined,
-    cancellationIcon: undefined,
-    cancellationIconStyle: {},
+    confirmSelectionStyle: {},
+    selectionCancelStyle: {},
     loadingIconTint: color.primary,
     sectionHeaderTextStyle: {
       marginHorizontal: spacing.spacing.s5,

@@ -6,11 +6,12 @@ import { DeepPartial } from "../shared/helper/types";
 
 export type UserStyle = CometChatListStylesInterface & {
   skeletonStyle: {
-    backgroundColor: ColorValue;
-    linearGradientColors: [string, string];
-    shimmerBackgroundColor: ColorValue;
-    shimmerOpacity: number;
-    speed: number;
+    backgroundColor?: ColorValue;
+    linearGradientColors?: [string, string];
+    shimmerBackgroundColor?: ColorValue;
+    shimmerOpacity?: number;
+    speed?: number;
+    containerBackgroundColor?: ColorValue;
   };
   headerContainerStyle: ViewStyle;
 };
@@ -63,14 +64,12 @@ export const getUserListStyleLight = (
       },
       headViewContainerStyle: {},
       titleSubtitleContainerStyle: {
-        alignSelf: 'center'
+        alignSelf: "center",
       },
       trailingViewContainerStyle: {},
     },
-    selectionIconStyle: {},
-    selectionIcon: undefined,
-    cancellationIcon: undefined,
-    cancellationIconStyle: {},
+    confirmSelectionStyle: {},
+    selectionCancelStyle: undefined,
     loadingIconTint: color.primary,
     sectionHeaderTextStyle: {
       marginHorizontal: spacing.spacing.s5,
@@ -138,6 +137,13 @@ export const getUserListStyleLight = (
       },
     },
     errorStateStyle: {
+      containerStyle: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: "10%",
+        flexDirection: "column",
+      },
       titleStyle: {
         color: color.textPrimary,
         ...typography.heading3.bold,
@@ -145,21 +151,17 @@ export const getUserListStyleLight = (
       },
       subTitleStyle: {
         color: color.textSecondary,
-        textAlign: "center" as const,
+        textAlign: "center",
         ...typography.body.regular,
-      },
-      containerStyle: {
-        justifyContent: "center",
-        alignItems: "center",
-        padding: spacing.padding.p3,
       },
     },
     skeletonStyle: {
-      backgroundColor: color.background3,
+      backgroundColor: "transparent",
       linearGradientColors: ["#E8E8E8", "#F5F5F5"] as [string, string],
       shimmerBackgroundColor: color.staticBlack,
       shimmerOpacity: 0.01,
       speed: 1,
+      containerBackgroundColor: color.background1,
     },
   };
 };
@@ -171,11 +173,12 @@ export const getUserListStyleDark = (
 ): DeepPartial<UserStyle> => {
   return deepMerge(getUserListStyleLight(color, spacing, typography), {
     skeletonStyle: {
-      backgroundColor: color.background3,
+      backgroundColor: "transparent",
       linearGradientColors: ["#383838", "#272727"] as [string, string],
       shimmerBackgroundColor: color.staticWhite,
       shimmerOpacity: 0.01,
       speed: 1,
+      containerBackgroundColor: color.background1,
     },
   });
 };

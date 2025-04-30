@@ -21,18 +21,21 @@ import { CometChatList, CometChatListProps, localize } from "../shared";
 import { MessageTypeConstants } from "../shared/constants/UIKitConstants";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import { DeepPartial } from "../shared/helper/types";
-import { Icon, IconName } from "../shared/icons/Icon";
+import { Icon } from "../shared/icons/Icon";
 import {
   getUnixTimestamp,
   getUnixTimestampInMilliseconds,
 } from "../shared/utils/CometChatMessageHelper";
 import { CometChatStatusIndicatorInterface } from "../shared/views/CometChatStatusIndicator";
-import { TooltipMenu } from "../shared/views/CometChatTooltipMenu";
+import { CometChatTooltipMenu } from "../shared/views/CometChatTooltipMenu";
 import { ErrorEmptyView } from "../shared/views/ErrorEmptyView/ErrorEmptyView";
 import { useTheme } from "../theme";
-import { useThemeInternal } from "../theme/hook";
 import { Skeleton } from "./Skeleton";
 import { GroupMemberStyle } from "./style";
+import { MenuItemInterface } from "../shared/views/CometChatTooltipMenu/CometChatTooltipMenu";
+import ChangeCircle from "../shared/icons/components/change-circle";
+import Block from "../shared/icons/components/block";
+import Cancel from "../shared/icons/components/cancel";
 
 /**
  * Props for the CometChatGroupMembers component.
@@ -42,15 +45,21 @@ export interface CometChatGroupMembersInterface
     CometChatListProps,
     | "requestBuilder"
     | "listItemKey"
+    | "title"
     | "statusIndicatorStyle"
     | "avatarStyle"
     | "listItemStyle"
+    | "listStyle"
     | "ListItemView"
     | "searchRequestBuilder"
     | "onSelection"
     | "disableUsersPresence"
     | "errorStateText"
     | "emptyStateText"
+    | "onListFetched"
+    | "hideBackButton"
+    | "statusIndicatorType"
+    | "hideStickyHeader"
   > {
   /**
    * Custom view for subtitle.
@@ -58,6 +67,8 @@ export interface CometChatGroupMembersInterface
    * @returns JSX.Element.
    */
   SubtitleView?: (item: CometChat.GroupMember) => JSX.Element;
+
+  TitleView?: (item: CometChat.GroupMember) => JSX.Element;
   /**
    * Custom tail view.
    * @param item - Object of CometChat.GroupMember.
@@ -98,6 +109,10 @@ export interface CometChatGroupMembersInterface
    */
   onSelection?: (list: CometChat.GroupMember[]) => void;
   /**
+   * Callback when submit selection button is pressed.
+   */
+  onSubmit?: (list: Array<CometChat.Conversation>) => void;
+  /**
    * Pass search request builder object.
    */
   searchRequestBuilder?: CometChat.GroupMembersRequestBuilder;
@@ -121,6 +136,69 @@ export interface CometChatGroupMembersInterface
    * Custom ListItem view.
    */
   LeadingView?: (item: CometChat.GroupMember) => JSX.Element;
+  /**
+   * Callback triggered when the group members list is empty.
+   */
+  onEmpty?: () => void;
+  /**
+   * Callback triggered once the group members have loaded (i.e., the fetched list is not empty).
+   * Receives the array of group members.
+   */
+  onLoad?: (list: CometChat.GroupMember[]) => void;
+  /**
+   * A function to **replace** the default menu items entirely for a group member.d
+   * @param member    - The group member object
+   * @param group     - The group object
+   * @returns An array of menu items (with text, onPress, etc.)
+   */
+  options?: (member: CometChat.GroupMember, group: CometChat.Group) => MenuItemInterface[];
+  /**
+   * A function to **append** more menu items on top of the default menu items for a group member.
+   * @param member    - The group member object
+   * @param group     - The group object
+   * @returns An array of menu items that will be appended to the default list
+   */
+  addOptions?: (member: CometChat.GroupMember, group: CometChat.Group) => MenuItemInterface[];
+  /**
+   * Hide the "Remove" (Kick) option from the default menu.
+   */
+  hideKickMemberOption?: boolean;
+  /**
+   * Hide the "Ban" option from the default menu.
+   */
+  hideBanMemberOption?: boolean;
+  /**
+   * Hide the "Change Scope" option from the default menu.
+   */
+  hideScopeChangeOption?: boolean;
+  /**
+   * Hide the loading skeleton.
+   */
+  hideLoadingState?: boolean;
+  /**
+   * Hide the users Status.
+   */
+  usersStatusVisibility?: boolean;
+  /**
+   * Hide the Header.
+   */
+  hideHeader?: boolean;
+  /**
+   * Hide the Submit Button.
+   */
+  onError?: () => void;
+  /**
+   * search Keyword
+   */
+  searchKeyword?: string;
+  /**
+   * visibilty of back button
+   */
+  showBackButton?: boolean;
+  /**
+   * exclude owner from the list.
+   */
+  excludeOwner?: boolean;
 }
 
 /**
@@ -138,8 +216,9 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
     ItemView,
     AppBarOptions,
     searchPlaceholderText = "Search",
-    hideBackButton = false,
+    showBackButton = false,
     onSelection,
+    onSubmit,
     hideSearch,
     EmptyView,
     ErrorView,
@@ -153,13 +232,26 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
     style = {},
     TrailingView,
     LeadingView,
+    onEmpty,
+    onLoad,
+    options,
+    addOptions,
+    onError,
+    searchKeyword = "",
+    hideKickMemberOption,
+    hideBanMemberOption,
+    hideScopeChangeOption,
+    hideLoadingState,
+    usersStatusVisibility = true,
+    hideHeader = false,
+    excludeOwner,
+    hideSubmitButton = false,
     ...newProps
   } = props;
 
   // Get theme information and merge with provided style overrides.
   const theme = useTheme();
   const mergedStyle = deepMerge(theme.groupMemberStyle, style);
-  const { mode } = useThemeInternal();
 
   // State management for UI elements
   const [hideSearchError, setHideSearchError] = useState(false);
@@ -177,9 +269,9 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
 
   // Define role permissions for current user actions
   const RolePermissions: { [key: string]: string[] } = {
-    OWNER: ["Change Scope", "Ban", "Remove"],
-    ADMIN: ["Change Scope", "Ban", "Remove"],
-    MODERATOR: ["Change Scope", "Ban", "Remove"],
+    OWNER: ["Change Scope", "Ban", "Kick"],
+    ADMIN: ["Change Scope", "Ban", "Kick"],
+    MODERATOR: ["Change Scope", "Ban", "Kick"],
     PARTICIPANT: [],
   };
 
@@ -202,8 +294,14 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
 
   /**
    * Renders an empty state view when no users are available.
+   * Also calls `onEmpty` if provided, so the parent can react to an empty list.
    */
   const EmptyStateView = useCallback(() => {
+    // Let parent know it's empty if user provided a callback
+    useEffect(() => {
+      onEmpty?.();
+    }, []);
+
     return (
       <View style={{ flex: 1 }}>
         <ErrorEmptyView
@@ -245,6 +343,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
         <ErrorEmptyView
           title={localize("OOPS")}
           subTitle={localize("SOMETHING_WENT_WRONG")}
+          tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
           Icon={
             <Icon
               icon={mergedStyle?.errorStateStyle?.icon as ImageSourcePropType | JSX.Element}
@@ -268,9 +367,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
   }, [theme]);
 
   /**
-   * Returns the appropriate badge view based on the user's role.
-   * @param user - A group member whose badge is to be rendered.
-   * @returns JSX.Element for the badge.
+   * Returns an action badge (OWNER, ADMIN, MODERATOR) or no badge for participant.
    */
   const TailViewContent = (user: CometChat.GroupMember): JSX.Element => {
     const userRole = user?.getScope();
@@ -305,9 +402,6 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
 
   /**
    * Removes (kicks) a user from the group.
-   *
-   * @param groupId - The unique identifier for the group.
-   * @param user - The group member to remove.
    */
   const removeGroupMember = async (groupId: string, user: CometChat.GroupMember) => {
     try {
@@ -358,8 +452,6 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
 
   /**
    * Bans a user from the group.
-   *
-   * @param user - The group member to ban.
    */
   const banGroupMember = async (user: CometChat.GroupMember) => {
     try {
@@ -401,17 +493,170 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
     }
   };
 
+  /**
+   * Generate default menu items (Change Scope, Ban, Remove).
+   * Then filter them out based on hide props (hideBanMemberOption, etc.),
+   * or based on current user role (RolePermissions).
+   */
+  const getDefaultMenuItems = (item: CometChat.GroupMember): MenuItemInterface[] => {
+    const defaultItems: MenuItemInterface[] = [
+      {
+        text: "Change Scope",
+        onPress: () => {
+          const currentScope = item.getScope();
+          setTooltipVisible(false);
+          const formattedScope = currentScope.charAt(0).toUpperCase() + currentScope.slice(1);
+          setIsBottomSheetVisible(true);
+          setSelectedRole(formattedScope);
+        },
+        icon: (
+          <ChangeCircle
+            color={theme.color.textPrimary}
+            height={theme.spacing.spacing.s6}
+            width={theme.spacing.spacing.s6}
+          />
+        ),
+        textStyle: { color: theme.color.textPrimary },
+        disabled: false,
+      },
+      {
+        text: "Ban",
+        onPress: () => {
+          setTooltipVisible(false);
+          setModalType("ban");
+        },
+        icon: (
+          <Block
+            color={theme.color.textPrimary}
+            height={theme.spacing.spacing.s6}
+            width={theme.spacing.spacing.s6}
+          />
+        ),
+        textStyle: { color: theme.color.textPrimary },
+        disabled: false,
+      },
+      {
+        text: "Kick",
+        onPress: () => {
+          setTooltipVisible(false);
+          setModalType("kick");
+        },
+        icon: (
+          <Cancel
+            color={theme.color.textPrimary}
+            height={theme.spacing.spacing.s6}
+            width={theme.spacing.spacing.s6}
+          />
+        ),
+        textStyle: { color: theme.color.textPrimary },
+        disabled: false,
+      },
+    ];
+
+    let filteredItems = defaultItems;
+
+    // Hide Kick?
+    if (hideKickMemberOption) {
+      filteredItems = filteredItems.filter((i) => i.text !== "Kick");
+    }
+    // Hide Ban?
+    if (hideBanMemberOption) {
+      filteredItems = filteredItems.filter((i) => i.text !== "Ban");
+    }
+    // Hide Scope?
+    if (hideScopeChangeOption) {
+      filteredItems = filteredItems.filter((i) => i.text !== "Change Scope");
+    }
+
+    // Now filter by user role permissions
+    filteredItems = filteredItems.filter((itemMenu) =>
+      RolePermissions[currentUserRole?.toUpperCase()!].includes(itemMenu.text)
+    );
+
+    return filteredItems;
+  };
+
+  /**
+   * Merges default menu items with user-defined ones or replaces them entirely.
+   *  - If options is defined, we use that array as the entire set of menu items.
+   *  - If addOptions is defined, we append them to the default set.
+   */
+  const buildMenuItems = (item: CometChat.GroupMember): MenuItemInterface[] => {
+    // If options is provided, it completely replaces default items
+    if (options) {
+      const replaced = options(item, group);
+      return replaced;
+    }
+
+    // Else we get the default
+    let defaultItems = getDefaultMenuItems(item);
+
+    // If addOptions is provided, we append them
+    if (addOptions) {
+      const appended = addOptions(item, group);
+      defaultItems = [...defaultItems, ...appended];
+    }
+    return defaultItems;
+  };
+
   return (
     <View style={mergedStyle.containerStyle as ViewStyle}>
       <CometChatList
         ref={listRef}
+        hideHeader={hideHeader}
+        onError={onError}
         selectionMode={selectionMode}
-        // Long press to open tooltip menu for management actions.
-        onItemLongPress={(item, e) => {
-          const targetIsOwner = item.uid === group.getOwner();
-          const targetScope = item.scope;
+        hideStickyHeader={true}
+        hideSubmitButton={hideSubmitButton}
+        onSelection={onSelection}
+        onSubmit={onSubmit}
+        hideBackButton={!showBackButton}
+        SubtitleView={SubtitleView ?? SubtitleView}
+        searchPlaceholderText={searchPlaceholderText}
+        TrailingView={TrailingView ?? TailViewContent}
+        hideSearch={hideSearch ? hideSearch : hideSearchError}
+        title={localize("MEMBERS")}
+        searchRequestBuilder={searchRequestBuilder}
+        requestBuilder={
+          groupMemberRequestBuilder ||
+          new CometChat.GroupMembersRequestBuilder(group["guid"])
+            .setLimit(30)
+            .setSearchKeyword(searchKeyword)
+        }
+        hideError={hideError}
+        onBack={onBack}
+        ItemView={ItemView}
+        listStyle={mergedStyle}
+        LoadingView={
+          hideLoadingState
+            ? () => <></> // will not render anything if true
+            : LoadingView
+              ? LoadingView
+              : () => <Skeleton />
+        }
+        EmptyView={EmptyView ? EmptyView : () => <EmptyStateView />}
+        ErrorView={ErrorView ? ErrorView : () => <ErrorStateView />}
+        statusIndicatorType={(user: CometChat.User) =>
+          usersStatusVisibility
+            ? (user?.getStatus() as CometChatStatusIndicatorInterface["type"])
+            : null
+        }
+        LeadingView={LeadingView}
+        AppBarOptions={AppBarOptions}
+        listItemKey={"uid"}
+        {...newProps}
+        onItemLongPress={(member, e) => {
+          // 1) If user explicitly provided a callback, call it and return
+          if (props.onItemLongPress) {
+            props.onItemLongPress(member);
+            return;
+          }
 
-          // Role based restrictions for long press actions.
+          // 2) Otherwise, use the default scope-based code
+          const targetIsOwner = member.uid === group.getOwner();
+          const targetScope = member.scope;
+
+          // Role-based restrictions
           if (currentUserRole === "owner") {
             // Owner can perform any action.
           } else if (currentUserRole === "admin") {
@@ -425,11 +670,14 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
               return;
             }
           } else if (currentUserRole === "participant") {
-            // Participant does not have any management menu.
             return;
           }
 
-          // Set tooltip position based on the long press event coordinates.
+          // Only open if user is not self
+          if (member.uid === CometChatUIKit.loggedInUser!.getUid()) {
+            return;
+          }
+
           if (["owner", "admin", "moderator"].includes(currentUserRole!)) {
             if (e && e.nativeEvent) {
               tooltipPositon.current = {
@@ -439,46 +687,34 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
             } else {
               tooltipPositon.current = { pageX: 200, pageY: 100 };
             }
-            setSelectedItem(item);
-
-            // Prevent users from opening the menu for themselves.
-            if (item.uid !== CometChatUIKit.loggedInUser!.getUid()) {
-              setTooltipVisible(true);
-              setIsToolTipDismissed(false);
-            }
+            setSelectedItem(member);
+            setTooltipVisible(true);
+            setIsToolTipDismissed(false);
           }
         }}
-        listItemKey={"uid"}
-        AppBarOptions={AppBarOptions}
-        hideStickyHeader={true}
-        onSelection={onSelection}
-        hideBackButton={hideBackButton}
-        SubtitleView={SubtitleView ?? SubtitleView}
-        searchPlaceholderText={searchPlaceholderText}
-        TrailingView={TrailingView ?? TailViewContent}
-        hideSearch={hideSearch ? hideSearch : hideSearchError}
-        title={localize("MEMBERS")}
-        searchRequestBuilder={searchRequestBuilder}
-        // Create a new group member request if one is not provided.
-        requestBuilder={
-          groupMemberRequestBuilder ||
-          new CometChat.GroupMembersRequestBuilder(group["guid"]).setLimit(30)
-        }
-        hideError={hideError}
-        onBack={onBack}
-        ItemView={ItemView}
-        listStyle={mergedStyle}
-        LoadingView={LoadingView ? LoadingView : () => <Skeleton />}
-        EmptyView={EmptyView ? EmptyView : () => <EmptyStateView />}
-        ErrorView={ErrorView ? ErrorView : () => <ErrorStateView />}
-        statusIndicatorType={(user: CometChat.User) =>
-          user?.getStatus() as CometChatStatusIndicatorInterface["type"]
-        }
-        LeadingView={LeadingView}
-        {...newProps}
+        onItemPress={(member) => {
+          if (props.onItemPress) {
+            props.onItemPress(member);
+          }
+        }}
+        onListFetched={(fetchedList: CometChat.GroupMember[]) => {
+          const selfUid = loggedInUser.current.getUid();
+          let finalList = fetchedList;
+          if (excludeOwner) {
+            finalList = fetchedList.filter((m) => m.getUid() !== selfUid);
+            // Remove from rendered list as well (safe call)
+            listRef.current?.removeItemFromList(selfUid);
+          }
+
+          if (finalList.length === 0) {
+            onEmpty?.();
+          } else {
+            onLoad?.(finalList);
+          }
+        }}
       />
 
-      {/* Render tooltip menu if an item is selected and selectionMode is disabled */}
+      {/* Render tooltip menu if an item is selected and selectionMode is "none" */}
       {selectedItem && selectionMode === "none" && (
         <View
           style={{
@@ -488,7 +724,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
             zIndex: 9999,
           }}
         >
-          <TooltipMenu
+          <CometChatTooltipMenu
             visible={tooltipVisible}
             onClose={() => {
               setTooltipVisible(false);
@@ -500,62 +736,31 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
             event={{
               nativeEvent: tooltipPositon.current,
             }}
-            // Define menu items with actions based on current user's permissions.
-            menuItems={[
-              {
-                text: "Change Scope",
-                onPress: () => {
-                  const currentScope = selectedItem.getScope();
-                  setTooltipVisible(false);
-                  const formattedScope =
-                    currentScope.charAt(0).toUpperCase() + currentScope.slice(1);
-                  setIsBottomSheetVisible(true);
-                  setSelectedRole(formattedScope);
-                },
-                iconName: "change-circle" as IconName,
-                textColor: theme.color.textPrimary as ColorValue,
-                iconColor: theme.color.textPrimary as ColorValue,
-                disabled: false,
-              },
-              {
-                text: "Ban",
-                onPress: () => {
-                  setTooltipVisible(false);
-                  setModalType("ban");
-                },
-                iconName: "block" as IconName,
-                textColor: theme.color.textPrimary as ColorValue,
-                iconColor: theme.color.textPrimary as ColorValue,
-                disabled: false,
-              },
-              {
-                text: "Remove",
-                onPress: () => {
-                  setTooltipVisible(false);
-                  setModalType("kick");
-                },
-                iconName: "cancel" as IconName,
-                textColor: theme.color.textPrimary as ColorValue,
-                iconColor: theme.color.textPrimary as ColorValue,
-                disabled: false,
-              },
-            ].filter((item) => {
-              // Filter menu items based on the current user's role permissions.
-              return RolePermissions[currentUserRole?.toUpperCase()!].includes(item.text);
-            })}
+            // Build the final menu items
+            menuItems={buildMenuItems(selectedItem).map((mi) => ({
+              text: mi.text,
+              onPress: mi.onPress,
+              icon: mi.icon,
+              textStyle: mi.textStyle,
+              iconStyle: mi.iconStyle,
+              iconContainerStyle: mi.iconContainerStyle,
+              disabled: mi.disabled,
+            }))}
           />
         </View>
       )}
 
-      {/* Render bottom sheet for changing member's role (scope) */}
-      {selectedItem && isToolTipDismissed && (
-        <CometChatBottomSheet
-          isOpen={isBottomSheetVisible}
-          doNotOccupyEntireHeight
-          onClose={() => {
-            setIsBottomSheetVisible(false);
-          }}
-        >
+      {/* Bottom sheet for changing member's role (scope) */}
+      <CometChatBottomSheet
+        isOpen={isBottomSheetVisible}
+        doNotOccupyEntireHeight
+        onClose={() => {
+          setIsBottomSheetVisible(false);
+          setSelectedItem(null);
+        }}
+        onDismiss={() => setSelectedItem(null)}
+      >
+        {selectedItem ? (
           <View style={mergedStyle?.changeScope?.container}>
             <View style={mergedStyle.changeScope?.iconContainerStyle}>
               <Icon
@@ -576,7 +781,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
 
             <View style={mergedStyle?.changeScope?.actionBox}>
               {roles
-                // For moderators: do not allow demotion to Participant if already a moderator.
+                // For moderators: do not allow demotion to Participant if already a moderator
                 .filter((role) => {
                   if (currentUserRole === "moderator") {
                     const targetScope = selectedItem.getScope();
@@ -642,6 +847,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
                 style={mergedStyle?.changeScope?.cancelStyle?.containerStyle}
                 onPress={() => {
                   setIsBottomSheetVisible(false);
+                  setSelectedItem(null);
                 }}
               >
                 <Text style={mergedStyle?.changeScope?.cancelStyle?.textStyle}>
@@ -719,147 +925,153 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
               </TouchableOpacity>
             </View>
           </View>
-        </CometChatBottomSheet>
-      )}
+        ) : null}
+      </CometChatBottomSheet>
 
       {/* Render modal for ban or remove actions if an item is selected */}
-      {selectedItem && isToolTipDismissed && (
-        <Modal
-          animationType='fade'
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => setModalType("")}
-        >
-          <TouchableOpacity onPress={() => setModalType("")} style={{ flex: 1 }}>
-            <View style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.5)" }} />
-          </TouchableOpacity>
+      <Modal
+        animationType='fade'
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalType("")}
+        onDismiss={() => {
+          setSelectedItem(null); 
+        }}
+      >
+        {modalVisible && selectedItem ? (
+          <>
+            <TouchableOpacity onPress={() => setModalType("")} style={{ flex: 1 }}>
+              <View style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.5)" }} />
+            </TouchableOpacity>
 
-          {modalType && (
-            <View
-              style={{
-                ...(modalType === "ban"
-                  ? mergedStyle.banModalStyle?.containerStyle
-                  : mergedStyle.removeModalStyle?.containerStyle),
-              }}
-            >
+            {modalType && (
               <View
                 style={{
                   ...(modalType === "ban"
-                    ? mergedStyle.banModalStyle?.iconContainerStyle
-                    : mergedStyle.removeModalStyle?.iconContainerStyle),
+                    ? mergedStyle.banModalStyle?.containerStyle
+                    : mergedStyle.removeModalStyle?.containerStyle),
                 }}
               >
-                <Icon
-                  name='delete'
-                  icon={
-                    modalType === "ban"
-                      ? mergedStyle.banModalStyle?.icon
-                      : mergedStyle.removeModalStyle?.icon
-                  }
-                  color={
-                    modalType === "ban"
-                      ? mergedStyle?.banModalStyle?.iconStyle?.tintColor
-                      : mergedStyle?.removeModalStyle?.iconStyle?.tintColor
-                  }
-                  height={
-                    modalType === "ban"
-                      ? mergedStyle?.banModalStyle?.iconStyle?.height
-                      : mergedStyle?.removeModalStyle?.iconStyle?.height
-                  }
-                  width={
-                    modalType === "ban"
-                      ? mergedStyle?.banModalStyle?.iconStyle?.width
-                      : mergedStyle?.removeModalStyle?.iconStyle?.width
-                  }
-                  imageStyle={
-                    modalType === "ban"
-                      ? mergedStyle?.banModalStyle?.iconStyle
-                      : mergedStyle?.removeModalStyle?.iconStyle
-                  }
-                />
-              </View>
-              <View>
-                <Text
-                  style={
-                    modalType === "ban"
-                      ? mergedStyle.banModalStyle?.titleTextStyle
-                      : mergedStyle.removeModalStyle?.titleTextStyle
-                  }
-                >
-                  {modalType === "ban"
-                    ? `${localize("BAN")} ${selectedItem.getName()} ?`
-                    : `${localize("REMOVE")} ${selectedItem.getName()} ?`}
-                </Text>
-
-                <Text
-                  style={
-                    modalType === "ban"
-                      ? mergedStyle.banModalStyle?.subTitleTextStyle
-                      : mergedStyle.removeModalStyle?.subTitleTextStyle
-                  }
-                >
-                  {modalType === "ban"
-                    ? `${localize("BAN_MEMBER_CONFIRM")}${selectedItem.getName()}?`
-                    : `${localize("REMOVE_MEMBER_CONFIRM")}${selectedItem.getName()}?`}
-                </Text>
-
                 <View
                   style={{
                     ...(modalType === "ban"
-                      ? mergedStyle.banModalStyle?.alertContainer
-                      : mergedStyle.removeModalStyle?.alertContainer),
+                      ? mergedStyle.banModalStyle?.iconContainerStyle
+                      : mergedStyle.removeModalStyle?.iconContainerStyle),
                   }}
                 >
-                  <TouchableOpacity
+                  <Icon
+                    name='delete'
+                    icon={
+                      modalType === "ban"
+                        ? mergedStyle.banModalStyle?.icon
+                        : mergedStyle.removeModalStyle?.icon
+                    }
+                    color={
+                      modalType === "ban"
+                        ? mergedStyle?.banModalStyle?.iconStyle?.tintColor
+                        : mergedStyle?.removeModalStyle?.iconStyle?.tintColor
+                    }
+                    height={
+                      modalType === "ban"
+                        ? mergedStyle?.banModalStyle?.iconStyle?.height
+                        : mergedStyle?.removeModalStyle?.iconStyle?.height
+                    }
+                    width={
+                      modalType === "ban"
+                        ? mergedStyle?.banModalStyle?.iconStyle?.width
+                        : mergedStyle?.removeModalStyle?.iconStyle?.width
+                    }
+                    imageStyle={
+                      modalType === "ban"
+                        ? mergedStyle?.banModalStyle?.iconStyle
+                        : mergedStyle?.removeModalStyle?.iconStyle
+                    }
+                  />
+                </View>
+                <View>
+                  <Text
+                    style={
+                      modalType === "ban"
+                        ? mergedStyle.banModalStyle?.titleTextStyle
+                        : mergedStyle.removeModalStyle?.titleTextStyle
+                    }
+                  >
+                    {modalType === "ban"
+                      ? `${localize("BAN")} ${selectedItem.getName()} ?`
+                      : `${localize("KICK")} ${selectedItem.getName()} ?`}
+                  </Text>
+
+                  <Text
+                    style={
+                      modalType === "ban"
+                        ? mergedStyle.banModalStyle?.subTitleTextStyle
+                        : mergedStyle.removeModalStyle?.subTitleTextStyle
+                    }
+                  >
+                    {modalType === "ban"
+                      ? `${localize("BAN_MEMBER_CONFIRM")}${selectedItem.getName()}?`
+                      : `${localize("REMOVE_MEMBER_CONFIRM")}${selectedItem.getName()}?`}
+                  </Text>
+
+                  <View
                     style={{
                       ...(modalType === "ban"
-                        ? mergedStyle.banModalStyle?.cancelStyle?.containerStyle
-                        : mergedStyle.removeModalStyle?.cancelStyle?.containerStyle),
+                        ? mergedStyle.banModalStyle?.alertContainer
+                        : mergedStyle.removeModalStyle?.alertContainer),
                     }}
-                    onPress={() => setModalType("")}
                   >
-                    <Text
+                    <TouchableOpacity
                       style={{
                         ...(modalType === "ban"
-                          ? mergedStyle.banModalStyle?.cancelStyle?.textStyle
-                          : mergedStyle.removeModalStyle?.cancelStyle?.textStyle),
+                          ? mergedStyle.banModalStyle?.cancelStyle?.containerStyle
+                          : mergedStyle.removeModalStyle?.cancelStyle?.containerStyle),
                       }}
+                      onPress={() => setModalType("")}
                     >
-                      {localize("NO")}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={{
-                      ...(modalType === "ban"
-                        ? mergedStyle.banModalStyle?.confirmStyle?.containerStyle
-                        : mergedStyle.removeModalStyle?.confirmStyle?.containerStyle),
-                    }}
-                    onPress={async () => {
-                      if (selectedItem) {
-                        if (modalType === "ban") {
-                          await banGroupMember(selectedItem);
-                        } else {
-                          await removeGroupMember(group.getGuid(), selectedItem);
+                      <Text
+                        style={{
+                          ...(modalType === "ban"
+                            ? mergedStyle.banModalStyle?.cancelStyle?.textStyle
+                            : mergedStyle.removeModalStyle?.cancelStyle?.textStyle),
+                        }}
+                      >
+                        {localize("NO")}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{
+                        ...(modalType === "ban"
+                          ? mergedStyle.banModalStyle?.confirmStyle?.containerStyle
+                          : mergedStyle.removeModalStyle?.confirmStyle?.containerStyle),
+                      }}
+                      onPress={async () => {
+                        if (selectedItem) {
+                          if (modalType === "ban") {
+                            await banGroupMember(selectedItem);
+                          } else {
+                            await removeGroupMember(group.getGuid(), selectedItem);
+                          }
                         }
-                      }
-                    }}
-                  >
-                    <Text
-                      style={{
-                        ...(modalType === "ban"
-                          ? mergedStyle.banModalStyle?.confirmStyle?.textStyle
-                          : mergedStyle.removeModalStyle?.confirmStyle?.textStyle),
                       }}
                     >
-                      {localize("YES")}
-                    </Text>
-                  </TouchableOpacity>
+                      <Text
+                        style={{
+                          ...(modalType === "ban"
+                            ? mergedStyle.banModalStyle?.confirmStyle?.textStyle
+                            : mergedStyle.removeModalStyle?.confirmStyle?.textStyle),
+                        }}
+                      >
+                        {localize("YES")}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
-          )}
-        </Modal>
-      )}
+            )}
+          </>
+        ) : null}
+      </Modal>
+
     </View>
   );
 };

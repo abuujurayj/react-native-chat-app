@@ -60,17 +60,19 @@ export class MessageTranslationExtensionDecorator extends DataSourceDecorator {
     loggedInUser: CometChat.User,
     messageObject: CometChat.BaseMessage,
     theme: CometChatTheme,
-    group: CometChat.Group
+    group?: CometChat.Group,
+    additionalParams?: AdditionalParams
   ): CometChatMessageOption[] {
     // Retrieve default text message options from the decorated data source.
     let optionsList: CometChatMessageOption[] = super.getTextMessageOptions(
       loggedInUser,
       messageObject,
       theme,
-      group
+      group,
+      additionalParams
     );
     // Add the translate option to the options list.
-    optionsList.push(this.getTranslateOption(messageObject, theme));
+    !additionalParams?.hideTranslateMessageOption && optionsList.push(this.getTranslateOption(messageObject, theme));
     return optionsList;
   }
 
@@ -327,7 +329,6 @@ export class MessageTranslationExtensionDecorator extends DataSourceDecorator {
         mentionsFormatterExists = true;
         formatter.setMessage(message);
         formatter.setTargetElement(MentionsTargetElement.textbubble);
-        formatter.setMentionsStyle();
         formatter.setLoggedInUser(CometChatUIKit.loggedInUser!);
       }
       formatter.setMessage(message);

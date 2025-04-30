@@ -7,9 +7,8 @@
 The CometChat React Native UI Kit provides a pre-built user interface kit that developers can use to quickly integrate a reliable & fully-featured chat experience into an existing or a new app.
 
 ## Prerequisites
-- Node.js >= 16
-- npm >= 8
-- React Native >= 0.63
+- Node.js 18 or higher
+- React Native 0.77
 
 ## Getting Started
  To set up CometChat React Native UI Kit and utilize CometChat for your chat and calls functionality, you'll need to follow these steps:

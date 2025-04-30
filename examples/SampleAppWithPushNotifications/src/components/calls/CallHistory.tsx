@@ -93,15 +93,15 @@ export const CallHistory = (props: {user?: any; group?: any}) => {
         titleStyle: {
           color: theme.color.textPrimary,
           flex: 1,
-          ...theme.typography.heading4.medium,
+          ...theme.typography.heading4.bold,
         },
         subtitleStyle: {
           color: theme.color.textSecondary,
-          ...theme.typography.body.regular,
+          ...theme.typography.caption1.regular,
         },
         tailViewTextStyle: {
           color: theme.color.textPrimary,
-          ...theme.typography.caption1.medium,
+          ...theme.typography.caption1.bold,
         },
         avatarStyle: {
           containerStyle: {},
@@ -155,6 +155,9 @@ export const CallHistory = (props: {user?: any; group?: any}) => {
             id={item.sessionId}
             containerStyle={_style.itemStyle.containerStyle}
             headViewContainerStyle={{flexDirection: 'row'}}
+            trailingViewContainerStyle={{
+              alignSelf: 'center',
+            }}
             titleStyle={_style.itemStyle.titleStyle}
             title={CallDetailHelper.getCallStatusDisplayText(
               getCallType(item).callStatus,

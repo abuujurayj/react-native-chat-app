@@ -3,11 +3,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   FlatList,
   Image,
-  ImageSourcePropType,
-  RefreshControl,
   Text,
   TouchableOpacity,
   View,
+  GestureResponderEvent,
+  ActivityIndicator,
 } from "react-native";
 import { CometChatAvatar, localize } from "../../shared";
 import { CallTypeConstants } from "../../shared/constants/UIKitConstants";
@@ -26,6 +26,7 @@ import { Skeleton } from "./Skeleton";
 import { CometChatTheme } from "../../theme/type";
 import { deepMerge } from "../../shared/helper/helperFunctions";
 import { DeepPartial, ValueOf } from "../../shared/helper/types";
+import { CometChatTooltipMenu, MenuItemInterface } from "../../shared/views/CometChatTooltipMenu";
 
 const listenerId = "callEventListener_" + new Date().getTime();
 const CometChatCalls = CallingPackage.CometChatCalls;
@@ -53,7 +54,7 @@ export interface CometChatCallLogsConfigurationInterface {
   /** Date format pattern for call logs */
   datePattern?: ValueOf<typeof DateHelper.patterns>;
   /** Flag to hide the back button in the header */
-  hideBackButton?: boolean;
+  showBackButton?: boolean;
   /** Custom component to render when the call log list is empty */
   EmptyView?: () => JSX.Element;
   /** Custom component to render in case of an error */
@@ -68,12 +69,33 @@ export interface CometChatCallLogsConfigurationInterface {
   onError?: (e: CometChat.CometChatException) => void;
   /** Callback for when the back button is pressed */
   onBack?: () => void;
-  /** Callback for when a call log item is pressed */
-  onItemPress?: (prop: { call: any }) => void;
+  /**
+   * Callback for when a call log item is pressed.
+   * Receives the raw call log object.
+   */
+  onItemPress?: (call: any) => void;
   /** Custom style overrides for the call logs */
   style?: DeepPartial<CometChatTheme["callLogsStyles"]>;
   /** Configuration for outgoing calls */
   outgoingCallConfiguration?: CometChatOutgoingCallInterface;
+  /** Callback when the list is fetched and loaded */
+  onLoad?: (list: any[]) => void;
+  /** Callback when the list is empty (no items) */
+  onEmpty?: () => void;
+  /** Called on a long press of the default list item view */
+  onItemLongPress?: (prop: { call: any }) => void;
+  /** Hide the toolbar header */
+  hideHeader?: boolean;
+  /** Hide the loading state */
+  hideLoadingState?: boolean;
+  /**
+   * A function to **append** more menu items on top of the default menu items for a call log.
+   */
+  addOptions?: (call: any) => MenuItemInterface[];
+  /**
+   * A function to **replace** the default menu items entirely for a call log.
+   */
+  options?: (call: any) => MenuItemInterface[];
 }
 
 /**
@@ -94,7 +116,7 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
     TrailingView,
     AppBarOptions,
     callLogRequestBuilder,
-    hideBackButton = true,
+    showBackButton = false,
     EmptyView,
     ErrorView,
     LoadingView,
@@ -106,31 +128,90 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
     style,
     outgoingCallConfiguration,
     datePattern,
+    onLoad,
+    onEmpty,
+    onItemLongPress,
+    hideHeader,
+    hideLoadingState,
+    addOptions,
+    options,
   } = props;
 
   const [list, setList] = useState<any[]>([]);
   const [listState, setListState] = useState<"loading" | "error" | "done">("loading");
   const [showOutgoingCallScreen, setShowOutgoingCallScreen] = useState(false);
-  const themeV5 = useTheme();
+
+  const theme = useTheme();
   const mergedCallLogsStyle = useMemo(() => {
-    return deepMerge(themeV5.callLogsStyles, style ?? {});
-  }, [themeV5, style]);
+    return deepMerge(theme.callLogsStyles, style ?? {});
+  }, [theme, style]);
 
   const loggedInUser = useRef<CometChat.User>();
   const callLogRequestBuilderRef = useRef<any>();
   const outGoingCall = useRef<CometChat.Call | CometChat.CustomMessage>();
 
+  // State for tooltip functionality
+  const [tooltipVisible, setTooltipVisible] = useState<boolean>(false);
+  const [selectedCall, setSelectedCall] = useState<any>(null);
+  const tooltipPosition = useRef<{ pageX: number; pageY: number }>({
+    pageX: 0,
+    pageY: 0,
+  });
+  const [hasMoreData, setHasMoreData] = useState(true);
+
+  /**
+   * Function to build the list of menu items for the tooltip:
+   * - `options(call)` completely replaces defaults
+   * - `addOptions(call)` appends to the default
+   * - No default menu items in this snippet; so defaults is an empty array
+   */
+  const buildMenuItems = (call: any): MenuItemInterface[] => {
+    if (options) {
+      return options(call);
+    }
+    let defaultMenuItems: MenuItemInterface[] = []; // no default items here
+    if (addOptions) {
+      return [...defaultMenuItems, ...addOptions(call)];
+    }
+    return defaultMenuItems;
+  };
+
+  /**
+   * Show tooltip if user hasn't provided a custom onItemLongPress.
+   */
+  const handleItemLongPress = (call: any, e?: GestureResponderEvent) => {
+    if (onItemLongPress) {
+      // If the developer has provided a custom long-press handler, call that and return.
+      onItemLongPress({ call });
+      return;
+    }
+    // Otherwise, show the tooltip if there are menu items
+    const items = buildMenuItems(call);
+    if (items.length === 0) return;
+
+    if (e && e.nativeEvent) {
+      tooltipPosition.current = {
+        pageX: e.nativeEvent.pageX,
+        pageY: e.nativeEvent.pageY,
+      };
+    } else {
+      tooltipPosition.current = { pageX: 200, pageY: 100 };
+    }
+    setSelectedCall(call);
+    setTooltipVisible(true);
+  };
+
   /**
    * Initializes the call log request builder.
    */
   function setRequestBuilder() {
-    callLogRequestBuilderRef.current =
-      (callLogRequestBuilder && callLogRequestBuilder.build()) ??
-      new CometChatCalls.CallLogRequestBuilder()
-        .setLimit(30)
-        .setAuthToken(loggedInUser.current!.getAuthToken() || "")
-        .setCallCategory("call")
-        .build();
+    const reqBuilder = callLogRequestBuilder
+      ? callLogRequestBuilder.setAuthToken(loggedInUser.current!.getAuthToken())
+      : new CometChatCalls.CallLogRequestBuilder()
+          .setLimit(30)
+          .setAuthToken(loggedInUser.current!.getAuthToken() || "")
+          .setCallCategory("call");
+    callLogRequestBuilderRef.current = reqBuilder.build();
   }
 
   /**
@@ -141,8 +222,18 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
     callLogRequestBuilderRef
       .current!.fetchNext()
       .then((callLogs: any) => {
+        if (callLogRequestBuilderRef.current!.limit > callLogs.length) {
+          setHasMoreData(false);
+        }
         if (callLogs.length > 0) {
-          setList([...list, ...callLogs]);
+          const updatedList = [...list, ...callLogs];
+          setList(updatedList);
+          onLoad && onLoad(updatedList);
+        } else {
+          // If no new logs are returned and the current list is empty, trigger onEmpty
+          if (list.length === 0) {
+            onEmpty && onEmpty();
+          }
         }
         setListState("done");
       })
@@ -186,6 +277,12 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
         setShowOutgoingCallScreen(false);
       },
     });
+
+    return () => {
+      // Cleanup call listeners when component unmounts
+      CometChat.removeCallListener(listenerId);
+      CometChatUIEventHandler.removeCallListener(listenerId);
+    };
   }, []);
 
   /**
@@ -196,7 +293,6 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
    */
   const makeCall = (call: any, type: any) => {
     if (type == CallTypeConstants.audio || type == CallTypeConstants.video) {
-      // Determine the user or group to call based on the call log item.
       let user =
         call?.getReceiverType() == "user"
           ? loggedInUser.current?.getUid() === call?.getInitiator()?.getUid()
@@ -215,8 +311,8 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
       var receiverType = user
         ? CometChat.RECEIVER_TYPE.USER
         : group
-        ? CometChat.RECEIVER_TYPE.GROUP
-        : undefined;
+          ? CometChat.RECEIVER_TYPE.GROUP
+          : undefined;
       if (!receiverID || !receiverType) return;
 
       var callObject = new CometChat.Call(
@@ -241,20 +337,13 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
         }
       );
     } else {
-      console.log(
-        "Invalid call type.",
-        type,
-        CallTypeConstants.audio,
-        type != CallTypeConstants.audio || type != CallTypeConstants.video
-      );
+      console.log("Invalid call type.", type);
       return;
     }
   };
 
   /**
    * Handles the press event on the call icon.
-   *
-   * @param {any} item - The call log item.
    */
   const onPress = (item: any) => {
     if (onCallIconPress) {
@@ -268,9 +357,6 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
 
   /**
    * Extracts and returns call details for display.
-   *
-   * @param {any} call - The call log item.
-   * @returns {object} An object containing the title and avatar URL.
    */
   const getCallDetails = (call: any) => {
     const { mode, initiator, receiver, receiverType } = call;
@@ -286,14 +372,14 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
           receiverType === "group"
             ? receiver["name"]
             : loggedInUser.current?.getUid() == initiator?.getUid()
-            ? receiver["name"]
-            : initiator["name"],
+              ? receiver["name"]
+              : initiator["name"],
         avatarUrl:
           receiverType === "group"
             ? receiver["avatar"]
             : loggedInUser.current?.getUid() == initiator?.getUid()
-            ? receiver["avatar"]
-            : initiator["avatar"],
+              ? receiver["avatar"]
+              : initiator["avatar"],
       };
     }
     return { title: "", avatarUrl: undefined };
@@ -301,18 +387,19 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
 
   /**
    * Renders each call log item.
-   *
-   * @param {object} param0 - Object containing the item and index.
-   * @returns {JSX.Element} The rendered call log item.
    */
   const _render = ({ item, index }: any) => {
+    // If user provides a custom item view, use that
     if (ItemView) return ItemView(item);
 
     const { title, avatarUrl } = getCallDetails(item);
     const callStatus = CallUtils.getCallStatusForCallLogs(item, loggedInUser.current!);
 
     return (
-      <TouchableOpacity onPress={() => onItemPress?.(item)}>
+      <TouchableOpacity
+        onPress={() => onItemPress?.(item)}
+        onLongPress={(e) => handleItemLongPress(item, e)}
+      >
         <View style={mergedCallLogsStyle.itemStyle.containerStyle}>
           {LeadingView ? (
             LeadingView(item)
@@ -346,16 +433,16 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
                   callStatus === "missed"
                     ? "call-missed-outgoing"
                     : callStatus === "incoming"
-                    ? "call-received"
-                    : "call-made"
+                      ? "call-received"
+                      : "call-made"
                 }
                 size={16}
                 color={
                   callStatus === "missed"
                     ? mergedCallLogsStyle.itemStyle.missedCallStatusIconStyle.tintColor
                     : callStatus === "incoming"
-                    ? mergedCallLogsStyle.itemStyle.incomingCallStatusIconStyle.tintColor
-                    : mergedCallLogsStyle.itemStyle.outgoingCallStatusIconStyle.tintColor
+                      ? mergedCallLogsStyle.itemStyle.incomingCallStatusIconStyle.tintColor
+                      : mergedCallLogsStyle.itemStyle.outgoingCallStatusIconStyle.tintColor
                 }
                 containerStyle={{ marginTop: 2 }}
               />
@@ -395,8 +482,6 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
 
   /**
    * Renders the error view for the call logs.
-   *
-   * @returns {JSX.Element | null} The error state view.
    */
   const ErrorStateView = useCallback(() => {
     if (hideError) return null;
@@ -404,14 +489,14 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
     return (
       <ErrorEmptyView
         title='Oops!'
-        subTitle='Looks like something went wrong.'
-        tertiaryTitle='Please try again.'
+        subTitle={localize("SOMETHING_WENT_WRONG")}
+        tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
         Icon={
           <Icon
             name='error-state'
-            size={themeV5.spacing.margin.m15 << 1}
+            size={theme.spacing.margin.m15 << 1}
             containerStyle={{
-              marginBottom: themeV5.spacing.margin.m5,
+              marginBottom: theme.spacing.margin.m5,
             }}
           />
         }
@@ -422,17 +507,17 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
           <TouchableOpacity
             onPress={fetchCallLogs}
             style={{
-              backgroundColor: themeV5.color.primary,
-              paddingVertical: themeV5.spacing.spacing.s3,
-              paddingHorizontal: themeV5.spacing.spacing.s10,
-              borderRadius: themeV5.spacing.radius.r2,
-              marginTop: themeV5.spacing.spacing.s5,
+              backgroundColor: theme.color.primary,
+              paddingVertical: theme.spacing.spacing.s3,
+              paddingHorizontal: theme.spacing.spacing.s10,
+              borderRadius: theme.spacing.radius.r2,
+              marginTop: theme.spacing.spacing.s5,
             }}
           >
             <Text
               style={{
-                color: themeV5.color.primaryButtonIcon,
-                ...themeV5.typography.button.medium,
+                color: theme.color.primaryButtonIcon,
+                ...theme.typography.button.medium,
               }}
             >
               {localize("RETRY")}
@@ -441,12 +526,10 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
         }
       />
     );
-  }, [themeV5]);
+  }, [theme]);
 
   /**
    * Renders the empty state view for call logs.
-   *
-   * @returns {JSX.Element} The empty state view.
    */
   const EmptyStateView = useCallback(() => {
     if (EmptyView) return <EmptyView />;
@@ -457,10 +540,10 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
         Icon={
           <Icon
             name='call-fill'
-            size={themeV5.spacing.spacing.s15 << 1}
-            color={themeV5.color.neutral300}
+            size={theme.spacing.spacing.s15 << 1}
+            color={theme.color.neutral300}
             containerStyle={{
-              marginBottom: themeV5.spacing.spacing.s5,
+              marginBottom: theme.spacing.spacing.s5,
             }}
           />
         }
@@ -469,57 +552,85 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
         subTitleStyle={mergedCallLogsStyle.emptyStateStyle?.subTitleStyle}
       />
     );
-  }, [themeV5]);
+  }, [theme]);
+
+  const renderFooter = useCallback(() => {
+    if (listState !== "loading" || !hasMoreData) return null;
+    return (
+      <View
+        style={{
+          paddingVertical: 20,
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator size='small' color={theme.color.primary} />
+      </View>
+    );
+  }, [theme, listState]);
 
   return (
-    <View style={{ backgroundColor: themeV5.color.background1, height: "100%", width: "100%" }}>
+    <View
+      style={{
+        backgroundColor: theme.color.background1,
+        height: "100%",
+        width: "100%",
+      }}
+    >
       <>
         {/* Header with optional back button and app bar options */}
-        <View
-          style={[
-            Style.row,
-            Style.headerStyle,
-            {
-              padding: themeV5.spacing.spacing.s4,
-              borderBottomWidth: 1,
-              borderBottomColor: themeV5.color.borderLight,
-              ...mergedCallLogsStyle.titleSeparatorStyle,
-            },
-          ]}
-        >
-          <View style={Style.row}>
-            {!hideBackButton ? (
-              <TouchableOpacity style={Style.imageStyle} onPress={onBack}>
-                <Image
-                  source={BackIcon}
-                  style={[Style.imageStyle, { tintColor: themeV5.color.iconPrimary }]}
-                />
-              </TouchableOpacity>
-            ) : null}
-            <Text style={mergedCallLogsStyle.titleTextStyle}>{localize("CALLS")}</Text>
+        {!hideHeader && (
+          <View
+            style={[
+              Style.row,
+              Style.headerStyle,
+              {
+                padding: theme.spacing.spacing.s4,
+                borderBottomWidth: 1,
+                borderBottomColor: theme.color.borderLight,
+                ...mergedCallLogsStyle.titleSeparatorStyle,
+              },
+            ]}
+          >
+            <View style={Style.row}>
+              {showBackButton ? (
+                <TouchableOpacity style={Style.imageStyle} onPress={onBack}>
+                  <Image
+                    source={BackIcon}
+                    style={[Style.imageStyle, { tintColor: theme.color.iconPrimary }]}
+                  />
+                </TouchableOpacity>
+              ) : null}
+              <Text style={mergedCallLogsStyle.titleTextStyle}>{localize("CALLS")}</Text>
+            </View>
+            <View style={Style.row}>{AppBarOptions && <AppBarOptions />}</View>
           </View>
-          <View style={Style.row}>{AppBarOptions && <AppBarOptions />}</View>
-        </View>
+        )}
+
         {/* Render call logs based on state */}
-        {listState == "loading" && list.length == 0 ? (
-          LoadingView ? (
-            <LoadingView />
+        {listState === "loading" && list.length === 0 ? (
+          !hideLoadingState ? (
+            LoadingView ? (
+              <LoadingView />
+            ) : (
+              <Skeleton style={mergedCallLogsStyle.skeletonStyle} />
+            )
           ) : (
-            <Skeleton />
+            <View />
           )
-        ) : listState == "error" && list.length == 0 ? (
+        ) : listState === "error" && list.length === 0 ? (
           <ErrorStateView />
-        ) : list.length == 0 ? (
+        ) : list.length === 0 ? (
           <EmptyStateView />
         ) : (
           <FlatList
             data={list}
             keyExtractor={(item, index) => item.sessionId + "_" + index}
+            extraData={{ list, listState }}
             renderItem={_render}
             onEndReached={fetchCallLogs}
-            refreshControl={
-              <RefreshControl refreshing={listState === "loading"} onRefresh={fetchCallLogs} />
-            }
+            ListFooterComponent={renderFooter}
           />
         )}
       </>
@@ -542,6 +653,38 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
           {...outgoingCallConfiguration}
         />
       )}
+
+      {/* Tooltip menu for calls (on default long-press) */}
+      {selectedCall && tooltipVisible && (
+        <View
+          style={{
+            position: "absolute",
+            top: tooltipPosition.current.pageY,
+            left: tooltipPosition.current.pageX,
+            zIndex: 9999,
+          }}
+        >
+          <CometChatTooltipMenu
+            visible={tooltipVisible}
+            onClose={() => setTooltipVisible(false)}
+            onDismiss={() => setTooltipVisible(false)}
+            event={{
+              nativeEvent: tooltipPosition.current,
+            }}
+            menuItems={buildMenuItems(selectedCall).map((menuItem) => ({
+              text: menuItem.text,
+              onPress: () => {
+                menuItem.onPress();
+                setTooltipVisible(false);
+              },
+              textColor: menuItem.textStyle?.color,
+              iconColor: menuItem.iconStyle?.tintColor,
+              disabled: menuItem.disabled,
+            }))}
+          />
+        </View>
+      )}
+      {/* End tooltip menu */}
     </View>
   );
 };

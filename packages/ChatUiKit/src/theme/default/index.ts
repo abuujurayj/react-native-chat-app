@@ -1,5 +1,5 @@
 import { getCallButtonStyle } from "../../calls/CometChatCallButtons/style";
-import { getCallLogsItemStyle, getCallLogsStyle } from "../../calls/CometChatCallLogs/style";
+import { getCallLogsItemStyle, getCallLogsStyleLight, getCallLogsStyleDark } from "../../calls/CometChatCallLogs/style";
 import { getIncomingCallStyle } from "../../calls/CometChatIncomingCall/style";
 import { getOutgoingCallStyle } from "../../calls/CometChatOutgoingCall";
 import {
@@ -153,7 +153,7 @@ export const lightThemeMaker = (
     typography: typography,
     avatarStyle: getAvatarStyle(color, spacing, typography),
     receiptStyles: getMessageReceiptStyle(color, spacing, typography),
-    statusIndicatorStyles: getStatusIndicatorStyles(color, spacing, typography),
+    statusIndicatorStyle: getStatusIndicatorStyles(color, spacing, typography),
     badgeStyle: getBadgeStyle(color, spacing, typography),
     dateStyles: getDateStyleLight(color, spacing, typography),
     dateSeparatorStyles: getDateSeparatorStyleLight(color, spacing, typography),
@@ -177,7 +177,7 @@ export const lightThemeMaker = (
     quickReactionStyle: getQuickReactionStyleLight(color, spacing, typography),
     outgoingCallStyle: getOutgoingCallStyle(color, spacing, typography),
     incomingCallStyle: getIncomingCallStyle(color, spacing, typography),
-    callLogsStyles: getCallLogsStyle(color, spacing, typography),
+    callLogsStyles: getCallLogsStyleLight(color, spacing, typography),
     callLogsItemStyle: getCallLogsItemStyle(color, spacing, typography),
     mediaRecorderStyle: getMediaRecorderStyle(color, spacing, typography),
   };
@@ -195,7 +195,7 @@ export const darkThemeMaker = (
     typography: typography,
     avatarStyle: getAvatarStyle(color, spacing, typography),
     receiptStyles: getMessageReceiptStyle(color, spacing, typography),
-    statusIndicatorStyles: getStatusIndicatorStyles(color, spacing, typography),
+    statusIndicatorStyle: getStatusIndicatorStyles(color, spacing, typography),
     badgeStyle: getBadgeStyle(color, spacing, typography),
     dateStyles: getDateStyleDark(color, spacing, typography),
     dateSeparatorStyles: getDateSeparatorStyleDark(color, spacing, typography),
@@ -219,7 +219,7 @@ export const darkThemeMaker = (
     quickReactionStyle: getQuickReactionStyleDark(color, spacing, typography),
     outgoingCallStyle: getOutgoingCallStyle(color, spacing, typography),
     incomingCallStyle: getIncomingCallStyle(color, spacing, typography),
-    callLogsStyles: getCallLogsStyle(color, spacing, typography),
+    callLogsStyles: getCallLogsStyleDark(color, spacing, typography),
     callLogsItemStyle: getCallLogsItemStyle(color, spacing, typography),
     mediaRecorderStyle: getMediaRecorderStyle(color, spacing, typography),
   };

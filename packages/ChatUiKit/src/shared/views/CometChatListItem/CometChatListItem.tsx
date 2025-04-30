@@ -1,8 +1,6 @@
-import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useCallback, useState } from "react";
 import {
-  FlatList,
   GestureResponderEvent,
-  Image,
   ImageSourcePropType,
   StyleProp,
   Text,
@@ -20,30 +18,99 @@ import {
   CometChatStatusIndicatorInterface,
 } from "../CometChatStatusIndicator";
 import { Style } from "./style";
+import { DeepPartial } from "../../helper/types";
 
 export interface CometChatListItemInterface {
+  /**
+   * Unique identifier for the list item.
+   */
   id: string | number;
+  /**
+   * URL for the avatar image.
+   */
   avatarURL?: ImageSourcePropType;
+  /**
+   * Fallback name for the avatar if image is not available.
+   */
   avatarName?: string;
+  /**
+   * Custom style for the avatar.
+   */
   avatarStyle?: CometChatTheme["avatarStyle"];
+  /**
+   * Title text to display.
+   */
   title?: string;
+  /**
+   * Custom style for the title text.
+   */
   titleStyle?: StyleProp<TextStyle>;
+  /**
+   * Custom style for the item container.
+   */
   containerStyle?: StyleProp<ViewStyle>;
-  statusIndicatorType?: CometChatStatusIndicatorInterface["type"];
+  /**
+   * Specifies the type for the status indicator.
+   */
+  statusIndicatorType?: CometChatStatusIndicatorInterface["type"] | null;
+  /**
+   * Custom node to display at the beginning of the item.
+   */
   LeadingView?: ReactNode;
+  /**
+   * Custom node to display as the title view.
+   */
   TitleView?: ReactNode;
+  /**
+   * Custom node to display as the subtitle view.
+   */
   SubtitleView?: ReactNode;
+  /**
+   * Custom node to display at the end of the item.
+   */
   TrailingView?: ReactNode;
+  /**
+   * Color for the separator.
+   */
   separatorColor?: string;
+  /**
+   * Callback function triggered on item press.
+   */
   onPress?: Function;
+  /**
+   * Callback function triggered on item long press.
+   */
   onLongPress?: Function;
+  /**
+   * Indicates if the item is selectable.
+   */
   shouldSelect?: boolean;
+  /**
+   * Custom style for the container of the left (head) view.
+   */
   headViewContainerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Custom style for the container of the trailing view.
+   */
   trailingViewContainerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Custom style for the container wrapping title and subtitle.
+   */
   titleSubtitleContainerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Indicates if the item is selected.
+   */
   selected?: boolean;
+  statusIndicatorStyle?: DeepPartial<CometChatTheme['statusIndicatorStyle']>
 }
 
+/**
+ * CometChatListItem renders a single item in the list.
+ * It displays an avatar with an optional status indicator, title, subtitle, and trailing view.
+ *
+ * @param {CometChatListItemInterface} props - Props for the list item.
+ * @returns {JSX.Element} The rendered list item.
+ */
 export const CometChatListItem = React.memo((props: CometChatListItemInterface) => {
   const [translate, setTranslate] = useState(0);
   const theme = useTheme();
@@ -68,16 +135,14 @@ export const CometChatListItem = React.memo((props: CometChatListItemInterface) 
     selected = false,
     shouldSelect,
     TitleView,
+    statusIndicatorStyle
   } = props;
 
   let cancelClick = false;
 
-  /**
-   * Component to display the avatar with optional selection box
-   */
-  const AvatarWithStatusView = useCallback(() => {
+  const CheckBoxView = useCallback(() => {
     return (
-      <View style={[{ flexDirection: "row", alignItems: "center" }, headViewContainerStyle]}>
+      <>
         {shouldSelect && (
           <View
             style={{
@@ -104,22 +169,14 @@ export const CometChatListItem = React.memo((props: CometChatListItemInterface) 
             )}
           </View>
         )}
-        <CometChatAvatar image={avatarURL} name={avatarName!} style={avatarStyle} />
-        <CometChatStatusIndicator type={statusIndicatorType} />
-      </View>
+      </>
     );
-  }, [
-    avatarURL,
-    avatarName,
-    statusIndicatorType,
-    avatarStyle,
-    selected,
-    theme.color.primary,
-    shouldSelect,
-  ]);
+  }, [selected, shouldSelect]);
 
   /**
-   * Component to display the Title
+   * Renders the title view.
+   *
+   *  The title view.
    */
   const getTitleView = () => {
     if (TitleView) return TitleView;
@@ -131,7 +188,7 @@ export const CometChatListItem = React.memo((props: CometChatListItemInterface) 
   };
 
   /**
-   * Callback Function when user clicks on the item
+   * Handles the press event on the list item.
    */
   const clickHandler = () => {
     if (!cancelClick) {
@@ -142,7 +199,9 @@ export const CometChatListItem = React.memo((props: CometChatListItemInterface) 
   };
 
   /**
-   * Callback Function when user long presses on the item
+   * Handles the long press event on the list item.
+   *
+   * @param {GestureResponderEvent} e - The long press event.
    */
   const longPressHandler = useCallback(
     (e: GestureResponderEvent) => {
@@ -156,23 +215,24 @@ export const CometChatListItem = React.memo((props: CometChatListItemInterface) 
   );
 
   /**
-   * Component to display the Tail section
+   * Renders the trailing view of the list item.
+   *
+   * @returns {JSX.Element | null} The trailing view if provided.
    */
   const getTrailingView = () => {
     if (TrailingView)
       return (
         <View style={[Style.tailViewStyle, trailingViewContainerStyle ?? {}]}>{TrailingView}</View>
       );
-
     return null;
   };
 
   let ListComponent =
-    (onPress && typeof onPress == "function") || (onLongPress && typeof onLongPress == "function")
+    (onPress && typeof onPress === "function") || (onLongPress && typeof onLongPress === "function")
       ? TouchableOpacity
       : View;
   let listComponentProps =
-    (onPress && typeof onPress == "function") || (onLongPress && typeof onLongPress == "function")
+    (onPress && typeof onPress === "function") || (onLongPress && typeof onLongPress === "function")
       ? {
           activeOpacity: 1,
           onPress: clickHandler,
@@ -180,18 +240,44 @@ export const CometChatListItem = React.memo((props: CometChatListItemInterface) 
         }
       : {};
 
+  const getLeadingView = useCallback(() => {
+    return (
+      <View style={[{ flexDirection: "row", alignItems: "center" }, headViewContainerStyle]}>
+        <CheckBoxView />
+        {LeadingView ? (
+          LeadingView
+        ) : avatarURL || avatarName ? (
+          <>
+            <CometChatAvatar image={avatarURL} name={avatarName!} style={avatarStyle} />
+            <CometChatStatusIndicator type={statusIndicatorType} style={statusIndicatorStyle} />
+          </>
+        ) : null}
+      </View>
+    );
+  }, [
+    avatarURL,
+    avatarName,
+    statusIndicatorType,
+    avatarStyle,
+    headViewContainerStyle,
+    theme,
+    selected,
+    shouldSelect,
+    statusIndicatorStyle
+  ]);
+
   return (
     <ListComponent
       {...listComponentProps}
       style={[containerStyle, selected && { backgroundColor: theme.color.background4 }]}
     >
-      {LeadingView ?? (Boolean(avatarURL || avatarName) && <AvatarWithStatusView />)}
+      {getLeadingView()}
       <View style={[Style.rightContainerStyle]}>
         <View
           style={[
             Style.middleViewStyle,
             { padding: 0, paddingLeft: 0 },
-           titleSubtitleContainerStyle ?? {},
+            titleSubtitleContainerStyle ?? {},
           ]}
         >
           {getTitleView()}

@@ -1,5 +1,5 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -16,14 +16,47 @@ import { useTheme } from "../../../theme";
 import { Skeleton } from "../../../CometChatConversations";
 import { ErrorEmptyView } from "../ErrorEmptyView/ErrorEmptyView";
 import { Icon } from "../../icons/Icon";
+import { CometChatUIEventHandler, MessageEvents } from "../../events";
+import { messageStatus } from "../../utils/CometChatMessageHelper";
 
+/**
+ * Props for the CometChatReactionList component.
+ */
 export interface CometChatReactionListInterface {
+  /**
+   * The message object whose reactions will be displayed.
+   */
   message: CometChat.BaseMessage;
+  /**
+   * Callback function invoked when a reaction is pressed.
+   *
+   * @param messageReaction - The reaction object that was pressed.
+   * @param message - The message object.
+   */
   onPress?: (messageReaction: CometChat.Reaction, message: CometChat.BaseMessage) => void;
+  /**
+   * Request builder for fetching reactions.
+   */
   reactionsRequestBuilder?: CometChat.ReactionsRequestBuilder;
+  /**
+   * The currently selected reaction filter (e.g. "All" or a specific reaction).
+   */
   selectedReaction?: string;
+  /**
+   * A custom component to render in case of an error state.
+   *
+   * @returns A JSX element representing the error state.
+   */
   ErrorStateView?: () => JSX.Element;
+  /**
+   * Custom error text to display when an error occurs.
+   */
   errorStateText?: string;
+  /**
+   * A custom component to render during the loading state.
+   *
+   * @returns A JSX element representing the loading state.
+   */
   LoadingStateView?: () => JSX.Element;
 }
 
@@ -51,6 +84,7 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
   const requestBuilderMap = useRef<Record<string, CometChat.ReactionsRequest>>({});
   const reactionListMap = useRef<Record<string, CometChat.Reaction[]>>({});
   const listRef = useRef<FlatList | null>(null);
+  const [messageObject, setMessageObject] = useState<CometChat.BaseMessage>(message);
 
   useEffect(() => {
     CometChat.getLoggedinUser()
@@ -60,7 +94,7 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
         // onError && onError(rej);
       });
     showReactions(true);
-    let newMessageReactions = message?.getReactions() || [];
+    let newMessageReactions = messageObject?.getReactions() || [];
     _setAllReactions(newMessageReactions);
   }, []);
 
@@ -80,7 +114,7 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
     if (firstFetch && currentSelectedReaction !== "All") {
       await getReactionList(getRequestBuilder("All"), "All");
     }
-    setReactionList(list);
+    setReactionList(list ?? []);
   };
 
   const getRequestBuilder = (reaction: string): CometChat.ReactionsRequest => {
@@ -89,8 +123,8 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
       return requestBuilderMap.current[reaction];
     }
 
-    requestBuilder = reactionsRequestBuilder || new CometChat.ReactionsRequestBuilder();
-    requestBuilder.setLimit(10).setMessageId(message?.getId());
+    requestBuilder = reactionsRequestBuilder || new CometChat.ReactionsRequestBuilder().setLimit(10);
+    requestBuilder.setMessageId(messageObject?.getId());
 
     if (reaction !== "All") {
       requestBuilder.setReaction(reaction);
@@ -116,8 +150,8 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
       setState("done");
       return list;
     } catch (error: any) {
-      console.log("error while fetching reactions", error);
-      if (error?.code === "REQUEST_IN_PROGRESS") return;
+      //console.log("error while fetching reactions", error);
+      if (error?.code === "REQUEST_IN_PROGRESS") return null;
       setState("error");
       return [];
     }
@@ -138,20 +172,100 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
       }
       setState("done");
     } catch (error: any) {
-      console.log("error while fetching next reactions", error);
+      //console.log("error while fetching next reactions", error);
       if (error?.code === "REQUEST_IN_PROGRESS") return;
       setState("error");
     }
   };
 
-  const removeReaction = (reactionObj: CometChat.Reaction) => {
-    let reactedByMe = loggedInUser.current!.getUid() === reactionObj?.getReactedBy()?.getUid();
-    if (reactedByMe) {
-      if (onPress) {
-        onPress(reactionObj, newMessageObj.current);
-        return;
+  const reactToMessage = useCallback((emoji: string) => {
+    const msgObj = CommonUtils.clone(messageObject);
+
+    const messageId = msgObj?.getId();
+    const reactions = msgObj?.getReactions() || [];
+    const emojiObject = reactions?.find((reaction: any) => {
+      return reaction?.reaction == emoji;
+    });
+    if (emojiObject && emojiObject?.getReactedByMe()) {
+      const updatedReactions: any[] = [];
+      reactions.forEach((reaction: any) => {
+        if (reaction?.getReaction() == emoji) {
+          if (reaction?.getCount() === 1) {
+            return;
+          } else {
+            reaction.setCount(reaction?.getCount() - 1);
+            reaction.setReactedByMe(false);
+            updatedReactions.push(reaction);
+          }
+        } else {
+          updatedReactions.push(reaction);
+        }
+      });
+
+      const newMessageObj = CommonUtils.clone(msgObj);
+      newMessageObj.setReactions(updatedReactions);
+
+      CometChatUIEventHandler.emitMessageEvent(MessageEvents.ccMessageEdited, {
+        message: newMessageObj,
+        status: messageStatus.success,
+      });
+      CometChat.removeReaction(messageId, emoji)
+        .then((message: any) => {})
+        .catch((error: any) => {
+          CometChatUIEventHandler.emitMessageEvent(MessageEvents.ccMessageEdited, {
+            message: msgObj,
+            status: messageStatus.success,
+          });
+          //console.log(error);
+        });
+    } else {
+      const updatedReactions: any[] = [];
+      const reactionAvailable = reactions.find((reaction: any) => {
+        return reaction?.getReaction() == emoji;
+      });
+      reactions.forEach((reaction: any) => {
+        if (reaction?.getReaction() == emoji) {
+          reaction.setCount(reaction?.getCount() + 1);
+          reaction.setReactedByMe(true);
+          updatedReactions.push(reaction);
+        } else {
+          updatedReactions.push(reaction);
+        }
+      });
+      if (!reactionAvailable) {
+        const react: CometChat.ReactionCount = new CometChat.ReactionCount(emoji, 1, true);
+        updatedReactions.push(react);
       }
 
+      const newMessageObj = CommonUtils.clone(msgObj);
+
+      newMessageObj.setReactions(updatedReactions);
+
+      CometChatUIEventHandler.emitMessageEvent(MessageEvents.ccMessageEdited, {
+        message: newMessageObj,
+        status: messageStatus.success,
+      });
+
+      CometChat.addReaction(messageId, emoji)
+        .then((response: any) => {})
+        .catch((error: any) => {
+          //console.log(error);
+          CometChatUIEventHandler.emitMessageEvent(MessageEvents.ccMessageEdited, {
+            message: msgObj,
+            status: messageStatus.success,
+          });
+        });
+    }
+  }, [messageObject]);
+
+  const removeReaction = (reactionObj: CometChat.Reaction) => {
+    let reactedByMe = loggedInUser.current!.getUid() === reactionObj?.getReactedBy()?.getUid();
+    if (onPress) {
+      onPress(reactionObj, newMessageObj.current);
+      return;
+    }
+    if (reactedByMe) {
+      reactToMessage(reactionObj?.getReaction());
       let newReactionList = reactionList
         ? [...reactionList]?.filter(
             (reaction: CometChat.Reaction) =>
@@ -198,6 +312,7 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
       }
 
       newMessageObj.current.setReactions(newMessageReactions);
+      setMessageObject(newMessageObj.current);
     }
   };
 
@@ -248,8 +363,8 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
     return (
       <ErrorEmptyView
         title={errorStateText ?? "Oops!"}
-        subTitle='Looks like something went wrong.'
-        tertiaryTitle='Please try again.'
+       subTitle={localize("SOMETHING_WENT_WRONG")}
+        tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
         Icon={
           <Icon
             name='error-state'
@@ -310,8 +425,8 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
                             ? tabStyleFromTheme.selectedItemTextStyle
                             : tabStyleFromTheme.selectedItemEmojiStyle
                           : reactionObject?.getReaction() === "All"
-                          ? tabStyleFromTheme.itemTextStyle
-                          : tabStyleFromTheme.itemEmojiStyle
+                            ? tabStyleFromTheme.itemTextStyle
+                            : tabStyleFromTheme.itemEmojiStyle
                       }
                     >
                       {reactionObject?.getReaction() === "All"

@@ -25,6 +25,7 @@ const ChatStackNavigator = () => {
       screenOptions={{
         headerShown: false,
         gestureEnabled: true,
+        gestureDirection: 'horizontal',
         cardStyle: {backgroundColor: theme.color.background1},
         cardStyleInterpolator: ({current: {progress}}) => ({
           overlayStyle: {

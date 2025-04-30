@@ -13,11 +13,29 @@ import {
 import Video from "react-native-video";
 import { Icon } from "../../icons/Icon";
 
-interface CometChatVideoPlayerProps {
+/**
+ * Props for the CometChatVideoPlayer component.
+ */
+export interface CometChatVideoPlayerProps {
+  /**
+   * URI of the video to play.
+   */
   videoUri: string;
+  /**
+   * Flag indicating whether the video player is visible.
+   */
   isVisible: boolean;
+  /**
+   * Callback function invoked when the video player is closed.
+   */
   onClose: () => void;
+  /**
+   * Callback function invoked when the video has loaded.
+   */
   onLoad: () => void;
+  /**
+   * Optional color for the loading icon.
+   */
   loadingIconColor?: string;
 }
 

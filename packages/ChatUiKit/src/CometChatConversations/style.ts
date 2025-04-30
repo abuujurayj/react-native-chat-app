@@ -15,6 +15,7 @@ import { StatusIndicatorStyles } from "../shared/views/CometChatStatusIndicator"
 import { CometChatTheme } from "../theme/type";
 import { DeepPartial } from "../shared/helper/types";
 import { CometChatListStylesInterface } from "../shared";
+import { ConfirmDialogStyle } from "../shared/views/CometChatConfirmDialog/style";
 
 export const Style = StyleSheet.create({
   listContainer: {
@@ -37,19 +38,12 @@ export const Style = StyleSheet.create({
   },
 });
 
-export type ConversationStyle = CometChatListStylesInterface & {
+export type ConversationStyle = Omit<CometChatListStylesInterface, "searchStyle" | "sectionHeaderTextStyle"> & {
   containerStyle: ViewStyle;
   statusIndicatorStyles?: StatusIndicatorStyles;
   typingIndicatorStyle: TextStyle;
   titleStyle: TextStyle;
   selectionIconStyle: ImageStyle;
-  searchStyle: {
-    textStyle: TextStyle;
-    placehodlerTextStyle?: TextStyle;
-    containerStyle: ViewStyle;
-    icon: ImageSourcePropType | JSX.Element;
-    iconStyle: ImageStyle;
-  };
   emptyStateStyle: {
     titleStyle: TextStyle;
     subTitleStyle: TextStyle;
@@ -69,20 +63,21 @@ export type ConversationStyle = CometChatListStylesInterface & {
     containerStyle: ViewStyle;
     titleStyle: TextStyle;
     subtitleStyle: TextStyle;
-    statusIndicatorStyles: Partial<StatusIndicatorStyles>;
+    statusIndicatorStyle: Partial<StatusIndicatorStyles>;
     badgeStyle: Partial<BadgeStyle>;
     receiptStyles: Partial<ReceiptStyles>;
+    dateStyle: Partial<DateStyle>;
   };
   skeletonStyle: {
     linearGradientColors: [string, string];
     shimmerBackgroundColor: ColorValue;
     shimmerOpacity: number;
     speed: number;
+    containerBackgroundColor: ColorValue;
   };
-  dateStyles: Partial<DateStyle>;
   mentionsStyles: CometChatTheme["mentionsStyle"];
   headerContainerStyle?: ViewStyle;
-  cancellationIconStyle?: ImageStyle;
+  confirmDialogStyle: DeepPartial<ConfirmDialogStyle>
 };
 
 export const getConversationStyleLight = (
@@ -147,15 +142,18 @@ export const getConversationStyleLight = (
       headerContainerStyle: {
         borderBottomColor: color.borderDefault,
         borderBottomWidth: 1,
+        alignItems: "flex-start",
+        justifyContent: "center",
+        width: "100%",
+        borderRadius: 0,
       },
     } as const,
     {
       itemStyle: {
         containerStyle: {
           flexDirection: "row",
-          paddingHorizontal: spacing.padding.p4,
+          paddingHorizontal: spacing.padding.p2,
           paddingVertical: spacing.padding.p3,
-          gap: spacing.spacing.s3,
         },
         titleStyle: {
           color: color.textPrimary,
@@ -190,23 +188,23 @@ export const getConversationStyleLight = (
         shimmerBackgroundColor: color.staticBlack,
         shimmerOpacity: 0.01,
         speed: 1,
+        containerBackgroundColor: color.background2,
       },
       statusIndicatorStyles: {},
-      dateStyles: {},
+      dateStyle: {},
       receiptStyles: {},
       mentionsStyles: {
         textStyle: {
           ...typography.body.bold,
           color: color.receiveBubbleTextHighlight,
-          // backgroundColor: "#6852D633",
-          // paddingHorizontal: spacing.padding.p0_5,
         },
         selfTextStyle: {
           ...typography.body.bold,
           color: color.warning,
-          // backgroundColor: "#FFAB0033",
-          // paddingHorizontal: spacing.padding.p0_5,
         },
+      },
+      backButtonIconContainerStyle: {
+        paddingRight: spacing.spacing.s1,
       },
     } as const
   );
@@ -223,19 +221,16 @@ export const getConversationStyleDark = (
       shimmerBackgroundColor: color.staticWhite,
       shimmerOpacity: 0.01,
       speed: 1,
+      containerBackgroundColor: color.background2,
     },
     mentionsStyles: {
       textStyle: {
         ...typography.body.bold,
         color: color.receiveBubbleTextHighlight,
-        // backgroundColor: "#6852D633",
-        // paddingHorizontal: spacing.padding.p0_5,
       },
       selfTextStyle: {
         ...typography.body.bold,
         color: color.warning,
-        // backgroundColor: "#FFAB0033",
-        // paddingHorizontal: spacing.padding.p0_5,
       },
     },
   });

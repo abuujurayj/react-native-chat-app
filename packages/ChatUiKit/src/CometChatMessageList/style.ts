@@ -225,7 +225,7 @@ export const getMessageListStylesLight = (
           fontFamily: typography.fontFamily,
           color: color.receiveBubbleText,
           ...typography.body.regular,
-          lineHeight: 16.8,
+          //lineHeight: 16.8,
         },
         translatedTextStyle: {
           fontFamily: typography.fontFamily,
@@ -405,7 +405,7 @@ export const getMessageListStylesLight = (
           fontFamily: typography.fontFamily,
           color: color.sendBubbleText,
           ...typography.body.regular,
-          lineHeight: 16.8,
+          //lineHeight: 16.8,
         },
         translatedTextStyle: {
           fontFamily: typography.fontFamily,
@@ -679,7 +679,7 @@ export const getMessageListStylesDark = (
           fontFamily: typography.fontFamily,
           color: color.receiveBubbleText,
           ...typography.body.regular,
-          lineHeight: 16.8,
+          //lineHeight: 16.8,
         },
         translatedTextStyle: {
           fontFamily: typography.fontFamily,
@@ -859,7 +859,7 @@ export const getMessageListStylesDark = (
           fontFamily: typography.fontFamily,
           color: color.sendBubbleText,
           ...typography.body.regular,
-          lineHeight: 16.8,
+          //lineHeight: 16.8,
         },
         translatedTextStyle: {
           fontFamily: typography.fontFamily,
