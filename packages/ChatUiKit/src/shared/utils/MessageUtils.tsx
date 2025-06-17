@@ -1,7 +1,6 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import React, { useCallback } from "react";
-import { ColorValue, Platform, Text, View } from "react-native";
-import { useTheme } from "../../theme";
+import React, { JSX } from "react";
+import { ColorValue, Text, View } from "react-native";
 import { MessageBubbleAlignmentType } from "../base";
 import {
   CometChatCustomMessageTypes,
@@ -132,62 +131,58 @@ const MessageContentView = (props: {
   return null;
 };
 
-const getLeadingView = useCallback(
-  (
-    item: CometChat.BaseMessage,
-    theme: CometChatTheme,
-    avatarVisibility = true
-  ): JSX.Element | undefined => {
-    if (!avatarVisibility) return undefined;
-    let _style = getBubbleStyle(item, theme);
-    if (
-      item.getSender()?.getUid() !== CometChatUIKit.loggedInUser?.getUid() &&
-      item.getCategory() != MessageCategoryConstants.action
-    ) {
-      return (
-        <CometChatAvatar
-          image={
-            item?.getSender()?.getAvatar && item?.getSender()?.getAvatar()
-              ? { uri: item.getSender().getAvatar() }
-              : undefined
-          }
-          name={
-            item?.getSender()?.getName && item?.getSender()?.getName()
-              ? item?.getSender()?.getName()
-              : ""
-          }
-          style={_style.avatarStyle}
-        />
-      );
-    }
-    return undefined;
-  },
-  []
-);
+const getLeadingView = (
+  item: CometChat.BaseMessage,
+  theme: CometChatTheme,
+  avatarVisibility = true
+): JSX.Element | undefined => {
+  if (!avatarVisibility) return undefined;
+  let _style = getBubbleStyle(item, theme);
+  if (
+    item.getSender()?.getUid() !== CometChatUIKit.loggedInUser?.getUid() &&
+    item.getCategory() != MessageCategoryConstants.action
+  ) {
+    return (
+      <CometChatAvatar
+        image={
+          item?.getSender()?.getAvatar && item?.getSender()?.getAvatar()
+            ? { uri: item.getSender().getAvatar() }
+            : undefined
+        }
+        name={
+          item?.getSender()?.getName && item?.getSender()?.getName()
+            ? item?.getSender()?.getName()
+            : ""
+        }
+        style={_style.avatarStyle}
+      />
+    );
+  }
+  return undefined;
+};
 
-const getHeaderView = useCallback(
-  (item: CometChat.BaseMessage | any, theme: CometChatTheme): JSX.Element | undefined => {
-    const _style = getBubbleStyle(item, theme);
-    if (
-      item.getSender()?.getUid() != CometChatUIKit.loggedInUser?.getUid() &&
-      ![MessageCategoryConstants.action, MessageCategoryConstants.call].includes(item.getCategory())
-    ) {
-      const senderName = (item.getSender()?.getName() || "").trim();
-      return (
-        <View style={{ flexDirection: "row" }}>
-          {Boolean(senderName) && (
-            <Text style={_style.senderNameTextStyles} numberOfLines={1} ellipsizeMode={"tail"}>
-              {senderName}
-            </Text>
-          )}
-        </View>
-      );
-    }
-    return undefined;
-  },
-  []
-);
-
+const getHeaderView = (
+  item: CometChat.BaseMessage | any,
+  theme: CometChatTheme
+): JSX.Element | undefined => {
+  const _style = getBubbleStyle(item, theme);
+  if (
+    item.getSender()?.getUid() != CometChatUIKit.loggedInUser?.getUid() &&
+    ![MessageCategoryConstants.action, MessageCategoryConstants.call].includes(item.getCategory())
+  ) {
+    const senderName = (item.getSender()?.getName() || "").trim();
+    return (
+      <View style={{ flexDirection: "row" }}>
+        {Boolean(senderName) && (
+          <Text style={_style.senderNameTextStyles} numberOfLines={1} ellipsizeMode={"tail"}>
+            {senderName}
+          </Text>
+        )}
+      </View>
+    );
+  }
+  return undefined;
+};
 const getBubbleStyle = (item: CometChat.BaseMessage, theme: CometChatTheme): BubbleStyles => {
   const loggedInUser = CometChatUIKit.loggedInUser!;
   const type = (() => {
@@ -251,10 +246,7 @@ const getStatusInfoView = (
       ]}
     >
       <CometChatDate
-        timeStamp={
-          (item.getDeletedAt() || item.getSentAt()) *
-            1000 || getSentAtTimestamp(item)
-        }
+        timeStamp={(item.getDeletedAt() || item.getSentAt()) * 1000 || getSentAtTimestamp(item)}
         pattern={"timeFormat"}
         customDateString={datePattern && datePattern(item)}
         style={_style.dateStyles}

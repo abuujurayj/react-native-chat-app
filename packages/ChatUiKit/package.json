@@ -1,6 +1,6 @@
 {
   "name": "@cometchat/chat-uikit-react-native",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Ready-to-use Chat UI Components for React Native",
   "main": "src/index",
   "module": "src/index",
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.27.0",
-    "@react-native/eslint-config": "0.77.0",
+    "@react-native/eslint-config": "0.79.2",
     "@types/jest": "^29.5.13",
     "@types/react": "*",
     "commitlint": "^17.0.2",
@@ -64,19 +64,18 @@
     "react-native": "*",
     "typescript": "^5.0.4"
   },
-  "resolutions": {
-     "@types/react": "^18.2.6"
-  },
   "dependencies": {
+    "@types/prop-types": "^15.7.14",
+    "prop-types": "^15.8.1"
   },
   "peerDependencies": {
+    "@cometchat/chat-sdk-react-native": "*",
+    "@react-native-clipboard/clipboard": "*",
     "react": "*",
     "react-native": "*",
-    "@cometchat/chat-sdk-react-native": "*",
-    "@react-native-clipboard/clipboard":"*",
+    "react-native-gesture-handler": "*",
     "react-native-svg": "*",
-    "react-native-video": "*",
-    "react-native-gesture-handler": "*"
+    "react-native-video": "*"
   },
   "jest": {
     "preset": "react-native",

@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback } from "react";
+import React, { memo, useState, useCallback, useMemo, JSX } from "react";
 import { View, ViewProps } from "react-native";
 import { BubbleStyles } from "../../../theme/type";
 import { MessageBubbleAlignmentType } from "../../base/Types";
@@ -115,16 +115,15 @@ export const CometChatMessageBubble = memo(
       [_width]
     );
 
+    const alignItems = useMemo(() => {
+      return alignment === "right" ? "flex-end" : alignment === "left" ? "flex-start" : alignment;
+    }, [alignment]);
+
     return (
       <View
         style={{
           width: "100%",
-          alignItems:
-            alignment === "right"
-              ? "flex-end"
-              : alignment === "left"
-              ? "flex-start"
-              : alignment,
+          alignItems: alignItems,
         }}
       >
         <View style={{ flexDirection: "row" } as ViewProps}>

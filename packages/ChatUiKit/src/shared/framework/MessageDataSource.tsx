@@ -1,4 +1,4 @@
-import React from "react";
+import React, { JSX } from "react";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import {
   CometChatMentionsFormatter,
@@ -667,8 +667,8 @@ export class MessageDataSource implements DataSource {
       return (
         <CometChatTextBubble
           text={`${message.getMessage()}`}
-          textContainerStyle={theme.messageListStyles.groupActionBubbleStyles.textContainerStyle}
-          textStyle={theme.messageListStyles.groupActionBubbleStyles.textStyle}
+          textContainerStyle={theme.messageListStyles?.groupActionBubbleStyles?.textContainerStyle}
+          textStyle={theme?.messageListStyles?.groupActionBubbleStyles?.textStyle}
         />
       );
     }
@@ -1340,7 +1340,7 @@ export class MessageDataSource implements DataSource {
     theme: CometChatTheme,
     additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
   ) => {
-    const attachmentOptions = [];
+    const attachmentOptions :CometChatMessageComposerAction[] = [];
     if (!additionalAttachmentOptionsParams?.hideCameraOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.takePhoto,
@@ -1363,7 +1363,6 @@ export class MessageDataSource implements DataSource {
             }
           />
         ),
-        onClick: null,
       });
     }
     if (!additionalAttachmentOptionsParams?.hideImageAttachmentOption) {
@@ -1388,7 +1387,6 @@ export class MessageDataSource implements DataSource {
             }
           />
         ),
-        onClick: null,
       });
     }
 
@@ -1414,7 +1412,6 @@ export class MessageDataSource implements DataSource {
             }
           />
         ),
-        onClick: null,
       });
     }
 
@@ -1440,7 +1437,6 @@ export class MessageDataSource implements DataSource {
             }
           />
         ),
-        onClick: null,
       });
     }
     if (!additionalAttachmentOptionsParams?.hideFileAttachmentOption) {
@@ -1465,7 +1461,6 @@ export class MessageDataSource implements DataSource {
             }
           />
         ),
-        onClick: null,
       });
     }
     return attachmentOptions;
@@ -1474,7 +1469,7 @@ export class MessageDataSource implements DataSource {
     theme: CometChatTheme,
     additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
   ) => {
-    const attachmentOptions = [];
+    const attachmentOptions :CometChatMessageComposerAction[] = [];
     if (!additionalAttachmentOptionsParams?.hideCameraOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.takePhoto,
@@ -1497,7 +1492,6 @@ export class MessageDataSource implements DataSource {
             }
           />
         ),
-        onClick: null,
       });
     }
     if (!additionalAttachmentOptionsParams?.hideImageAttachmentOption) {
@@ -1522,7 +1516,6 @@ export class MessageDataSource implements DataSource {
             }
           />
         ),
-        onClick: null,
       });
     }
 
@@ -1547,8 +1540,7 @@ export class MessageDataSource implements DataSource {
                 ?.iconContainerStyle
             }
           />
-        ),
-        onClick: null,
+        )
       });
     }
 
@@ -1574,7 +1566,6 @@ export class MessageDataSource implements DataSource {
             }
           />
         ),
-        onClick: null,
       });
     }
     if (!additionalAttachmentOptionsParams?.hideFileAttachmentOption) {
@@ -1599,7 +1590,6 @@ export class MessageDataSource implements DataSource {
             }
           />
         ),
-        onClick: null,
       });
     }
 

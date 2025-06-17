@@ -1,6 +1,17 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
-import {RouteProp, useRoute, useNavigation} from '@react-navigation/native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  BackHandler,
+} from 'react-native';
+import {
+  RouteProp,
+  useRoute,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 import {
   CometChatThreadHeader,
   CometChatMessageList,
@@ -19,6 +30,22 @@ const ThreadView = () => {
   const {goBack} = useNavigation();
   const theme = useTheme();
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        goBack();
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [goBack]),
+  );
+
   const {message, user, group} = params || {};
 
   if (!message) {
@@ -31,7 +58,13 @@ const ThreadView = () => {
       <View style={styles.headerStyle}>
         <TouchableOpacity style={styles.iconStyle} onPress={() => goBack()}>
           <Icon
-            icon={<ArrowBack color={theme.color.iconPrimary} height={24} width={24} />}
+            icon={
+              <ArrowBack
+                color={theme.color.iconPrimary}
+                height={24}
+                width={24}
+              />
+            }
           />
         </TouchableOpacity>
         <View style={styles.textStyle}>

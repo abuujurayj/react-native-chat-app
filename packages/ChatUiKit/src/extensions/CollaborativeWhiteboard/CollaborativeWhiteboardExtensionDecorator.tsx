@@ -13,7 +13,7 @@ import { localize } from "../../shared/resources/CometChatLocalize";
 import { CometChatCollaborativeBubble } from "../CollaborativeBubble/CometChatCollaborativeBubble";
 import { ExtensionConstants, ExtensionTypeConstants } from "../ExtensionConstants";
 import { getExtensionData } from "../ExtensionModerator";
-import React from "react";
+import React, { JSX } from "react";
 import { Text, View } from "react-native";
 import { CometChatUIKit } from "../../shared";
 import {

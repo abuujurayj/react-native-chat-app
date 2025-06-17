@@ -1,5 +1,5 @@
 import { Icon, useTheme } from "@cometchat/chat-uikit-react-native";
-import { useMemo } from "react";
+import { JSX, useMemo } from "react";
 import {
   ColorValue,
   Dimensions,

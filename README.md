@@ -21,8 +21,8 @@ Dive straight into our Sample Apps to see CometChat UI Kit in action! Whether yo
 
 ## Prerequisites
 
-- Node.js 18 or higher
-- React Native 0.77
+- **Node.js** 18 or higher
+- **React Native** Version 0.77 or later (up to the latest version)  
 
 **iOS**
 - XCode

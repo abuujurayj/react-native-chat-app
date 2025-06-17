@@ -1,3 +1,5 @@
+/// <reference path="./imageresolver.d.ts" />
+
 import {
   ActionItemInterface,
   AdditionalParams,

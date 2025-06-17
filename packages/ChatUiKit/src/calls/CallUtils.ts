@@ -81,8 +81,13 @@ export class CallUtils {
           }
           break;
         case CALL_REJECTED:
-          callMessageText = `${localize("CALL_REJECTED")}`;
-          selectedIcon = call["type"] === "audio" ? "call" : "video-call";
+          if (this.isInitiator(initiator, loggedInUser)) {
+            callMessageText = `${localize("CALL_REJECTED")}`;
+            selectedIcon = call["type"] === "audio" ? "call" : "video-call";
+          } else {
+            callMessageText = `${localize("INCOMING_CALL")}`;
+            selectedIcon = call["type"] === "audio" ? "incoming-audio" : "incoming-video";
+          }
           break;
         case CALL_BUSY:
           if (this.isInitiator(initiator, loggedInUser)) {
@@ -111,13 +116,16 @@ export class CallUtils {
    * @param loggedInUser - The logged in user.
    * @returns True if it's a missed call.
    */
-  static isMissedCall(call: CometChat.Call, loggedInUser: CometChat.User) {
+  static isMissedCall(call: CometChat.Call, loggedInUser: CometChat.User): boolean {
     const callStatus: any = call.getStatus();
-    if (this.isInitiator((call as any)?.getInitiator(), loggedInUser)) {
+    const iAmInitiator = this.isInitiator((call as any)?.getInitiator(), loggedInUser);
+
+    if (iAmInitiator) {
       return callStatus === CALL_UNANSWERED;
-    } else {
-      return [CALL_BUSY, CALL_UNANSWERED, CALL_REJECTED, CALL_CANCELLED].includes(callStatus);
     }
+
+    // Incoming calls: treat BUSY as missed as well
+    return [CALL_UNANSWERED, CALL_CANCELLED, CALL_BUSY].includes(callStatus);
   }
 
   /**
@@ -167,8 +175,8 @@ export class CallUtils {
     return hoursString
       ? `${hoursString} ${minutesString} ${secondsString}`
       : minutesString
-      ? `${minutesString} ${secondsString}`
-      : secondsString;
+        ? `${minutesString} ${secondsString}`
+        : secondsString;
   }
 
   /**
@@ -196,7 +204,7 @@ export class CallUtils {
     return hoursString
       ? `${hoursString} ${minutesString} ${secondsString}`
       : minutesString
-      ? `${minutesString} ${secondsString}`
-      : secondsString;
+        ? `${minutesString} ${secondsString}`
+        : secondsString;
   }
 }

@@ -9,6 +9,7 @@ import {
 import { CometChatMessageComposerAction } from "../helper/types";
 import { CometChatMessageOption, CometChatMessageTemplate } from "../modals";
 import { DataSource } from "./DataSource";
+import { JSX } from "react";
 
 export class DataSourceDecorator implements DataSource {
   dataSource: DataSource;

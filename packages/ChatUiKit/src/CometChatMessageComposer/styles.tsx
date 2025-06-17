@@ -9,6 +9,7 @@ import {
 import { ActionSheetStyle, CometChatTheme } from "../theme/type";
 import { Icon } from "../shared/icons/Icon";
 import { DeepPartial } from "../shared/helper/types";
+import { JSX } from "react";
 
 export const Style = StyleSheet.create({
   container: {

@@ -1,13 +1,14 @@
 import { CometChatTheme } from "../../../theme/type";
 import { deepMerge } from "../../helper/helperFunctions";
+import { DeepPartial } from "../../helper/types";
 
 export const getReactionsStyleLight = (
   color: CometChatTheme["color"],
   spacing: CometChatTheme["spacing"],
   typography: CometChatTheme["typography"]
 ): {
-  incomingBubbleStyle: CometChatTheme["messageBubbleReactionStyles"];
-  outgoingBubbleStyle: CometChatTheme["messageBubbleReactionStyles"];
+  incomingBubbleStyle: DeepPartial<CometChatTheme["messageBubbleReactionStyles"]>;
+  outgoingBubbleStyle: DeepPartial<CometChatTheme["messageBubbleReactionStyles"]>;
 } => {
   return {
     incomingBubbleStyle: {
@@ -146,8 +147,8 @@ export const getReactionsStyleDark = (
   spacing: CometChatTheme["spacing"],
   typography: CometChatTheme["typography"]
 ): {
-  incomingBubbleStyle: CometChatTheme["messageBubbleReactionStyles"];
-  outgoingBubbleStyle: CometChatTheme["messageBubbleReactionStyles"];
+  incomingBubbleStyle: DeepPartial<CometChatTheme["messageBubbleReactionStyles"]>;
+  outgoingBubbleStyle: DeepPartial<CometChatTheme["messageBubbleReactionStyles"]>;
 } => {
   return deepMerge(getReactionsStyleLight(color, spacing, typography)!,  {
     incomingBubbleStyle: {

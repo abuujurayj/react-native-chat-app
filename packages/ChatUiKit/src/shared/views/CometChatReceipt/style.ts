@@ -1,5 +1,6 @@
 import { ImageSourcePropType, ImageStyle } from "react-native";
 import { CometChatTheme } from "../../../theme/type";
+import { JSX } from "react";
 
 export type ReceiptStyles = {
   waitIcon?: ImageSourcePropType | JSX.Element;

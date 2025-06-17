@@ -6,7 +6,7 @@ import {
   CometChatImageBubble,
   CometChatVideoBubble,
 } from "../../shared/views";
-import React from "react";
+import React, { JSX } from "react";
 import { CometChatTheme } from "../../theme/type";
 import { CometChatUIKit } from "../../shared";
 

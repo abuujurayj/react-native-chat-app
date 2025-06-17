@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   BackHandler,
+  Platform,
 } from 'react-native';
 import {
   CometChatUIKit,
@@ -258,7 +259,17 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
           </TouchableOpacity>
         </View>
       ) : (
-        <CometChatMessageComposer user={localUser} group={group} />
+        <CometChatMessageComposer
+          user={localUser}
+          group={group}
+          keyboardAvoidingViewProps={{
+            ...(Platform.OS === 'android'
+              ? {}
+              : {
+                  behavior: 'padding',
+                }),
+          }}
+        />
       )}
     </View>
   );
@@ -270,7 +281,7 @@ const styles = StyleSheet.create({
   },
   blockedContainer: {
     alignItems: 'center',
-    height: '10%',
+    height: 90,
     paddingVertical: 10,
   },
   button: {

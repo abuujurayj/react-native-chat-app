@@ -2,6 +2,7 @@ import { ImageSourcePropType, ImageStyle, ImageURISource } from "react-native";
 import { CometChatTextFormatter } from "../formatters";
 import { CometChatTheme } from "../../theme/type";
 import { DeepPartial } from "../helper/types";
+import { JSX } from "react";
 
 export type SelectionMode = "none" | "single" | "multiple";
 

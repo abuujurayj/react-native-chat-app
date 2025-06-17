@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { JSX, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Alert,
   DimensionValue,
@@ -24,9 +24,12 @@ export interface LinkPreviewBubbleInterface {
   description?: string;
   /** Custom style object for the bubble */
   style?: {
-    bodyStyle: CometChatTheme["linkPreviewBubbleStyles"]["bodyStyle"];
-    headerImageStyle: CometChatTheme["linkPreviewBubbleStyles"]["headerImageStyle"];
-    headerImageContainerStyle: CometChatTheme["linkPreviewBubbleStyles"]["headerImageContainerStyle"];
+    /** Custom body style */
+    bodyStyle?: (CometChatTheme["linkPreviewBubbleStyles"] & {})["bodyStyle"];
+    /** Custom header image style */
+    headerImageStyle?: (CometChatTheme["linkPreviewBubbleStyles"] & {})["headerImageStyle"];
+    /** Custom header image container style */
+    headerImageContainerStyle?: (CometChatTheme["linkPreviewBubbleStyles"] & {})["headerImageContainerStyle"];
   };
   /** URL of the link to preview */
   link: string;
@@ -38,12 +41,6 @@ export interface LinkPreviewBubbleInterface {
   image: string;
   /** Favicon URL to display */
   favicon: string;
-  /** Custom body style */
-  bodyStyle?: CometChatTheme["linkPreviewBubbleStyles"]["bodyStyle"];
-  /** Custom header image style */
-  headerImageStyle?: CometChatTheme["linkPreviewBubbleStyles"]["headerImageStyle"];
-  /** Custom header image container style */
-  headerImageContainerStyle?: CometChatTheme["linkPreviewBubbleStyles"]["headerImageContainerStyle"];
 }
 
 /**
@@ -156,15 +153,15 @@ export const LinkPreviewBubble = (props: LinkPreviewBubbleInterface) => {
         />
       </View>
 
-      <View style={style?.bodyStyle.containerStyle}>
+      <View style={style?.bodyStyle?.containerStyle}>
         <View style={{ flexDirection: "row" }}>
-          <View style={style?.bodyStyle.titleContainerStyle}>
-            <Text style={style?.bodyStyle.titleStyle} ellipsizeMode="tail">
+          <View style={style?.bodyStyle?.titleContainerStyle}>
+            <Text style={style?.bodyStyle?.titleStyle} ellipsizeMode='tail'>
               {title}
             </Text>
           </View>
 
-          <View style={style?.bodyStyle.faviconContainerStyle}>
+          <View style={style?.bodyStyle?.faviconContainerStyle}>
             <Image
               source={faviconSource}
               style={style?.bodyStyle?.faviconStyle}
@@ -174,11 +171,11 @@ export const LinkPreviewBubble = (props: LinkPreviewBubbleInterface) => {
             />
           </View>
         </View>
-        <View style={style?.bodyStyle.subtitleContainerStyle}>
-          <Text style={style?.bodyStyle.subtitleTitle} numberOfLines={2} ellipsizeMode="tail">
+        <View style={style?.bodyStyle?.subtitleContainerStyle}>
+          <Text style={style?.bodyStyle?.subtitleTitle} numberOfLines={2} ellipsizeMode='tail'>
             {description}
           </Text>
-          <Text style={style?.bodyStyle.subtitleTitle} numberOfLines={2} ellipsizeMode="tail">
+          <Text style={style?.bodyStyle?.subtitleTitle} numberOfLines={2} ellipsizeMode='tail'>
             {link}
           </Text>
         </View>
@@ -186,7 +183,7 @@ export const LinkPreviewBubble = (props: LinkPreviewBubbleInterface) => {
       <View
         style={{
           paddingVertical: theme.spacing.padding.p3,
-          paddingHorizontal: style?.bodyStyle.containerStyle.padding,
+          paddingHorizontal: style?.bodyStyle?.containerStyle.padding,
         }}
       >
         {ChildView && <ChildView />}

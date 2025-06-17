@@ -15,6 +15,7 @@ import {
 import { CometChatMessageComposerAction } from "../helper/types";
 import { CometChatMessageOption } from "../modals/CometChatMessageOption";
 import { CometChatMessageTemplate } from "../modals/CometChatMessageTemplate";
+import { JSX } from "react";
 
 export interface DataSource {
   //message options based on types

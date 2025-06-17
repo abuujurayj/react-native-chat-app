@@ -30,7 +30,7 @@ import {
   SuggestionItem,
 } from "../shared";
 import { Style } from "./styles";
-
+//@ts-ignore
 import { CheckPropertyExists } from "../shared/helper/functions";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { ChatConfigurator, CometChatSoundManager } from "../shared";
@@ -58,6 +58,8 @@ import { useTheme } from "../theme";
 import { ICONS } from "./resources";
 import { CometChatTheme } from "../theme/type";
 import { deepMerge } from "../shared/helper/helperFunctions";
+import { JSX } from "react";
+
 const { FileManager, CommonUtil } = NativeModules;
 
 const uiEventListenerShow = "uiEvent_show_" + new Date().getTime();
@@ -532,6 +534,9 @@ export const CometChatMessageComposer = React.forwardRef(
     const [mentionsSearchData, setMentionsSearchData] = React.useState<Array<SuggestionItem>>([]);
     const [suggestionListLoader, setSuggestionListLoader] = React.useState(false);
     const [warningMessage, setWarningMessage] = React.useState("");
+    const [originalText, setOriginalText] = React.useState<string>("");
+    const [hasEdited, setHasEdited] = React.useState<boolean>(false);
+    const [plainText, setPlainText] = React.useState(initialComposertext ?? "");
 
     const bottomSheetRef = React.useRef<any>(null);
 
@@ -639,7 +644,9 @@ export const CometChatMessageComposer = React.forwardRef(
         edits.sort((a: any, b: any) => a.startIndex - b.startIndex);
 
         plainTextInput.current = getPlainString(message?.text, edits);
-
+        setPlainText(plainTextInput.current);
+        setOriginalText(plainTextInput.current.trim());  
+        setHasEdited(false);
         const hashMap = new Map();
         let offset = 0; // Tracks shift in position due to replacements
 
@@ -731,6 +738,8 @@ export const CometChatMessageComposer = React.forwardRef(
 
     const clearInputBox = () => {
       inputValueRef.current = "";
+      setPlainText("");
+      setHasEdited(false);
       setInputMessage("");
       setWarningMessage("");
     };
@@ -1044,7 +1053,7 @@ export const CometChatMessageComposer = React.forwardRef(
     const SendButtonViewElem = useCallback(() => {
       if (hideSendButton) return <></>;
       if (SendButtonView) return <SendButtonView user={user} group={group} composerId={id!} />;
-      const disabled = typeof inputMessage === "string" && inputMessage.length === 0;
+      const disabled = plainText.trim().length === 0 || (messagePreview && !hasEdited);
       return (
         <TouchableOpacity
           onPress={sendTextMessage}
@@ -1071,7 +1080,7 @@ export const CometChatMessageComposer = React.forwardRef(
           />
         </TouchableOpacity>
       );
-    }, [mergedComposerStyle, inputMessage]);
+    }, [mergedComposerStyle, inputMessage, plainText, messagePreview, hasEdited]);
 
     //fetch logged in user
     useEffect(() => {
@@ -1243,7 +1252,14 @@ export const CometChatMessageComposer = React.forwardRef(
 
     useEffect(() => {
       CometChatUIEventHandler.addMessageListener(editMessageListenerID, {
-        ccMessageEdited: (item: any) => previewMessage(item),
+        ccMessageEdited: (item: any) => {
+          const incomingParentId = item?.message?.getParentMessageId?.() ?? null;
+          const myParentId = parentMessageId ?? null;
+
+          if (incomingParentId === myParentId) {
+            previewMessage(item);
+          }
+        },
       });
       CometChatUIEventHandler.addUIListener(UiEventListenerID, {
         ccToggleBottomSheet: (item) => {
@@ -1432,6 +1448,10 @@ export const CometChatMessageComposer = React.forwardRef(
     };
 
     const textChangeHandler = (txt: string) => {
+      setPlainText(txt);
+      if (messagePreview) {
+        setHasEdited(txt.trim() !== originalText.trim());
+      }
       let removing = plainTextInput.current?.length ?? 0 > txt.length;
       let adding = plainTextInput.current?.length < txt.length;
       let textDiff = txt.length - (plainTextInput.current?.length ?? 0);
@@ -1670,7 +1690,7 @@ export const CometChatMessageComposer = React.forwardRef(
       let targetedFormatter =
         allFormatters.current.get(activeCharacter.current) ?? targettedFormatterParam;
       if (!(targetedFormatter instanceof CometChatMentionsFormatter)) {
-        return;
+        return false;
       }
       let shouldWarn;
       let limit;
@@ -1784,7 +1804,13 @@ export const CometChatMessageComposer = React.forwardRef(
                     CustomViewHeader // Render it directly if it's a React node
                   ))}
               <MessagePreviewTray
-                onClose={() => setMessagePreview(null)}
+                onClose={() => {
+                  setMessagePreview(null);
+                  clearInputBox();
+                  mentionMap.current = new Map();
+                  plainTextInput.current = "";
+                  setOriginalText("");
+                }}
                 text={messagePreview?.message?.text}
                 shouldShow={messagePreview != null}
               />

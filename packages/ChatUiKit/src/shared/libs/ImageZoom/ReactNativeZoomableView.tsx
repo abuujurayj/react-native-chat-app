@@ -54,7 +54,7 @@ class ReactNativeZoomableView extends Component<
   ReactNativeZoomableViewProps,
   ReactNativeZoomableViewState
 > {
-  zoomSubjectWrapperRef: RefObject<View>;
+  zoomSubjectWrapperRef: RefObject<View | null>;
   gestureHandlers: any;
   doubleTapFirstTapReleaseTimestamp!: number | any;
 

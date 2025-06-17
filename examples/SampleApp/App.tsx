@@ -16,17 +16,14 @@ import {
   UIKitSettings,
 } from '@cometchat/chat-uikit-react-native';
 
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import RootStackNavigator from './src/navigation/RootStackNavigator';
 import {AppConstants} from './src/utils/AppConstants';
 import {
   requestAndroidPermissions,
-  navigateToConversation,
 } from './src/utils/helper';
-import {navigationRef} from './src/navigation/NavigationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useActiveChat} from './src/utils/ActiveChatContext';
 
 // Listener ID for registering and removing CometChat listeners.
 const listenerId = 'app';
@@ -42,7 +39,7 @@ const App = (): React.ReactElement => {
   const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
 
   /**
-   * Initialize CometChat UIKit and configure Google Sign-In.
+   * Initialize CometChat UIKit.
    * Retrieves credentials from AsyncStorage and uses fallback constants if needed.
    */
   useEffect(() => {
@@ -154,16 +151,51 @@ const App = (): React.ReactElement => {
       listenerId,
       new CometChat.CallListener({
         onIncomingCallReceived: (call: CometChat.Call) => {
-          // Hide any bottom sheet UI before showing the incoming call screen.
-          CometChatUIEventHandler.emitUIEvent(
-            CometChatUIEvents.ccToggleBottomSheet,
-            {
-              isBottomSheetVisible: false,
-            },
-          );
-          // Store the incoming call and update state.
-          incomingCall.current = call;
-          setCallReceived(true);
+          // Check if there's already an active call
+          try {
+            const activeCall = CometChat.getActiveCall();
+            if (activeCall) {
+              // If there's an active call, reject the incoming call with busy status
+              setTimeout(() => {
+                CometChat.rejectCall(
+                  call.getSessionId(),
+                  CometChat.CALL_STATUS.BUSY,
+                )
+                  .then(() => {
+                    console.log('Incoming call rejected due to active call');
+                  })
+                  .catch(error => {
+                    console.error(
+                      'Error rejecting call with busy status:',
+                      error,
+                    );
+                  });
+              }, 2000);
+            } else {
+              // No active call, proceed with normal incoming call handling
+              // Hide any bottom sheet UI before showing the incoming call screen.
+              CometChatUIEventHandler.emitUIEvent(
+                CometChatUIEvents.ccToggleBottomSheet,
+                {
+                  isBottomSheetVisible: false,
+                },
+              );
+              // Store the incoming call and update state.
+              incomingCall.current = call;
+              setCallReceived(true);
+            }
+          } catch (error) {
+            console.error('Error getting active call:', error);
+            // If error getting active call, proceed with normal handling
+            CometChatUIEventHandler.emitUIEvent(
+              CometChatUIEvents.ccToggleBottomSheet,
+              {
+                isBottomSheetVisible: false,
+              },
+            );
+            incomingCall.current = call;
+            setCallReceived(true);
+          }
         },
         onOutgoingCallRejected: () => {
           // Clear the call state if outgoing call is rejected.
@@ -211,24 +243,26 @@ const App = (): React.ReactElement => {
   // Once initialization is complete, render the main app UI.
   return (
     <SafeAreaProvider>
-      <CometChatThemeProvider>
-        {/* Render the incoming call UI if the user is logged in and a call is received */}
-        {isLoggedIn && callReceived && incomingCall.current ? (
-          <CometChatIncomingCall
-            call={incomingCall.current}
-            onDecline={() => {
-              // Handle call decline by clearing the incoming call state.
-              incomingCall.current = null;
-              setCallReceived(false);
-            }}
+      <SafeAreaView edges={['top']} style={{flex: 1}}>
+        <CometChatThemeProvider>
+          {/* Render the incoming call UI if the user is logged in and a call is received */}
+          {isLoggedIn && callReceived && incomingCall.current ? (
+            <CometChatIncomingCall
+              call={incomingCall.current}
+              onDecline={() => {
+                // Handle call decline by clearing the incoming call state.
+                incomingCall.current = null;
+                setCallReceived(false);
+              }}
+            />
+          ) : null}
+          {/* Render the main navigation stack, passing the login status as a prop */}
+          <RootStackNavigator
+            isLoggedIn={isLoggedIn}
+            hasValidAppCredentials={hasValidAppCredentials}
           />
-        ) : null}
-        {/* Render the main navigation stack, passing the login status as a prop */}
-        <RootStackNavigator
-          isLoggedIn={isLoggedIn}
-          hasValidAppCredentials={hasValidAppCredentials}
-        />
-      </CometChatThemeProvider>
+        </CometChatThemeProvider>
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 };

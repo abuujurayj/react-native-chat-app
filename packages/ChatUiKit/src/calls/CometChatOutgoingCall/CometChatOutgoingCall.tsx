@@ -1,5 +1,5 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { Modal, SafeAreaView, Text, TouchableOpacity, View } from "react-native";
 import {
   MessageCategoryConstants,
@@ -105,8 +105,8 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
   // Controls visibility of this modal.
   const [isModalVisible, setModalVisible] = useState(true);
 
-  const ongoingCall = useRef<CometChat.Call | CometChat.CustomMessage>();
-  const callSessionId = useRef<string>();
+  const ongoingCall = useRef<CometChat.Call | CometChat.CustomMessage>(undefined);
+  const callSessionId = useRef<string>(undefined);
   const callListener = useRef<any>(null);
   const callSettings = useRef<any>(null);
   const isCallEnded = useRef<null | boolean>(undefined);

@@ -4,7 +4,7 @@ import {
   CometChatListItem,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {JSX, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, Text, View} from 'react-native';
 import {CallDetailHelper} from './CallDetailHelper';
 import {Icon} from '@cometchat/chat-uikit-react-native';
@@ -128,7 +128,7 @@ export const CallHistory = (props: {user?: any; group?: any}) => {
       getCallType(item).callStatus,
       theme,
     );
-    return CallStatusIcon;
+    return CallStatusIcon || <View />;
   }, []);
 
   const convertMinutesToTime = useCallback((decimalMinutes: number) => {

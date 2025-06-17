@@ -1,4 +1,5 @@
 import React, {
+  JSX,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -17,7 +18,7 @@ import {CallHistory} from './CallHistory';
 import {CallLogDetailHeader} from './CallLogDetailHeader';
 import {Icon} from '@cometchat/chat-uikit-react-native';
 import {CallParticipants} from './CallParticipants';
-import {CallDetailHelper} from './CallDetailHelper';
+import {CallDetailHelper, CallStatus} from './CallDetailHelper';
 import {CallRecordings} from './CallRecordings';
 import {CallStackParamList} from '../../navigation/types';
 import {StackScreenProps} from '@react-navigation/stack';
@@ -196,12 +197,13 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
     return `${minutes} min  ${seconds} sec`;
   }, []);
 
-  const callTypeAndStatus = useMemo((): {
-    type: string;
-    callStatus: string;
-  } => {
-    return CallDetailHelper.getCallType(call);
-  }, [call]);
+  const callTypeAndStatus = useMemo(
+    (): {
+      type: 'incoming' | 'outgoing';
+      callStatus: CallStatus;
+    } => CallDetailHelper.getCallType(call),
+    [call],
+  );
 
   const _style = useMemo(() => {
     return {
@@ -267,12 +269,14 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
     );
   }, [callTypeAndStatus]);
 
-  const CallStatusIcon = useMemo((): CallDetailHelper => {
-    return CallDetailHelper.getCallStatusDisplayIcon(
-      callTypeAndStatus.callStatus,
-      theme,
-    );
-  }, [callTypeAndStatus]);
+  const CallStatusIcon = useMemo<JSX.Element | undefined>(
+    () =>
+      CallDetailHelper.getCallStatusDisplayIcon(
+        callTypeAndStatus.callStatus,
+        theme,
+      ),
+    [callTypeAndStatus, theme],
+  );
 
   return (
     <View style={{flex: 1, backgroundColor: theme.color.background1}}>

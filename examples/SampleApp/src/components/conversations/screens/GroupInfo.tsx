@@ -134,10 +134,6 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
     navigation.navigate('TransferOwnershipSection', {
       group: data.groupDetails,
     });
-    CometChatUIEventHandler.emitGroupEvent(
-      CometChatUIEvents.ccGroupLeft,
-      { leftGroup: CommonUtils.clone(data.groupDetails) },
-    );
   };
 
   // 3) "Delete and Exit" confirm
@@ -360,58 +356,10 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
 
       {/* Actions */}
       <View style={styles.actionContainer}>
-        <TouchableOpacity
-          style={styles.actionButtons}
-          onPress={() => setDeleteModalOpen(true)}>
-          <Icon
-            icon={<Delete color={theme.color.error} height={24} width={24} />}
-          />
-          <Text
-            style={[
-              theme.typography.heading4.regular,
-              styles.mL5,
-              {color: theme.color.error},
-            ]}>
-            {localize('DELETE_CHAT_TEXT')}
-          </Text>
-        </TouchableOpacity>
-        {/* If user is owner but group has multiple members => must TRANSFER ownership.
-           Otherwise => normal leave.  */}
-        {data.groupDetails.getMembersCount() > 1 ||
-        userScope !== CometChatUiKitConstants.GroupMemberScope.owner ? (
+        <View style={styles.actionButtons}>
           <TouchableOpacity
-            onPress={() => {
-              if (
-                userScope === CometChatUiKitConstants.GroupMemberScope.owner
-              ) {
-                setIsOwnerLeaveModalOpen(true);
-              } else {
-                setIsLeaveModalOpen(true);
-              }
-            }}
-            style={styles.actionButtons}>
-            <Icon
-              icon={<Block color={theme.color.error} height={24} width={24} />}
-            />
-            <Text
-              style={[
-                theme.typography.heading4.regular,
-                styles.mL5,
-                {color: theme.color.error},
-              ]}>
-              {localize('LEAVE')}
-            </Text>
-          </TouchableOpacity>
-        ) : null}
-
-        {/* Delete and Exit (Group owner only) */}
-        {[
-          CometChatUiKitConstants.GroupMemberScope.owner,
-          CometChatUiKitConstants.GroupMemberScope.admin,
-        ].includes(userScope) && (
-          <TouchableOpacity
-            style={styles.actionButtons}
-            onPress={() => setIsDeleteExitModalOpen(true)}>
+            onPress={() => setDeleteModalOpen(true)}
+            style={styles.iconContainer}>
             <Icon
               icon={<Delete color={theme.color.error} height={24} width={24} />}
             />
@@ -421,9 +369,67 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                 styles.mL5,
                 {color: theme.color.error},
               ]}>
-              {localize('DELETE_AND_EXIT')}
+              {localize('DELETE_CHAT_TEXT')}
             </Text>
           </TouchableOpacity>
+        </View>
+        {/* If user is owner but group has multiple members => must TRANSFER ownership.
+           Otherwise => normal leave.  */}
+        {data.groupDetails.getMembersCount() > 1 ||
+        userScope !== CometChatUiKitConstants.GroupMemberScope.owner ? (
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              onPress={() => {
+                if (
+                  userScope === CometChatUiKitConstants.GroupMemberScope.owner
+                ) {
+                  setIsOwnerLeaveModalOpen(true);
+                } else {
+                  setIsLeaveModalOpen(true);
+                }
+              }}
+              style={styles.iconContainer}>
+              <Icon
+                icon={
+                  <Block color={theme.color.error} height={24} width={24} />
+                }
+              />
+              <Text
+                style={[
+                  theme.typography.heading4.regular,
+                  styles.mL5,
+                  {color: theme.color.error},
+                ]}>
+                {localize('LEAVE')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {/* Delete and Exit (Group owner only) */}
+        {[
+          CometChatUiKitConstants.GroupMemberScope.owner,
+          CometChatUiKitConstants.GroupMemberScope.admin,
+        ].includes(userScope) && (
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              onPress={() => setIsDeleteExitModalOpen(true)}
+              style={styles.iconContainer}>
+              <Icon
+                icon={
+                  <Delete color={theme.color.error} height={24} width={24} />
+                }
+              />
+              <Text
+                style={[
+                  theme.typography.heading4.regular,
+                  styles.mL5,
+                  {color: theme.color.error},
+                ]}>
+                {localize('DELETE_AND_EXIT')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 

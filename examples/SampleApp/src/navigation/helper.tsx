@@ -40,6 +40,7 @@ export const toggleBottomTab = (
         shadowOpacity: 0.1,
         shadowRadius: 3,
         backgroundColor: theme.color.background1,
+        marginBottom: Platform.OS === 'ios' ? 8 : 0,
       },
       tabBarLabel: ({focused}: {focused: boolean}) =>
         focused ? (

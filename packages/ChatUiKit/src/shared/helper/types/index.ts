@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Typography } from "../../../theme/default";
 import { ActionItemInterface } from "../../views";
+import { JSX } from "react";
 
 export type ImageType = ImageURISource;
 

@@ -1,6 +1,6 @@
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import React, {useCallback, useContext, useRef, useState} from 'react';
-import {TouchableOpacity, View, Platform } from 'react-native';
+import {TouchableOpacity, View } from 'react-native';
 import {
   CometChatAvatar,
   CometChatConversations,
@@ -17,7 +17,7 @@ import AccountCircle from '../../../assets/icons/AccountCircle';
 import AddComment from '../../../assets/icons/AddComment';
 import InfoIcon from '../../../assets/icons/InfoIcon';
 import Logout from '../../../assets/icons/Logout';
-import { navigate, navigationRef } from '../../../navigation/NavigationService';
+import { navigationRef } from '../../../navigation/NavigationService';
 import { AppConstants } from '../../../utils/AppConstants';
 
 type ChatNavigationProp = StackNavigationProp<

@@ -6,6 +6,7 @@ import { getMessagePreviewInternal } from "./MessageUtils";
 import { MessageCategoryConstants } from "../constants/UIKitConstants";
 import { CometChatUIKit } from "../CometChatUiKit";
 import { CometChatTheme } from "../../theme/type";
+import { JSX } from "react";
 
 export class CometChatConversationUtils {
   static getLastMessage(conversation: CometChat.Conversation): CometChat.BaseMessage | undefined {

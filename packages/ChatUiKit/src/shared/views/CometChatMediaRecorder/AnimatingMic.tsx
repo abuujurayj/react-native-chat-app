@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { JSX, useEffect, useMemo, useRef } from "react";
 import {
   Animated,
   Easing,
@@ -41,7 +41,7 @@ export const AnimatingMic = ({
   }, [theme, style]);
 
   useEffect(() => {
-    if (isAnimating === false) return;
+    if (isAnimating === false) return () => {};
     Animated.loop(
       Animated.sequence([
         Animated.timing(scaleAnim, {

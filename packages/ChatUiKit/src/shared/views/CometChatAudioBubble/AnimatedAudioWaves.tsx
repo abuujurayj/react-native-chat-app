@@ -19,7 +19,7 @@ export const AnimatedAudioWaves = ({
 
   useEffect(() => {
     if (isAnimating === false || animatedValues.length === 0 || staticBarValues.length === 0) {
-      return;
+      return () => {};
     }
     startAnimation();
     return () => {

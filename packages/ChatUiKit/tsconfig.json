@@ -16,7 +16,8 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "outDir": "lib",
-    "declaration": true
+    "declaration": true,
+    "strict": true,
   },
-  "include": ["src", "imageresolver.d.ts"]
+  "include": ["src"]
 }

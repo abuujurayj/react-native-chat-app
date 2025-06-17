@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, JSX } from "react";
 import { ScrollView, Text, View } from "react-native";
 import {
   ChatConfigurator,

@@ -4,7 +4,6 @@ import {
   Platform,
   View,
   TouchableWithoutFeedback,
-  SafeAreaView,
   Text,
 } from 'react-native';
 import {
@@ -60,77 +59,64 @@ const BottomTabNavigator = () => {
   const theme = useTheme();
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: theme.color.background1}}>
-      <Tab.Navigator
-        initialRouteName="Chats"
-        screenOptions={({route}) => ({
-          headerShown: false,
-          animation: 'none',
-          tabBarIcon: ({focused}) => {
-            const iconSet = icons[route.name];
-            if (!iconSet) return null;
+    <Tab.Navigator
+      initialRouteName="Chats"
+      screenOptions={({route}) => ({
+        headerShown: false,
+        tabBarStyle: styles.tabBar,
+        animation: 'none',
+        tabBarIcon: ({focused}) => {
+          const iconSet = icons[route.name];
+          if (!iconSet) return null;
 
-            const IconComponent = focused ? iconSet.active : iconSet.inactive;
-            const iconColor = focused
-              ? theme.color.primary
-              : theme.color.iconSecondary;
+          const IconComponent = focused ? iconSet.active : iconSet.inactive;
+          const iconColor = focused
+            ? theme.color.primary
+            : theme.color.iconSecondary;
 
-            return (
-              <Icon
-                icon={
-                  <IconComponent
-                    color={iconColor as string}
-                    height={24}
-                    width={24}
-                  />
-                }
-              />
-            );
-          },
-          tabBarShowLabel: true,
-          tabBarLabel: ({focused}) =>
-            focused ? (
-              <View>
-                <Text style={[styles.tabLabel, {color: theme.color.primary}]}>
-                  {route.name}
-                </Text>
-              </View>
-            ) : null,
-          tabBarButton: props => <CustomTabBarButton {...props} />,
-          tabBarBackground: () => (
-            <View style={{backgroundColor: theme.color.background1, flex: 1}} />
-          ),
-        })}>
-        <Tab.Screen
-          name={SCREEN_CONSTANTS.CHATS}
-          component={ChatStackNavigator}
-          options={{
-            tabBarStyle: styles.tabBar,
-          }}
-        />
-        <Tab.Screen
-          name={SCREEN_CONSTANTS.CALLS}
-          component={CallsStackNavigator}
-          options={{
-            tabBarStyle: styles.tabBar,
-          }}
-        />
-        <Tab.Screen
-          name={SCREEN_CONSTANTS.USERS}
-          component={UserStackNavigator}
-          options={{
-            tabBarStyle: styles.tabBar,
-          }}
-        />
-        <Tab.Screen
-          name={SCREEN_CONSTANTS.GROUPS}
-          component={GroupStackNavigator}
-          options={{
-            tabBarStyle: styles.tabBar,
-          }}
-        />
-      </Tab.Navigator>
-    </SafeAreaView>
+          return (
+            <Icon
+              icon={
+                <IconComponent
+                  color={iconColor as string}
+                  height={24}
+                  width={24}
+                />
+              }
+            />
+          );
+        },
+        tabBarShowLabel: true,
+        tabBarLabel: ({focused}) =>
+          focused ? (
+            <View>
+              <Text style={[styles.tabLabel, {color: theme.color.primary}]}>
+                {route.name}
+              </Text>
+            </View>
+          ) : null,
+        tabBarButton: props => <CustomTabBarButton {...props} />,
+        tabBarBackground: () => (
+          <View style={{backgroundColor: theme.color.background1, flex: 1}} />
+        ),
+      })}>
+      <Tab.Screen
+        name={SCREEN_CONSTANTS.CHATS}
+        component={ChatStackNavigator}
+      />
+      <Tab.Screen
+        name={SCREEN_CONSTANTS.CALLS}
+        component={CallsStackNavigator}
+      />
+      <Tab.Screen
+        name={SCREEN_CONSTANTS.USERS}
+        component={UserStackNavigator}
+      />
+      <Tab.Screen
+        name={SCREEN_CONSTANTS.GROUPS}
+        component={GroupStackNavigator}
+      />
+    </Tab.Navigator>
   );
 };
 
@@ -145,6 +131,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.1,
     shadowRadius: 3,
+    marginBottom: Platform.OS === 'ios' ? 8 : 0,
   },
   tabLabel: {
     fontSize: 12,

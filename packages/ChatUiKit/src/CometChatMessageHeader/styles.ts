@@ -3,6 +3,7 @@ import { CallButtonStyle } from "../calls/CometChatCallButtons";
 import { AvatarStyle } from "../shared/views/CometChatAvatar";
 import { StatusIndicatorStyles } from "../shared/views/CometChatStatusIndicator";
 import { CometChatTheme } from "../theme/type";
+import { JSX } from "react";
 
 export const styles = StyleSheet.create({
   container: { flexDirection: "row", width: "100%" },

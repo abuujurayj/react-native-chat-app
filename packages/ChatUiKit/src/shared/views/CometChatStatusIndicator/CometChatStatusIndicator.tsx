@@ -14,7 +14,7 @@ export interface CometChatStatusIndicatorInterface {
    * The status type to be displayed. Can be one of:
    * "online", "offline", "private", "protected", or "public".
    */
-  type?: "online" | "offline" | "private" | "protected" | "public" | null;
+  type?: "online" | "offline" | "private" | "protected" | "public" |  "password" | null;
   /**
    * Custom styles for the status indicator.
    */

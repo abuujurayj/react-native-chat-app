@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { JSX, useEffect, useMemo, useRef } from "react";
 import {
   ActivityIndicator,
   EmitterSubscription,

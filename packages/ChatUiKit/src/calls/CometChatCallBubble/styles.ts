@@ -1,6 +1,7 @@
 import { ImageStyle, TextStyle, ViewStyle } from "react-native";
 import { CometChatTheme } from "../../theme/type";
 import { DeepPartial } from "../../shared/helper/types";
+import { JSX } from "react";
 
 export type GroupCallBubbleStyles = {
   titleStyle: TextStyle;

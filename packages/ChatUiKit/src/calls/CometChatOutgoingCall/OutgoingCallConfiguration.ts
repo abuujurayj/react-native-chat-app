@@ -2,6 +2,7 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CallingPackage } from "../CallingPackage";
 import { OutgoingCallStyle } from ".";
 import { DeepPartial } from "../../shared/helper/types";
+import { JSX } from "react";
 
 const CometChatCalls = CallingPackage.CometChatCalls;
 export class OutgoingCallConfiguration {

@@ -1,6 +1,9 @@
-import { Icon } from "./icons/Icon";
+import * as CometChatUiKitConstants from "./constants/UIKitConstants";
+export { CometChatUiKitConstants };
 
-import {
+export { Icon } from "./icons/Icon";
+
+export type {
   AdditionalParams,
   ConversationType,
   MessageBubbleAlignmentType,
@@ -9,186 +12,98 @@ import {
   SelectionMode,
 } from "./base";
 
-import {
+export {
   CometChatConversationEvents,
   CometChatGroupsEvents,
   CometChatUIEventHandler,
   CometChatUIEvents,
   MessageEvents,
 } from "./events";
-import {
+
+export type { DataSource } from "./framework";
+
+export {
   ChatConfigurator,
-  DataSource,
   DataSourceDecorator,
   ExtensionsDataSource,
   MessageDataSource,
 } from "./framework";
-import {
+
+export type {
   CometChatMessageOption,
+} from "./modals";
+
+export {
   CometChatMessageTemplate,
 } from "./modals";
-import { CometChatLocalize, localize } from "./resources/CometChatLocalize";
-import {
+
+export { CometChatLocalize, localize } from "./resources/CometChatLocalize";
+export {
   CometChatConversationUtils,
   CometChatMessagePreview,
   CometChatSoundManager,
-  MessagePreviewStyle,
 } from "./utils";
 
-import {
-  ActionItemInterface,
-  BadgeStyle,
+export {
   CometChatActionSheet,
   CometChatAudioBubble,
-  CometChatAudioBubbleInterface,
   CometChatAvatar,
   CometChatBadge,
   CometChatBottomSheet,
-  CometChatBottomSheetInterface,
   CometChatConfirmDialog,
-  CometChatConfirmDialogInterface,
   CometChatDate,
-  CometChatDateInterface,
   CometChatEmojiKeyboard,
   CometChatFileBubble,
-  CometChatFileBubbleInterface,
   CometChatImageBubble,
-  CometChatImageBubbleInterface,
   CometChatList,
-  CometChatListActionsInterface,
   CometChatListItem,
+  CometChatMediaRecorder,
+  CometChatMessageInput,
+  CometChatQuickReactions,
+  CometChatReactionList,
+  CometChatReactions,
+  CometChatStatusIndicator,
+  CometChatSuggestionList,
+  CometChatTextBubble,
+  CometChatVideoBubble,
+  SuggestionItem,
+  CometChatReceipt,
+} from "./views";
+
+export type{
+  ActionItemInterface,
+  BadgeStyle,
+  CometChatAudioBubbleInterface,
+  CometChatBottomSheetInterface,
+  CometChatConfirmDialogInterface,
+  CometChatDateInterface,
+  CometChatFileBubbleInterface,
+  CometChatImageBubbleInterface,
+  CometChatListActionsInterface,
   CometChatListItemInterface,
   CometChatListProps,
   CometChatListStylesInterface,
-  CometChatMediaRecorder,
   CometChatMediaRecorderInterface,
-  CometChatMessageInput,
   CometChatMessageInputInterface,
-  CometChatQuickReactions,
-  CometChatReactionList,
   CometChatReactionListInterface,
-  CometChatReactions,
   CometChatReactionsInterface,
-  CometChatStatusIndicator,
   CometChatStatusIndicatorInterface,
-  CometChatSuggestionList,
   CometChatSuggestionListInterface,
-  CometChatTextBubble,
   CometChatTextBubbleInterface,
-  CometChatVideoBubble,
   CometChatVideoBubbleInterface,
   DateStyle,
-  SuggestionItem,
-  CometChatReceipt,
   MenuItemInterface
 } from "./views";
 
-import {
+export {
   CometChatMentionsFormatter,
   CometChatTextFormatter,
   CometChatUrlsFormatter,
   MentionTextStyle,
 } from "./formatters";
 
-import { CometChatUIKit, CometChatUIKitHelper, UIKitSettings } from "./CometChatUiKit";
+export { CometChatUIKit, CometChatUIKitHelper, UIKitSettings } from "./CometChatUiKit";
 
-import { CometChatMessageComposerAction } from "./helper/types";
+export type { CometChatMessageComposerAction } from "./helper/types";
 
-import * as CometChatUiKitConstants from "./constants/UIKitConstants";
-
-import { messageStatus } from "./utils/CometChatMessageHelper/index";
-
-export type {
-  DataSource,
-  DateStyle,
-  ConversationType,
-  CometChatSuggestionListInterface,
-  CometChatTextBubbleInterface,
-  CometChatVideoBubbleInterface,
-  MessageBubbleAlignmentType,
-  CometChatMessageInputInterface,
-  CometChatMessageOption,
-  CometChatReactionListInterface,
-  CometChatReactionsInterface,
-  CometChatStatusIndicatorInterface,
-  MessageListAlignmentType,
-  MessageTimeAlignmentType,
-  SelectionMode,
-  CometChatBottomSheetInterface,
-  CometChatFileBubbleInterface,
-  CometChatConfirmDialogInterface,
-  CometChatDateInterface,
-  CometChatImageBubbleInterface,
-  CometChatListActionsInterface,
-  CometChatListItemInterface,
-  CometChatListStylesInterface,
-  CometChatMediaRecorderInterface,
-  CometChatListProps,
-  CometChatMessageComposerAction,
-  ActionItemInterface,
-  AdditionalParams,
-  CometChatAudioBubbleInterface,
-  BadgeStyle,
-  MenuItemInterface
-};
-
-export {
-  //
-  ChatConfigurator,
-  //
-  CometChatActionSheet,
-  CometChatAudioBubble,
-  CometChatAvatar,
-  CometChatBadge,
-  CometChatBottomSheet,
-  CometChatConfirmDialog,
-  CometChatConversationEvents,
-  //
-  CometChatConversationUtils,
-  CometChatDate,
-  CometChatEmojiKeyboard,
-  CometChatFileBubble,
-  CometChatGroupsEvents,
-  CometChatImageBubble,
-  //
-  CometChatList,
-  //
-  CometChatListItem,
-  //
-  CometChatLocalize,
-  CometChatMediaRecorder,
-  CometChatMentionsFormatter,
-  CometChatMessageInput,
-  CometChatMessagePreview,
-  CometChatMessageTemplate,
-  //
-  CometChatQuickReactions,
-  CometChatReactionList,
-  CometChatReactions,
-  CometChatSoundManager,
-  CometChatStatusIndicator,
-  CometChatSuggestionList,
-  CometChatTextBubble,
-  CometChatTextFormatter,
-  // CometChatTheme,
-  CometChatUIEventHandler,
-  CometChatUIEvents,
-  CometChatUIKit,
-  CometChatUIKitHelper,
-  CometChatUiKitConstants,
-  CometChatUrlsFormatter,
-  CometChatVideoBubble,
-  DataSourceDecorator,
-  ExtensionsDataSource,
-  MentionTextStyle,
-  MessageDataSource,
-  MessageEvents,
-  MessagePreviewStyle,
-  SuggestionItem,
-  // Typography,
-  UIKitSettings,
-  localize,
-  messageStatus,
-  CometChatReceipt,
-  Icon
-};
+export { messageStatus } from "./utils/CometChatMessageHelper/index";

@@ -10,7 +10,7 @@ export const getStickerStyleLight = (
     containerStyle: {
       height: 180,
       width: 180,
-      backgroundColor: "transparent",
+      backgroundColor: color.background2,
       padding: spacing.padding.p0,
       paddingBottom: spacing.padding.p0,
       borderRadius: spacing.radius.r3,
@@ -35,8 +35,8 @@ export const getStickerStyleLight = (
     imageStyle: {
       minHeight: 150,
       minWidth: 150,
-      alignSelf: 'center'
-    }
+      alignSelf: "center",
+    },
   };
 };
 

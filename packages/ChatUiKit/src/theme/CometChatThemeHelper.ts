@@ -286,7 +286,7 @@ export class CometChatThemeHelper {
     for (let i = 100; i < 900; i += 100) {
       // Ensure the blend percentage is defined in your blendColorsPercentage object
       const percentage = blendColorsPercentage[i] || 0; // Default to 0 if not defined
-      color[`extendedPrimary${i}` as keyof typeof color ] =
+      color[`extendedPrimary${i}` as keyof typeof color] =
         color[`extendedPrimary${i}` as keyof typeof color] === undefined
           ? CometChatThemeHelper.blendColors(color.primary as string, Colors.WHITE, percentage)
           : color[`extendedPrimary${i}` as keyof typeof color];
@@ -339,87 +339,98 @@ export class CometChatThemeHelper {
     spacing: DeepPartial<CometChatTheme["spacing"]>
   ): CometChatTheme["spacing"] {
     if (!spacing.spacing) {
-      spacing.spacing = {};
+      spacing.spacing = {} as any;
     }
 
-    spacing.spacing.s0 =
-      spacing.spacing.s0 !== undefined ? spacing.spacing.s0 : defaultSpacing.spacing.s0;
-    spacing.spacing.s1 =
-      spacing.spacing.s1 !== undefined ? spacing.spacing.s1 : defaultSpacing.spacing.s1;
-    spacing.spacing.s2 =
-      spacing.spacing.s2 !== undefined ? spacing.spacing.s2 : defaultSpacing.spacing.s2;
-    spacing.spacing.s3 =
-      spacing.spacing.s3 !== undefined ? spacing.spacing.s3 : defaultSpacing.spacing.s3;
-    spacing.spacing.s4 =
-      spacing.spacing.s4 !== undefined ? spacing.spacing.s4 : defaultSpacing.spacing.s4;
-    spacing.spacing.s5 =
-      spacing.spacing.s5 !== undefined ? spacing.spacing.s5 : defaultSpacing.spacing.s5;
-    spacing.spacing.s6 =
-      spacing.spacing.s6 !== undefined ? spacing.spacing.s6 : defaultSpacing.spacing.s6;
-    spacing.spacing.s7 =
-      spacing.spacing.s7 !== undefined ? spacing.spacing.s7 : defaultSpacing.spacing.s7;
-    spacing.spacing.s8 =
-      spacing.spacing.s8 !== undefined ? spacing.spacing.s8 : defaultSpacing.spacing.s8;
-    spacing.spacing.s9 =
-      spacing.spacing.s9 !== undefined ? spacing.spacing.s9 : defaultSpacing.spacing.s9;
-    spacing.spacing.s10 =
-      spacing.spacing.s10 !== undefined ? spacing.spacing.s10 : defaultSpacing.spacing.s10;
-    spacing.spacing.s11 =
-      spacing.spacing.s11 !== undefined ? spacing.spacing.s11 : defaultSpacing.spacing.s11;
-    spacing.spacing.s12 =
-      spacing.spacing.s12 !== undefined ? spacing.spacing.s12 : defaultSpacing.spacing.s12;
-    spacing.spacing.s13 =
-      spacing.spacing.s13 !== undefined ? spacing.spacing.s13 : defaultSpacing.spacing.s13;
-    spacing.spacing.s14 =
-      spacing.spacing.s14 !== undefined ? spacing.spacing.s14 : defaultSpacing.spacing.s14;
-    spacing.spacing.s15 =
-      spacing.spacing.s15 !== undefined ? spacing.spacing.s15 : defaultSpacing.spacing.s15;
-    spacing.spacing.s16 =
-      spacing.spacing.s16 !== undefined ? spacing.spacing.s16 : defaultSpacing.spacing.s16;
-    spacing.spacing.s17 =
-      spacing.spacing.s17 !== undefined ? spacing.spacing.s17 : defaultSpacing.spacing.s17;
-    spacing.spacing.s18 =
-      spacing.spacing.s18 !== undefined ? spacing.spacing.s18 : defaultSpacing.spacing.s18;
-    spacing.spacing.s19 =
-      spacing.spacing.s19 !== undefined ? spacing.spacing.s19 : defaultSpacing.spacing.s19;
-    spacing.spacing.s20 =
-      spacing.spacing.s20 !== undefined ? spacing.spacing.s20 : defaultSpacing.spacing.s20;
-    spacing.spacing.max = spacing.spacing.max !== undefined ? spacing.spacing.max : defaultSpacing.spacing.max;
+    spacing.spacing!.s0 =
+      spacing.spacing!.s0 !== undefined ? spacing.spacing?.s0 : defaultSpacing.spacing?.s0;
+    spacing.spacing!.s1 =
+      spacing.spacing!.s1 !== undefined ? spacing.spacing?.s1 : defaultSpacing.spacing?.s1;
+    spacing.spacing!.s2 =
+      spacing.spacing!.s2 !== undefined ? spacing.spacing?.s2 : defaultSpacing.spacing?.s2;
+    spacing.spacing!.s3 =
+      spacing.spacing!.s3 !== undefined ? spacing.spacing?.s3 : defaultSpacing.spacing?.s3;
+    spacing.spacing!.s4 =
+      spacing.spacing!.s4 !== undefined ? spacing.spacing?.s4 : defaultSpacing.spacing?.s4;
+    spacing.spacing!.s5 =
+      spacing.spacing!.s5 !== undefined ? spacing.spacing?.s5 : defaultSpacing.spacing?.s5;
+    spacing.spacing!.s6 =
+      spacing.spacing!.s6 !== undefined ? spacing.spacing?.s6 : defaultSpacing.spacing?.s6;
+    spacing.spacing!.s7 =
+      spacing.spacing!.s7 !== undefined ? spacing.spacing?.s7 : defaultSpacing.spacing?.s7;
+    spacing.spacing!.s8 =
+      spacing.spacing!.s8 !== undefined ? spacing.spacing?.s8 : defaultSpacing.spacing?.s8;
+    spacing.spacing!.s9 =
+      spacing.spacing!.s9 !== undefined ? spacing.spacing?.s9 : defaultSpacing.spacing?.s9;
+    spacing.spacing!.s10 =
+      spacing.spacing!.s10 !== undefined ? spacing.spacing?.s10 : defaultSpacing.spacing?.s10;
+    spacing.spacing!.s11 =
+      spacing.spacing!.s11 !== undefined ? spacing.spacing?.s11 : defaultSpacing.spacing?.s11;
+    spacing.spacing!.s12 =
+      spacing.spacing!.s12 !== undefined ? spacing.spacing?.s12 : defaultSpacing.spacing?.s12;
+    spacing.spacing!.s13 =
+      spacing.spacing!.s13 !== undefined ? spacing.spacing?.s13 : defaultSpacing.spacing?.s13;
+    spacing.spacing!.s14 =
+      spacing.spacing!.s14 !== undefined ? spacing.spacing?.s14 : defaultSpacing.spacing?.s14;
+    spacing.spacing!.s15 =
+      spacing.spacing!.s15 !== undefined ? spacing.spacing?.s15 : defaultSpacing.spacing?.s15;
+    spacing.spacing!.s16 =
+      spacing.spacing!.s16 !== undefined ? spacing.spacing?.s16 : defaultSpacing.spacing?.s16;
+    spacing.spacing!.s17 =
+      spacing.spacing!.s17 !== undefined ? spacing.spacing?.s17 : defaultSpacing.spacing?.s17;
+    spacing.spacing!.s18 =
+      spacing.spacing!.s18 !== undefined ? spacing.spacing?.s18 : defaultSpacing.spacing?.s18;
+    spacing.spacing!.s19 =
+      spacing.spacing!.s19 !== undefined ? spacing.spacing?.s19 : defaultSpacing.spacing?.s19;
+    spacing.spacing!.s20 =
+      spacing.spacing!.s20 !== undefined ? spacing.spacing?.s20 : defaultSpacing.spacing?.s20;
+    spacing.spacing!.max =
+      spacing.spacing!.max !== undefined ? spacing.spacing?.max : defaultSpacing.spacing?.max;
 
     if (!spacing.padding) {
-      spacing.padding = {};
+      spacing.padding = {} as any;
     }
     if (!spacing.margin) {
-      spacing.margin = {};
+      spacing.margin = {} as any;
     }
     if (!spacing.radius) {
-      spacing.radius = {};
+      spacing.radius = {} as any;
     }
     /**padding**/
     Object.keys(defaultSpacing.padding).forEach((key) => {
-      const paddingKey = key as keyof typeof spacing.padding
+      const k = key as string;
+      const paddingKey = k as keyof typeof spacing.padding;
+      const spacingKey = k.replace("p", "s") as keyof typeof spacing.spacing;
+
       spacing.padding![paddingKey] =
         spacing.padding![paddingKey] === undefined
-          ? spacing.spacing![paddingKey.replace("p", "s") as keyof typeof spacing.spacing]
+          ? spacing.spacing![spacingKey]
           : spacing.padding![paddingKey];
     });
 
     /**margin**/
     Object.keys(defaultSpacing.margin).forEach((key) => {
-      const marginKey = key as keyof typeof spacing.margin
-      spacing.margin![marginKey] =
+      const k = key as string;
+      const marginKey = k as keyof typeof spacing.margin;
+      const spacingKey = k.replace("m", "s") as keyof typeof spacing.spacing;
+
+      spacing.margin![marginKey] = (
         spacing.margin?.[marginKey] === undefined
-          ? spacing.spacing?.[marginKey.replace("m", "s") as keyof typeof spacing.spacing]
-          : spacing.margin?.[marginKey];
+          ? spacing.spacing?.[spacingKey]
+          : spacing.margin?.[marginKey]
+      )!;
     });
 
     /**radius**/
     Object.keys(defaultSpacing.radius).forEach((key) => {
-      const radiusKey = key as keyof typeof spacing.radius;
+      const k = key as string;
+      const radiusKey = k as keyof typeof spacing.radius;
+      const spacingKey = k.replace("r", "s") as keyof typeof spacing.spacing;
+
       spacing.radius![radiusKey] =
-        spacing.radius?.[radiusKey] === undefined
-          ? spacing.spacing?.[radiusKey.replace("r", "s") as keyof typeof spacing.spacing ]
-          : spacing.radius?.[radiusKey];
+        (spacing.radius?.[radiusKey] === undefined
+          ? spacing.spacing?.[spacingKey]
+          : spacing.radius?.[radiusKey])!;
     });
 
     return spacing as CometChatTheme["spacing"];

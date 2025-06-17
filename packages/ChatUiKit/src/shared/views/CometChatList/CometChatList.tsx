@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import React, { JSX, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ColorValue,
@@ -643,7 +643,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
      * Returns a container of users if exists else returns the corresponding decorator message
      */
     const getMessageContainer = useCallback(() => {
-      let messageContainer = null;
+      let messageContainer: JSX.Element = <></>;
       if (list.length === 0 && dataLoadingStatus.toLowerCase() === NO_DATA_FOUND) {
         messageContainer = EmptyView ? (
           <EmptyView />

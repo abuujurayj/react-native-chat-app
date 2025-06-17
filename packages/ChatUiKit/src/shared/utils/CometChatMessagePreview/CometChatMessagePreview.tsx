@@ -1,7 +1,5 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { View, Text, TouchableOpacity, Image } from "react-native";
-// import { getExtensionData, ExtensionConstants, CometChatTheme } from "../../shared";
 import closeIcon from "./resources/close.png";
 import { useTheme } from "../../../theme";
 import { Styles } from "./style";
@@ -41,10 +39,4 @@ const CometChatMessagePreview = (props: any) => {
   );
 };
 
-CometChatMessagePreview.propTypes = {
-  messagePreviewTitle: PropTypes.string,
-  messagePreviewSubtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
-  closeIconURL: PropTypes.any,
-  onCloseClick: PropTypes.func,
-};
 export { CometChatMessagePreview };

@@ -1,5 +1,5 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import React from "react";
+import React, { JSX } from "react";
 import { ColorValue, Linking, Text, TextStyle } from "react-native";
 import { emailPattern, phoneNumPattern, urlPattern } from "../../constants/UIKitConstants";
 import { CometChatTextFormatter } from "../CometChatTextFormatter";
@@ -103,11 +103,11 @@ export class CometChatUrlsFormatter extends CometChatTextFormatter {
       return <Text>{str}</Text>;
     } else if (React.isValidElement(str)) {
       // str is a React element
-      if ((str as React.ReactElement).props.children) {
+      if ((str as React.ReactElement<any>).props.children) {
         // If the React element have children, we map over these children
         // and call addMentionsSpan recursively for each child.
-        return React.cloneElement(str as React.ReactElement, {
-          children: React.Children.map((str as React.ReactElement).props.children, (child) => {
+        return React.cloneElement(str as React.ReactElement<any>, {
+          children: React.Children.map((str as React.ReactElement<any>).props.children, (child) => {
             return this.getFormatTextForLinks({ str: child, style: style });
           }),
         });

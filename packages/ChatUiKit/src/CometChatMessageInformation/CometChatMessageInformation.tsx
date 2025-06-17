@@ -1,5 +1,5 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { JSX, useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, ScrollView, Text, View } from "react-native";
 import {
   ChatConfigurator,

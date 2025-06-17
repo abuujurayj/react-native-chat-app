@@ -1,3 +1,4 @@
+import { JSX } from "react";
 import { StyleProp, Text, TextStyle, View, ViewStyle } from "react-native";
 
 /**

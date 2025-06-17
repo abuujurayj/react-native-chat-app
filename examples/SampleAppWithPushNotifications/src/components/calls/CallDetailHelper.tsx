@@ -1,64 +1,27 @@
 import {CometChatUIKit} from '@cometchat/chat-uikit-react-native';
-import {
-  CallEnd,
-  CallEndFill,
-  CallMade,
-  CallMissedFill,
-  CallMissedOutgoingFill,
-  CallReceived,
-  CancelFill,
-} from './icons';
-import {SvgProps} from 'react-native-svg';
+import {CallMade, CallMissedOutgoingFill, CallReceived} from './icons';
 import {CometChatTheme} from '@cometchat/chat-uikit-react-native/src/theme/type';
+import {JSX} from 'react';
+
+type CallDirection = 'incoming' | 'outgoing';
+
+export type CallStatus =
+  | 'incoming'
+  | 'outgoing'
+  | 'incomingCallEnded'
+  | 'outgoingCallEnded'
+  | 'cancelledByMe'
+  | 'cancelledByThem'
+  | 'incomingRejected'
+  | 'outgoingRejected'
+  | 'incomingBusy'
+  | 'outgoingBusy'
+  | 'unansweredByMe'
+  | 'unansweredByThem';
 
 export class CallDetailHelper {
-  // static callStatusIcon = {
-  //   // outgoing: <CallEndFill height={24} width={24} color="red" />,
-  //   // incoming: <CallEndFill height={24} width={24} color="red" />,
-  //   // unansweredByThem: (
-  //   //   <CallMissedOutgoingFill height={24} width={24} color="red" />
-  //   // ),
-  //   // unansweredByMe: <CallMissedFill height={24} width={24} color="red" />,
-  //   // cancelled: <CancelFill height={24} width={24} color="red" />,
-  //   // incomingRejected: <CallMade height={24} width={24} color="red" />,
-  //   // outgoingRejected: <CallEnd height={24} width={24} color="red" />,
-  //   // incomingCallEnded: <CallReceived height={24} width={24} color="green" />,
-  //   // outgoingCallEnded: <CallMade height={24} width={24} color="red" />,
-
-  //   outgoing: <CallMade height={24} width={24} color="green" />,
-  //   outgoingCallEnded: <CallMade height={24} width={24} color="green" />,
-  //   cancelledByMe: <CallMade height={24} width={24} color="green" />,
-  //   outgoingRejected: <CallMade height={24} width={24} color="red" />,
-  //   //busy pending     busy: <CallMade height={24} width={24} color="red" />
-  //   unansweredByThem: <CallMissedOutgoingFill height={24} width={24} color="red" />,
-
-  //   incoming: <CallReceived height={24} width={24} color="green" />,
-  //   incomingCallEnded: <CallReceived height={24} width={24} color="green" />,
-  //   cancelledByThem: <CallReceived height={24} width={24} color="red" />,
-  //   incomingRejected: <CallReceived height={24} width={24} color="red" />,
-  //   //busy pending     busy: <CallReceived height={24} width={24} color="red" />,
-  //   unansweredByMe: <CallMissedFill height={24} width={24} color="red" />,
-  // } as const;
-
-  // static callStatusIcon = {
-  //   outgoing: <CallMade height={24} width={24} color="green" />,
-  //   outgoingCallEnded: <CallMade height={24} width={24} color="green" />,
-  //   cancelledByMe: <CallMade height={24} width={24} color="green" />,
-  //   outgoingRejected: <CallMade height={24} width={24} color="green" />,
-  //   //busy pending     busy: <CallMade height={24} width={24} color="red" />
-  //   unansweredByThem: <CallMade height={24} width={24} color="green" />,
-
-  //   incoming: <CallReceived height={24} width={24} color="green" />,
-  //   incomingCallEnded: <CallReceived height={24} width={24} color="green" />,
-  //   cancelledByThem: <CallReceived height={24} width={24} color="red" />,
-  //   incomingRejected: <CallReceived height={24} width={24} color="red" />,
-  //   //busy pending     busy: <CallReceived height={24} width={24} color="red" />,
-  //   unansweredByMe: <CallReceived height={24} width={24} color="red" />,
-  // } as const;
-
-  static getFormattedInitiatedAt = (call: any) => {
-    const timestamp = call.getInitiatedAt();
-    const date = new Date(timestamp * 1000); // Convert to milliseconds
+  static getFormattedInitiatedAt = (call: any): string => {
+    const date = new Date(call.getInitiatedAt() * 1000);
     const now = new Date();
 
     // Extracting parts
@@ -79,57 +42,58 @@ export class CallDetailHelper {
     return `${day} ${month}${includeYear ? `, ${year}` : ''}, ${time}`;
   };
 
+  /** Returns the UI-facing callStatus plus the direction */
   static getCallType = (
     call: any,
-  ): {
-    type: string;
-    callStatus: string;
-  } => {
-    let type = '';
-    let callStatus!: string;
-    if (call.getInitiator().getUid() === CometChatUIKit.loggedInUser!.getUid()) {
-      type = 'outgoing';
-    }
-    if (call.getInitiator().getUid() !== CometChatUIKit.loggedInUser!.getUid()) {
-      type = 'incoming';
-    }
-    if (call.getStatus() === 'ended') {
-      if (type == 'incoming') {
-        callStatus = 'incomingCallEnded';
-      } else {
-        callStatus = 'outgoingCallEnded';
-      }
-    } else if (call.getStatus() === 'rejected') {
-      if (type === 'incoming') callStatus = 'incomingRejected';
-      else callStatus = 'outgoingRejected';
-    } else if (call.getStatus() === 'cancelled') {
-      if (type == 'incoming') {
-        callStatus = 'cancelledByMe';
-      } else {
-        callStatus = 'cancelledByThem';
-      }
-    } else if (call.getStatus() === 'unanswered') {
-      if (type === 'incoming') callStatus = 'unansweredByMe';
-      if (type === 'outgoing') callStatus = 'unansweredByThem';
-    } else if (call.getStatus() === 'initiated') {
-      if (type == 'incoming') {
-        callStatus = 'incomingBusy';
-      } else {
-        callStatus = 'outgoingBusy';
-      }
-    }
+  ): {type: CallDirection; callStatus: CallStatus} => {
+    const myUid = CometChatUIKit.loggedInUser?.getUid();
+    const type: CallDirection =
+      call.getInitiator().getUid() === myUid ? 'outgoing' : 'incoming';
 
-    if (!callStatus) {
-      console.log('UNKNOW: ', call);
-    }
-    return {type, callStatus};
+    const statusMap: Record<
+      string,
+      {incoming: CallStatus; outgoing: CallStatus}
+    > = {
+      ended: {
+        incoming: 'incomingCallEnded',
+        outgoing: 'outgoingCallEnded',
+      },
+      rejected: {
+        incoming: 'incomingRejected',
+        outgoing: 'outgoingRejected',
+      },
+      cancelled: {
+        incoming: 'unansweredByMe',
+        outgoing: 'cancelledByMe',
+      },
+      unanswered: {
+        incoming: 'unansweredByMe',
+        outgoing: 'unansweredByThem',
+      },
+      initiated: {
+        incoming: 'incoming',
+        outgoing: 'outgoing',
+      },
+      busy: {
+        incoming: 'incomingBusy',
+        outgoing: 'outgoingBusy',
+      },
+    };
+
+    return {
+      type,
+      callStatus:
+        statusMap[call.getStatus() as keyof typeof statusMap]?.[type] ??
+        (type === 'incoming' ? 'incoming' : 'outgoing'),
+    };
   };
 
+  /** Which SVG to render for a given callStatus */
   static getCallStatusDisplayIcon = (
-    callStatus: string,
+    callStatus: CallStatus,
     theme: CometChatTheme,
-  ): JSX.Element => {
-    const callStatusIcon = {
+  ): JSX.Element | undefined => {
+    const icons: Record<CallStatus, JSX.Element> = {
       outgoing: <CallMade height={24} width={24} color={theme.color.success} />,
       outgoingCallEnded: (
         <CallMade height={24} width={24} color={theme.color.success} />
@@ -144,11 +108,7 @@ export class CallDetailHelper {
         <CallMade height={24} width={24} color={theme.color.success} />
       ),
       unansweredByThem: (
-        <CallMissedOutgoingFill
-          height={24}
-          width={24}
-          color={theme.color.error}
-        />
+        <CallMade height={24} width={24} color={theme.color.success} />
       ),
 
       incoming: (
@@ -158,25 +118,36 @@ export class CallDetailHelper {
         <CallReceived height={24} width={24} color={theme.color.success} />
       ),
       cancelledByThem: (
-        <CallMissedFill height={24} width={24} color={theme.color.error} />
+        <CallMissedOutgoingFill
+          height={24}
+          width={24}
+          color={theme.color.error}
+        />
       ),
       incomingRejected: (
-        <CallMissedFill height={24} width={24} color={theme.color.error} />
+        <CallReceived height={24} width={24} color={theme.color.success} />
       ),
       incomingBusy: (
-        <CallMissedFill height={24} width={24} color={theme.color.error} />
+        <CallMissedOutgoingFill
+          height={24}
+          width={24}
+          color={theme.color.error}
+        />
       ),
       unansweredByMe: (
-        <CallMissedFill height={24} width={24} color={theme.color.error} />
+        <CallMissedOutgoingFill
+          height={24}
+          width={24}
+          color={theme.color.error}
+        />
       ),
-    } as const;
-    return callStatusIcon[callStatus as keyof typeof callStatusIcon];
+    };
+
+    return icons[callStatus];
   };
 
-  static getCallStatusDisplayText = (
-    callStatus: string,
-  ): string => {
-    const callStatusDisplayText = {
+  static getCallStatusDisplayText = (callStatus: CallStatus): string => {
+    const labels: Record<CallStatus, string> = {
       outgoing: 'Outgoing Call',
       outgoingCallEnded: 'Outgoing Call',
       cancelledByMe: 'Outgoing Call',
@@ -187,12 +158,11 @@ export class CallDetailHelper {
       incoming: 'Incoming Call',
       incomingCallEnded: 'Incoming Call',
       cancelledByThem: 'Missed Call',
-      incomingRejected: 'Missed Call',
+      incomingRejected: 'Incoming Call',
       incomingBusy: 'Missed Call',
       unansweredByMe: 'Missed Call',
-    } as const;
-    return callStatusDisplayText[
-      callStatus as keyof typeof callStatusDisplayText
-    ];
+    };
+
+    return labels[callStatus];
   };
 }

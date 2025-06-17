@@ -23,6 +23,8 @@ import { CometChatOutgoingCall, OutgoingCallConfiguration } from "../CometChatOu
 import { CallButtonStyle } from "./style";
 import { DeepPartial } from "../../shared/helper/types";
 import { CallingPackage } from "../CallingPackage";
+import { JSX } from "react";
+
 const CometChatCalls = CallingPackage.CometChatCalls;
 
 const listenerId = "callEventListener_" + new Date().getTime();
@@ -111,10 +113,10 @@ export const CometChatCallButtons = (props: CometChatCallButtonsInterface): JSX.
   const [showOutgoingCallScreen, setShowOutgoingCallScreen] = useState(false);
   const [callReceived, setCallReceived] = useState<CometChat.Call>();
 
-  const outGoingCall = useRef<CometChat.Call | CometChat.CustomMessage>();
-  const callType = useRef<typeof CometChat.CALL_TYPE.AUDIO | typeof CometChat.CALL_TYPE.VIDEO>();
-  const incomingCall = useRef<CometChat.Call>();
-  const loggedInUser = useRef<CometChat.User>();
+  const outGoingCall = useRef<CometChat.Call | CometChat.CustomMessage>(undefined);
+  const callType = useRef<typeof CometChat.CALL_TYPE.AUDIO | typeof CometChat.CALL_TYPE.VIDEO>(undefined);
+  const incomingCall = useRef<CometChat.Call>(undefined);
+  const loggedInUser = useRef<CometChat.User>(undefined);
 
   /**
    * Checks if there is an active call.

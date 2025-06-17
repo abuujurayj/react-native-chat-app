@@ -27,6 +27,7 @@ import { CometChatTheme } from "../../theme/type";
 import { deepMerge } from "../../shared/helper/helperFunctions";
 import { DeepPartial, ValueOf } from "../../shared/helper/types";
 import { CometChatTooltipMenu, MenuItemInterface } from "../../shared/views/CometChatTooltipMenu";
+import { JSX } from "react";
 
 const listenerId = "callEventListener_" + new Date().getTime();
 const CometChatCalls = CallingPackage.CometChatCalls;
@@ -146,9 +147,9 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
     return deepMerge(theme.callLogsStyles, style ?? {});
   }, [theme, style]);
 
-  const loggedInUser = useRef<CometChat.User>();
-  const callLogRequestBuilderRef = useRef<any>();
-  const outGoingCall = useRef<CometChat.Call | CometChat.CustomMessage>();
+  const loggedInUser = useRef<CometChat.User>(undefined);
+  const callLogRequestBuilderRef = useRef<any>(undefined);
+  const outGoingCall = useRef<CometChat.Call | CometChat.CustomMessage>(undefined);
 
   // State for tooltip functionality
   const [tooltipVisible, setTooltipVisible] = useState<boolean>(false);

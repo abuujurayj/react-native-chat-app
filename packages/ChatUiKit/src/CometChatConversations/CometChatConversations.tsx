@@ -55,6 +55,7 @@ import Delete from "../shared/icons/components/delete";
 import { DeepPartial } from "../shared/helper/types";
 import { CometChatTheme } from "../theme/type";
 import { MenuItemInterface } from "../shared/views/CometChatTooltipMenu/CometChatTooltipMenu";
+import { JSX } from "react";
 
 // Unique listener IDs for conversation, user, group, message and call events.
 const conversationListenerId = "chatlist_" + new Date().getTime();
@@ -265,7 +266,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
   // Reference for accessing CometChatList methods
   const conversationListRef = React.useRef<CometChatListActionsInterface>(null);
   // Store the logged in user for comparison and event handling.
-  const loggedInUser = React.useRef<CometChat.User>();
+  const loggedInUser = React.useRef<CometChat.User>(undefined);
   // State to control the confirmation dialog for deleting a conversation.
   const [confirmDelete, setConfirmDelete] = React.useState<string | undefined>(undefined);
   // State to control selection mode for conversation items.
@@ -1474,7 +1475,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
 
     if (groupTypeVisibility) {
       if (withObj instanceof CometChat.Group) {
-        if (withObj.getType() === GroupTypeConstants.password) return "protected";
+        if (withObj.getType() === GroupTypeConstants.password) return "password";
         if (withObj.getType() === GroupTypeConstants.private) return "private";
       }
     } else {

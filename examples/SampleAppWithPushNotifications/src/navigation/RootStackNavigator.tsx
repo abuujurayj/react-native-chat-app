@@ -73,8 +73,8 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials}: Props) => {
             isLoggedIn
               ? SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR
               : hasValidAppCredentials
-            ? SCREEN_CONSTANTS.SAMPLER_USER
-            : SCREEN_CONSTANTS.APP_CRED
+                ? SCREEN_CONSTANTS.SAMPLER_USER
+                : SCREEN_CONSTANTS.APP_CRED
           }
           screenOptions={{
             gestureEnabled: true,
@@ -90,14 +90,14 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials}: Props) => {
             name={SCREEN_CONSTANTS.ONGOING_CALL_SCREEN}
             component={OngoingCallScreen}
           />
-         <Stack.Screen
-          name={SCREEN_CONSTANTS.APP_CRED}
-          component={AppCredentials}
-        />
-        <Stack.Screen
-          name={SCREEN_CONSTANTS.SAMPLER_USER}
-          component={SampleUser}
-        />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.APP_CRED}
+            component={AppCredentials}
+          />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.SAMPLER_USER}
+            component={SampleUser}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </>

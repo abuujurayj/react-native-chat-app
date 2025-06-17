@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   BackHandler,
+  Platform,
 } from 'react-native';
 import {
   CometChatUIKit,
@@ -31,6 +32,7 @@ import {toggleBottomTab} from '../../../navigation/helper';
 import {CommonUtils} from '../../../utils/CommonUtils';
 import Info from '../../../assets/icons/Info';
 import {useActiveChat} from '../../../utils/ActiveChatContext';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type Props = StackScreenProps<ChatStackParamList, 'Messages'>;
 
@@ -47,6 +49,7 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
   const openmessageListenerId = 'message_' + new Date().getTime();
   const [localUser, setLocalUser] = useState<CometChat.User | undefined>(user);
   const {setActiveChat} = useActiveChat();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     // if it’s a user chat
@@ -258,7 +261,17 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
           </TouchableOpacity>
         </View>
       ) : (
-        <CometChatMessageComposer user={localUser} group={group} />
+        <CometChatMessageComposer
+          user={localUser}
+          group={group}
+          keyboardAvoidingViewProps={{
+            ...(Platform.OS === 'android'
+              ? {}
+              : {
+                  behavior: 'padding',
+                }),
+          }}
+        />
       )}
     </View>
   );
@@ -270,7 +283,7 @@ const styles = StyleSheet.create({
   },
   blockedContainer: {
     alignItems: 'center',
-    height: '10%',
+    height: 90,
     paddingVertical: 10,
   },
   button: {

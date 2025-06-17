@@ -21,6 +21,7 @@ import { CallActionBubbleStyles } from "../calls/CometChatCallBubble/styles";
 import { CallLogsItemStyle, CallLogsStyle } from "../calls/CometChatCallLogs/style";
 import { DeepPartial } from "../shared/helper/types";
 import { DateSeparatorStyle } from "../shared/views/CometChatDateSeperator/styles";
+import { JSX } from "react";
 
 export type BubbleStyles = {
   containerStyle: ViewStyle;
@@ -67,7 +68,6 @@ export type SuggestionListStyle = {
     speed: number;
   };
 };
-
 export interface CometChatTheme {
   mode: string;
   spacing: Spacing;
@@ -90,7 +90,7 @@ export interface CometChatTheme {
 
   messageHeaderStyles: MessageHeaderStyle;
   callButtonStyles: CallButtonStyle;
-  deletedBubbleStyles: DeletedBubbleStyle;
+  deletedBubbleStyles?: DeletedBubbleStyle;
   messageComposerStyles: DeepPartial<MessageComposerStyle>;
   userStyles: UserStyle;
   groupStyles: GroupStyle;
@@ -332,7 +332,7 @@ export interface CometChatTheme {
     iconContainerStyle?: ViewStyle;
     dividerStyle?: ViewStyle;
   };
-  meetCallBubbleStyles: GroupCallBubbleStyles;
+  meetCallBubbleStyles?: GroupCallBubbleStyles;
   textBubbleStyles?: {
     containerStyle: ViewStyle;
     threadedMessageStyle: CometChatTheme["threadedMessageStyles"];
@@ -379,12 +379,12 @@ export interface CometChatTheme {
     activeProgressBarTint: ColorValue;
     voteravatarStyle: CometChatTheme["avatarStyle"];
   };
-  groupActionBubbleStyles: {
+  groupActionBubbleStyles?: {
     containerStyle: ViewStyle;
     textStyle: TextStyle;
     textContainerStyle?: ViewStyle;
   };
-  linkPreviewBubbleStyles: {
+  linkPreviewBubbleStyles?: {
     containerStyle: ViewStyle;
     threadedMessageStyle?: CometChatTheme["threadedMessageStyles"];
     avatarStyle?: CometChatTheme["avatarStyle"];

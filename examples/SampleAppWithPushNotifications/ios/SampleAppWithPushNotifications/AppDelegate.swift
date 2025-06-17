@@ -11,17 +11,26 @@ import RNCPushNotificationIOS
 // #import "RNVoipPushNotificationManager.h"
 
 @main
-class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegistryDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, PKPushRegistryDelegate {
 
   // MARK: - ADD A PushKit Registry property
   private var pushRegistry: PKPushRegistry?
+   var window: UIWindow?
+  var reactNativeDelegate: ReactNativeDelegate?
+  var reactNativeFactory: RCTReactNativeFactory?
 
-  override func application(
+  func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    self.moduleName = "sampleapp"
-    self.dependencyProvider = RCTAppDependencyProvider()
+
+
+    let delegate = ReactNativeDelegate()
+    let factory = RCTReactNativeFactory(delegate: delegate)
+    delegate.dependencyProvider = RCTAppDependencyProvider()
+ 
+    reactNativeDelegate = delegate
+    reactNativeFactory = factory
 
     // ============================================
     // (Recommended) Register for VoIP right away
@@ -37,37 +46,30 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
 
     // Setup user notifications center delegate
     UNUserNotificationCenter.current().delegate = self
+    
+        window = UIWindow(frame: UIScreen.main.bounds)
 
-    // You can add your custom initial props in the dictionary below.
-    self.initialProps = [:]
+        factory.startReactNative(
+      withModuleName: "sampleapp",
+      in: window,
+      launchOptions: launchOptions
+    )
 
-    let superReturn = super.application(application, didFinishLaunchingWithOptions: launchOptions)
-    return superReturn
+    return true
   }
 
-  override func sourceURL(for bridge: RCTBridge) -> URL? {
-    self.bundleURL()
-  }
+   // MARK: - Standard APNs Token Methods
 
-  override func bundleURL() -> URL? {
-#if DEBUG
-    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
-#else
-    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
-#endif
-  }
-
-  // MARK: - Standard APNs Token Methods
-
-  override func application(
+  func application(
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
+    print("⚡️[AppDelegate] didRegisterForRemoteNotificationsWithDeviceToken deviceToken => \(deviceToken)")
     // Forward token to RNCPushNotificationIOS
     RNCPushNotificationIOS.didRegisterForRemoteNotifications(withDeviceToken: deviceToken)
   }
 
-  override func application(
+  func application(
     _ application: UIApplication,
     didFailToRegisterForRemoteNotificationsWithError error: Error
   ) {
@@ -76,7 +78,7 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
     RNCPushNotificationIOS.didFailToRegisterForRemoteNotificationsWithError(error)
   }
 
-  override func application(
+  func application(
     _ application: UIApplication,
     didReceiveRemoteNotification userInfo: [AnyHashable : Any],
     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
@@ -108,7 +110,7 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
   }
 
   // MARK: - Handle CallKit for iOS 10+ (SiriKit etc.)
-  override func application(
+  func application(
     _ application: UIApplication,
     continue userActivity: NSUserActivity,
     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
@@ -128,6 +130,7 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
   ) {
     guard type == .voIP else { return }
     let voipToken = pushCredentials.token.map { String(format: "%02x", $0) }.joined()
+    print("⚡️[AppDelegate] VoIP Token updated: \(voipToken)")
     // Let RN VoipPushNotificationManager know
     RNVoipPushNotificationManager.didUpdate(pushCredentials, forType: type.rawValue)
   }
@@ -216,6 +219,19 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, PKPushRegis
 }
 
 }
+class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
+  override func sourceURL(for bridge: RCTBridge) -> URL? {
+    self.bundleURL()
+  }
+
+  override func bundleURL() -> URL? {
+#if DEBUG
+    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+#else
+    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+#endif
+  }
+} 
 
 // MARK: - Static UUID Storage
 extension AppDelegate {

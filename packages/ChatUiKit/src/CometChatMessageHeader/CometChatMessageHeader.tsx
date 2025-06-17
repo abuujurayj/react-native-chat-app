@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { ChatConfigurator, localize } from "../shared";
 import { listners } from "./listners";
@@ -222,7 +222,7 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   );
 
   const statusIndicatorType = useMemo(() => {
-    if (groupObj?.getType() === GroupTypeConstants.password) return "protected";
+    if (groupObj?.getType() === GroupTypeConstants.password) return "password";
     if (groupObj?.getType() === GroupTypeConstants.private) return "private";
     if (userStatus === "online") return "online";
     return "offline";

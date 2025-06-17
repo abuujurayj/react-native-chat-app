@@ -10,6 +10,7 @@ import { AvatarStyle } from "../../shared/views/CometChatAvatar";
 import { CometChatTheme } from "../../theme/type";
 import { DeepPartial } from "../../shared/helper/types";
 import { deepMerge } from "../../shared/helper/helperFunctions";
+import { JSX } from "react";
 
 export const Style = StyleSheet.create({
   container: {

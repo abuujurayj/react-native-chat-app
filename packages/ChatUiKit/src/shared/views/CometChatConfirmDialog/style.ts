@@ -1,6 +1,7 @@
 import { ImageSourcePropType, ImageStyle, StyleSheet, TextStyle, ViewStyle } from "react-native";
 import { CometChatTheme } from "../../../theme/type";
 import { deepMerge } from "../../helper/helperFunctions";
+import { JSX } from "react";
 
 export type ConfirmDialogStyle = {
   containerStyle: ViewStyle;

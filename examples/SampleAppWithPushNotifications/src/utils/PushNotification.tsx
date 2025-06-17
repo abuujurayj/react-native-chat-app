@@ -17,7 +17,7 @@ const getPushPlatform = (isFcm: boolean, isVoip: boolean) => {
 
 // Get the provider ID based on FCM
 const getProviderId = (isFcm: boolean) => {
-  return isFcm ? AppConstants.fcmProviderId : AppConstants.apnProviderId;
+  return isFcm ? AppConstants.fcmProviderId : AppConstants.apnsProviderId;
 };
 
 export const registerPushToken = async (

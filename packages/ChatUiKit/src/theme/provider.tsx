@@ -13,7 +13,7 @@ import {
   ThemeContext,
   ThemeProviderValue,
 } from "./context";
-import { darkThemeMaker, lightThemeMaker } from "./default";
+import { darkThemeMaker, lightThemeMaker } from "./default/default";
 import { useThemeInternal } from "./hook";
 import { CometChatTheme } from "./type";
 
@@ -39,7 +39,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export const CometChatThemeProvider = ({
   children,
-  theme = {},
+  theme = {} as any,
 }: PropsWithChildren<CometChatThemeProviderProps>) => {
   const rawScheme = useColorScheme();
   // For iOS, debounce the scheme value (300ms delay in this example).
@@ -61,10 +61,10 @@ export const CometChatThemeProvider = ({
             light.color as Partial<CometChatTheme["color"]>,
             Brightness.LIGHT
           )
-        : {};
+        : {} as any;
       const updatedSpacing = light.spacing
         ? CometChatThemeHelper.updateSpacing(light.spacing)
-        : {};
+        : {} as any;
       light.color = updatedColors;
       light.spacing = updatedSpacing;
       const mergedTheme = deepMerge(parentProviderTheme.light, light);
@@ -85,10 +85,10 @@ export const CometChatThemeProvider = ({
             dark.color as Partial<CometChatTheme["color"]>,
             Brightness.DARK
           )
-        : {};
+        : {} as any;
       const updatedSpacing = dark.spacing
         ? CometChatThemeHelper.updateSpacing(dark.spacing)
-        : {};
+        : {} as any;
       dark.color = updatedColors;
       dark.spacing = updatedSpacing;
       const mergedTheme = deepMerge(parentProviderTheme.dark, dark);
@@ -125,7 +125,7 @@ export interface CometChatCompThemeProviderProps {
 
 export const CometChatCompThemeProvider = ({
   children,
-  theme = {},
+  theme = {} as any,
 }: PropsWithChildren<CometChatCompThemeProviderProps>) => {
   return (
     <CompThemeContext.Provider value={theme}>

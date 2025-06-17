@@ -58,5 +58,6 @@ export const styles = StyleSheet.create({
   joiningGroup: {
     paddingHorizontal: 20,
     flex: 1,
+    marginBottom: 20,
   },
 });

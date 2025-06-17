@@ -1,6 +1,6 @@
 import { createContext } from "react";
 import { DeepPartial } from "../shared/helper/types";
-import { defaultDarkTheme, defaultLightTheme } from "./default";
+import { defaultDarkTheme, defaultLightTheme } from "./default/default";
 import { CometChatTheme } from "./type";
 
 export interface ThemeProviderValue {
@@ -17,4 +17,4 @@ export const themeProviderDefaultValue: ThemeProviderValue = {
 
 export const ThemeContext = createContext<ThemeProviderValue>(themeProviderDefaultValue);
 
-export const CompThemeContext = createContext<DeepPartial<ThemeProviderValue["light"]>>({});
+export const CompThemeContext = createContext<DeepPartial<ThemeProviderValue["light"]>>({} as any);

@@ -11,10 +11,10 @@ import {
   CometChatUIKit,
 } from '@cometchat/chat-uikit-react-native';
 import {
-  NavigationContainerRef,
-  ParamListBase,
+  NavigationContainerRefWithCurrent,
   StackActions,
 } from '@react-navigation/native';
+import {RootStackParamList} from '../navigation/types';
 
 interface Translations {
   lastSeen: string;
@@ -219,7 +219,7 @@ export const sampleData = {
  * Navigate to conversation based on notification data.
  */
 export async function navigateToConversation(
-  navigationRef: React.RefObject<NavigationContainerRef<ParamListBase>>,
+  navigationRef: NavigationContainerRefWithCurrent<RootStackParamList>,
   data?: NotifeeData,
 ) {
   if (!data) return;

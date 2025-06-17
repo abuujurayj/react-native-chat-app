@@ -1,6 +1,7 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { ImageSourcePropType, ImageStyle, TextStyle, ViewStyle } from "react-native";
 import { ActionItemInterface } from "../views";
+import { JSX } from "react";
 
 export type CometChatMessageOption = ActionItemInterface & {
   id: string;

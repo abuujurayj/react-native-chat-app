@@ -3,7 +3,7 @@ export const AppConstants = {
   appId: '',
   region: '',
   subscriptionType: 'ALL_USERS',
-  versionNumber: 'V5.0.0',
+  versionNumber: 'V5.0.1',
 };
 
 export const SCREEN_CONSTANTS = {

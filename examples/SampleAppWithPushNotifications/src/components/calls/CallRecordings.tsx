@@ -29,7 +29,7 @@ export const CallRecordings = (props: {call: any}) => {
   const downloadIdRef = useRef(0);
   const [processing, setProcessing] = React.useState(false);
   const [fileExists, setFileExists] = React.useState(false); // State to track if the file exists
-  let listener: any = useRef();
+  let listener: any = useRef(undefined);
   const [fileUrl, setFileUrl] = useState();
   const [reOpenCount, setReopenCount] = useState(0);
 

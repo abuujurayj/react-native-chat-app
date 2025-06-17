@@ -1,5 +1,5 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import React from "react";
+import React, { JSX } from "react";
 import { Text, View } from "react-native";
 import { CometChatUIKit } from "../../shared";
 import {

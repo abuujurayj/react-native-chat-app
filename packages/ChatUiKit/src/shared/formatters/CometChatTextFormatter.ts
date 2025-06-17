@@ -1,6 +1,7 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatUIEventHandler, CometChatUIEvents } from "../events";
 import { SuggestionItem } from "../views/CometChatSuggestionList";
+import { JSX } from "react";
 
 /**
  * CometChatTextFormatter

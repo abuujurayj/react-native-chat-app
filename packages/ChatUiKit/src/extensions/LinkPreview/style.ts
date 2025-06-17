@@ -63,7 +63,7 @@ export const getLinkPreviewBubbleStyleLight = (
   outgoingBubbleStyle: CometChatTheme["linkPreviewBubbleStyles"];
 } => {
   return {
-    incomingBubbleStyle: deepMerge(getLinkPreviewBubbleStyle(color, spacing, typography), {
+    incomingBubbleStyle: deepMerge(getLinkPreviewBubbleStyle(color, spacing, typography)!, {
       bodyStyle: {
         containerStyle: {
           backgroundColor: color.neutral400,
@@ -78,7 +78,7 @@ export const getLinkPreviewBubbleStyleLight = (
       headerImageContainerStyle: {
         backgroundColor: color.neutral400,
       },
-    }),
+    }) as CometChatTheme['linkPreviewBubbleStyles'],
     outgoingBubbleStyle: getLinkPreviewBubbleStyle(color, spacing, typography),
   };
 };

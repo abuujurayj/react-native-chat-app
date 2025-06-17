@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from "react";
+import React, { JSX, useLayoutEffect } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { MessageBubbleAlignmentType } from "../../base/Types";

@@ -2,6 +2,7 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
 import Clipboard from "@react-native-clipboard/clipboard";
 import React, {
   forwardRef,
+  JSX,
   memo,
   useCallback,
   useEffect,
@@ -15,6 +16,7 @@ import {
   ActivityIndicator,
   Dimensions,
   FlatList,
+  Keyboard,
   NativeModules,
   Platform,
   Pressable,
@@ -76,6 +78,7 @@ import { MessageSkeleton } from "./Skeleton";
 import { ErrorEmptyView } from "../shared/views/ErrorEmptyView/ErrorEmptyView";
 import { BubbleStyles, CometChatTheme } from "../theme/type";
 import { ExtensionConstants } from "../extensions";
+//@ts-ignore
 import { getExtensionData } from "../shared/helper/functions";
 import { DeepPartial } from "../shared/helper/types";
 import { CometChatDateSeparator } from "../shared/views/CometChatDateSeperator";
@@ -451,7 +454,7 @@ export const CometChatMessageList = memo(
       const messageEventListener = "messageEvent_" + new Date().getTime();
       const groupEventListener = "groupEvent_" + new Date().getTime();
       const [showDeleteModal, setShowDeleteModal] = useState(false);
-      const deleteItem = useRef<CometChat.BaseMessage>();
+      const deleteItem = useRef<CometChat.BaseMessage>(undefined);
 
       useLayoutEffect(() => {
         if (user) {
@@ -639,13 +642,15 @@ export const CometChatMessageList = memo(
       const messagesContentListRef = useRef<any[]>([]);
       const temporaryMessageListRef = useRef<any[]>([]);
 
-      const msgRequestBuilder = useRef<CometChat.MessagesRequestBuilder>();
+      const msgRequestBuilder = useRef<CometChat.MessagesRequestBuilder>(undefined);
       const lastMessageDate = useRef(new Date().getTime());
 
       // states
       const [messagesList, setMessagesList] = useState<any[]>([]);
       const [listState, setListState] = useState("loading");
       const [loadingMessages, setLoadingMessages] = useState(false);
+      /** this is required to prevent duplicate api calls. Cannot use state for this since this is being used in scrollHandler  **/
+      const loadingMessagesRef = useRef(false);
       const [unreadCount, setUnreadCount] = useState(0);
       const [showMessageOptions, setShowMessageOptions] = useState<any[]>([]);
       const [ExtensionsComponent, setExtensionsComponent] = useState<JSX.Element | null>(null);
@@ -658,7 +663,7 @@ export const CometChatMessageList = memo(
       const [selectedEmoji, setSelectedEmoji] = useState<string | undefined>(undefined);
       const [hideScrollToBottomButton, setHideScrollToBottomButton] = useState<boolean>(true);
 
-      const infoObject = useRef<CometChat.BaseMessage | null>();
+      const infoObject = useRef<CometChat.BaseMessage | null>(undefined);
       const bottomSheetRef = useRef<any>(null);
       const conversationId = useRef(null);
       let lastID = useRef(0);
@@ -672,7 +677,7 @@ export const CometChatMessageList = memo(
         setUnreadCount(0);
       };
 
-      const newMsgIndicatorPressed = () => {
+      const newMsgIndicatorPressed = useCallback(() => {
         messagesContentListRef.current = [
           ...temporaryMessageListRef.current,
           ...messagesContentListRef.current,
@@ -682,14 +687,17 @@ export const CometChatMessageList = memo(
         temporaryMessageListRef.current = [];
         scrollToBottom();
         markUnreadMessageAsRead();
-      };
+      }, [onLoad]);
 
       const getPreviousMessages = async () => {
         if (reachedFirstMessage.current) {
           return;
         }
         if (messagesList.length == 0) setListState("loading");
-        else setLoadingMessages(true);
+        else {
+          setLoadingMessages(true);
+          loadingMessagesRef.current = true;
+        }
         // TODO: this condition is applied because somewhere from whiteboard extention group scope is set to undefined.
         if (group != undefined && group.getGuid() == undefined) {
           let fetchedGroup: any = await CometChat.getGroup(group.getGuid()).catch((e: any) => {
@@ -760,12 +768,17 @@ export const CometChatMessageList = memo(
             } else {
               onLoad && onLoad([...messagesContentListRef.current].reverse());
               setLoadingMessages(false);
+              loadingMessagesRef.current = false;
             }
             setListState("");
           })
           .catch((e: any) => {
             if (messagesContentListRef.current.length == 0) setListState("error");
-            else setLoadingMessages(false);
+            if (e?.code === "REQUEST_IN_PROGRESS") return;
+            else {
+              setLoadingMessages(false);
+              loadingMessagesRef.current = false;
+            }
             onError && onError(e);
           });
       };
@@ -1444,6 +1457,7 @@ export const CometChatMessageList = memo(
           callListenerId,
           new CometChat.CallListener({
             onIncomingCallReceived: (call: any) => {
+              Platform.OS === 'ios' && Keyboard.dismiss();
               newMessage(call);
             },
             onOutgoingCallAccepted: (call: any) => {
@@ -1629,32 +1643,35 @@ export const CometChatMessageList = memo(
         messageEdited(modifiedMessage, false);
       };
 
-      const getCurrentBubbleStyle = (item: CometChat.BaseMessage): BubbleStyles => {
-        const type = (() => {
-          if (item.getDeletedAt()) {
-            return MessageTypeConstants.messageDeleted;
-          }
-          if (item.getType() === MessageTypeConstants.text) {
-            let linkData = getExtensionData(item, ExtensionConstants.linkPreview);
-            if (linkData && linkData.links.length != 0) {
-              return ExtensionConstants.linkPreview;
+      const getCurrentBubbleStyle = useCallback(
+        (item: CometChat.BaseMessage): BubbleStyles => {
+          const type = (() => {
+            if (item.getDeletedAt()) {
+              return MessageTypeConstants.messageDeleted;
             }
+            if (item.getType() === MessageTypeConstants.text) {
+              let linkData = getExtensionData(item, ExtensionConstants.linkPreview);
+              if (linkData && linkData.links.length != 0) {
+                return ExtensionConstants.linkPreview;
+              }
+            }
+            return item.getType();
+          })();
+
+          if (item.getSender().getUid() != loggedInUser.current.getUid()) {
+            return (
+              overridenBubbleStyles.get(type)?.incoming ??
+              mergedTheme.messageListStyles.incomingMessageBubbleStyles
+            );
           }
-          return item.getType();
-        })();
 
-        if (item.getSender().getUid() != loggedInUser.current.getUid()) {
           return (
-            overridenBubbleStyles.get(type)?.incoming ??
-            mergedTheme.messageListStyles.incomingMessageBubbleStyles
+            overridenBubbleStyles.get(type)?.outgoing ??
+            mergedTheme.messageListStyles.outgoingMessageBubbleStyles
           );
-        }
-
-        return (
-          overridenBubbleStyles.get(type)?.outgoing ??
-          mergedTheme.messageListStyles.outgoingMessageBubbleStyles
-        );
-      };
+        },
+        [mergedTheme, overridenBubbleStyles]
+      );
 
       // functions returning view
       const getLeadingView = useCallback((item: CometChat.BaseMessage): JSX.Element | undefined => {
@@ -1895,10 +1912,9 @@ export const CometChatMessageList = memo(
 
       const openThreadView = (...params: any[]) => {
         if (onThreadRepliesPress) {
-          onThreadRepliesPress(
-            params[0],
-            MessageView.bind(this, { message: params[0], isThreaded: true, showOptions: false })
-          );
+          onThreadRepliesPress(params[0], () => (
+            <MessageView message={params[0]} isThreaded={true} showOptions={false} />
+          ));
         }
         setShowMessageOptions([]);
         return onThreadRepliesPress;
@@ -2062,65 +2078,98 @@ export const CometChatMessageList = memo(
           currentIndex?: number;
         }) => {
           const { message, showOptions = true, isThreaded = false, currentIndex } = params;
-          let hasTemplate = templatesMap.get(`${message.getCategory()}_${message.getType()}`);
-          if (templates?.length > 0) {
-            let customTemplate = templates.find(
-              (template) =>
-                template.type == message.getType() && template.category == message.getCategory()
+          const hasTemplate = useMemo(() => {
+            const defaultTemplate = templatesMap.get(
+              `${message.getCategory()}_${message.getType()}`
             );
-            if (customTemplate) hasTemplate = customTemplate;
-          }
+
+            if (templates?.length > 0) {
+              const customTemplate = templates.find(
+                (template) =>
+                  template.type === message.getType() && template.category === message.getCategory()
+              );
+              return customTemplate ?? defaultTemplate;
+            }
+
+            return defaultTemplate;
+          }, [message, templatesMap, templates]);
+
+          let bubbleAlignment: MessageBubbleAlignmentType = useMemo(() => {
+            return getAlignment(message);
+          }, [getAlignment]);
+
+          const ContentView = useMemo(() => {
+            return hasTemplate?.ContentView?.(message, bubbleAlignment);
+          }, [hasTemplate, message, bubbleAlignment]);
+
+          const HeaderView = useMemo(() => {
+            return hasTemplate?.HeaderView
+              ? hasTemplate?.HeaderView(message, bubbleAlignment)
+              : !isThreaded
+                ? getHeaderView(message)
+                : undefined;
+          }, [message, bubbleAlignment, hasTemplate, getHeaderView]);
+
+          const FooterView = useMemo(() => {
+            return hasTemplate?.FooterView
+              ? hasTemplate?.FooterView(message, bubbleAlignment)
+              : isThreaded
+                ? undefined
+                : getFooterView(message, bubbleAlignment);
+          }, [hasTemplate, isThreaded, getFooterView, message, bubbleAlignment]);
+
+          const ThreadedView = useMemo(() => {
+            return !isThreaded
+              ? !message.getDeletedBy()
+                ? getThreadView(message, bubbleAlignment)
+                : undefined
+              : undefined;
+          }, [isThreaded, message, getThreadView, bubbleAlignment]);
+
+          const LeadingView = useMemo(() => {
+            return !isThreaded ? getLeadingView(message) : undefined;
+          }, [isThreaded, message, getLeadingView]);
+
+          const BottomView = useMemo(() => {
+            return hasTemplate?.BottomView && hasTemplate?.BottomView(message, bubbleAlignment);
+          }, [hasTemplate, message, bubbleAlignment]);
+
+          const StatusInfoView = useMemo(() => {
+            return hasTemplate?.StatusInfoView &&
+              hasTemplate?.StatusInfoView(message, bubbleAlignment)
+              ? hasTemplate?.StatusInfoView(message, bubbleAlignment)
+              : getStatusInfoView(message, bubbleAlignment, currentIndex);
+          }, [hasTemplate, message, bubbleAlignment, currentIndex, getStatusInfoView]);
+
           if (hasTemplate) {
-            if (hasTemplate.BubbleView) return hasTemplate.BubbleView(message);
+            if (hasTemplate?.BubbleView) return hasTemplate?.BubbleView(message);
 
-            let bubbleAlignment: MessageBubbleAlignmentType = getAlignment(message);
-
-            const onLongPress = () => {
+            const onLongPress = useCallback(() => {
               if (message.getDeletedBy() != null) return;
               setSelectedMessage(message);
               hasTemplate && openOptionsForMessage(message, hasTemplate);
-            };
+            }, [hasTemplate, message, openOptionsForMessage]);
+
+            const onPress = useCallback(() => {
+              Keyboard.dismiss();
+            }, []);
 
             return (
               <TouchableOpacity
                 activeOpacity={1}
+                onPress={Platform.OS === "ios" ? onPress : undefined}
                 onLongPress={() => (showOptions ? onLongPress() : undefined)}
               >
                 <CometChatMessageBubble
                   id={`${message.getId()}`}
-                  LeadingView={!isThreaded ? getLeadingView(message) : undefined}
-                  HeaderView={
-                    hasTemplate.HeaderView
-                      ? hasTemplate.HeaderView(message, bubbleAlignment)
-                      : !isThreaded
-                        ? getHeaderView(message)
-                        : undefined
-                  }
-                  FooterView={
-                    hasTemplate.FooterView
-                      ? hasTemplate.FooterView(message, bubbleAlignment)
-                      : isThreaded
-                        ? undefined
-                        : getFooterView(message, bubbleAlignment)
-                  }
+                  LeadingView={LeadingView}
+                  HeaderView={HeaderView}
+                  FooterView={FooterView}
                   alignment={isThreaded ? "left" : bubbleAlignment}
-                  ContentView={hasTemplate.ContentView?.(message, bubbleAlignment)}
-                  ThreadView={
-                    !isThreaded
-                      ? !message.getDeletedBy()
-                        ? getThreadView(message, bubbleAlignment)
-                        : undefined
-                      : undefined
-                  }
-                  BottomView={
-                    hasTemplate.BottomView && hasTemplate.BottomView(message, bubbleAlignment)
-                  }
-                  StatusInfoView={
-                    hasTemplate.StatusInfoView &&
-                    hasTemplate.StatusInfoView(message, bubbleAlignment)
-                      ? hasTemplate.StatusInfoView(message, bubbleAlignment)
-                      : getStatusInfoView(message, bubbleAlignment, currentIndex)
-                  }
+                  ContentView={ContentView}
+                  ThreadView={ThreadedView}
+                  BottomView={BottomView}
+                  StatusInfoView={StatusInfoView}
                   style={getCurrentBubbleStyle(message)}
                 />
               </TouchableOpacity>
@@ -2129,7 +2178,16 @@ export const CometChatMessageList = memo(
             return null;
           }
         },
-        [mergedTheme]
+        [
+          mergedTheme,
+          templates,
+          templatesMap,
+          getCurrentBubbleStyle,
+          getThreadView,
+          getFooterView,
+          getLeadingView,
+          getAlignment,
+        ]
       );
 
       const getSentAtTimestamp = useCallback((item: any) => {
@@ -2219,36 +2277,40 @@ export const CometChatMessageList = memo(
       };
 
       const RenderMessageItem = useCallback(
-        React.memo(({ item }: { item: CometChat.BaseMessage }) => {
-          let separatorView: JSX.Element | null = null;
-          const index = messagesContentListRef.current.findIndex(
-            (msg) => msg.getId() === item.getId() || msg.getMuid() === item.getMuid()
-          );
-          const previousMessageDate = messagesContentListRef.current[index + 1]
-            ? new Date(getSentAtTimestamp(messagesContentListRef.current[index + 1]))
-            : null;
-          const currentMessageDate = new Date(getSentAtTimestamp(item));
-
-          const currentDate = isNaN(currentMessageDate.getDate())
-            ? undefined
-            : `${currentMessageDate.getDate()}-${currentMessageDate.getMonth()}-${currentMessageDate.getFullYear()}`;
-
-          const previousDate = `${previousMessageDate?.getDate()}-${previousMessageDate?.getMonth()}-${previousMessageDate?.getFullYear()}`;
-
-          if (currentDate != undefined && previousDate !== currentDate) {
-            separatorView = (
-              <View style={{ marginBottom: 10 }}>
-                <CometChatDateSeparator
-                  timeStamp={getSentAtTimestamp(item)}
-                  pattern={"dayDateFormat"}
-                  customDateString={
-                    dateSeparatorPattern ? dateSeparatorPattern(item.getSentAt()) : undefined
-                  }
-                  style={mergedTheme.messageListStyles.dateSeparatorStyle}
-                />
-              </View>
+        ({ item, theme }: { item: CometChat.BaseMessage; theme: CometChatTheme }) => {
+          const index = useMemo(() => {
+            return messagesContentListRef.current.findIndex(
+              (msg) => msg.getId() === item.getId() || msg.getMuid() === item.getMuid()
             );
-          }
+          }, [item]);
+
+          const separatorView = useMemo(() => {
+            const previousMessageDate = messagesContentListRef.current[index + 1]
+              ? new Date(getSentAtTimestamp(messagesContentListRef.current[index + 1]))
+              : null;
+            const currentMessageDate = new Date(getSentAtTimestamp(item));
+            const currentDate = isNaN(currentMessageDate.getDate())
+              ? undefined
+              : `${currentMessageDate.getDate()}-${currentMessageDate.getMonth()}-${currentMessageDate.getFullYear()}`;
+
+            const previousDate = `${previousMessageDate?.getDate()}-${previousMessageDate?.getMonth()}-${previousMessageDate?.getFullYear()}`;
+            if (currentDate !== undefined && previousDate !== currentDate) {
+              return (
+                <View style={{ marginBottom: 10 }}>
+                  <CometChatDateSeparator
+                    timeStamp={getSentAtTimestamp(item)}
+                    pattern={"dayDateFormat"}
+                    customDateString={
+                      dateSeparatorPattern ? dateSeparatorPattern(item.getSentAt()) : undefined
+                    }
+                    style={theme.messageListStyles.dateSeparatorStyle}
+                  />
+                </View>
+              );
+            }
+            return null;
+          }, [item, dateSeparatorPattern, theme]);
+
           lastMessageDate.current = getSentAtTimestamp(item);
 
           return (
@@ -2257,11 +2319,11 @@ export const CometChatMessageList = memo(
               <MessageView message={item} currentIndex={index} />
             </React.Fragment>
           );
-        }),
+        },
         [mergedTheme]
       );
 
-      const keyExtractor = useCallback((item: any) => `${item.id}_${item.muid}`, []);
+      const keyExtractor = useCallback((item: any) => `${item?.getId()}_${item.getMuid()}`, []);
 
       const itemSeparator = useCallback(() => <View style={{ height: 8 }} />, []);
 
@@ -2320,6 +2382,9 @@ export const CometChatMessageList = memo(
       }, []);
 
       const handleScroll = (event: any) => {
+        if (loadingMessagesRef.current) {
+          return;
+        }
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
         if (
           Math.floor(contentOffset.y) >= Math.floor(contentSize.height - layoutMeasurement.height)
@@ -2375,10 +2440,14 @@ export const CometChatMessageList = memo(
         messageListRef.current?.scrollToOffset({ offset: 0 });
       }, []);
 
+      // const windowSize = useMemo(() => {
+      //   return messagesList.length > 50 ? messagesList.length / 2 : 21;
+      // }, [messagesList]);
+
       const memoizedRenderItem = useCallback(
         ({ item, index, separators }: any) => (
           <View style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 8 }}>
-            <RenderMessageItem item={item} />
+            <RenderMessageItem item={item} theme={mergedTheme} />
             {itemSeparator()}
           </View>
         ),
@@ -2416,15 +2485,19 @@ export const CometChatMessageList = memo(
                 )}
 
                 <FlatList
+                  showsVerticalScrollIndicator={false}
                   ref={messageListRef}
                   onMomentumScrollEnd={handleScroll}
                   onScroll={shouldShowScrollToBottomButton}
                   inverted={true}
                   scrollEventThrottle={16}
-                  keyboardShouldPersistTaps={Platform.OS === "ios" ? "never" : "always"}
+                  keyboardShouldPersistTaps={Platform.OS === "ios" ? "handled" : "always"}
                   data={messagesList}
-                  keyExtractor={(item) => item.getId()}
+                  keyExtractor={keyExtractor}
                   renderItem={memoizedRenderItem}
+                  /**Please do not push changes to windowSize without testing infinite scroll and UI interactions and response time**/
+                  /**Test the same on release mode. Dev mode could be laggy**/
+                  windowSize={33}
                 />
 
                 {CustomListHeader && <CustomListHeader />}
@@ -2584,6 +2657,10 @@ export const CometChatMessageList = memo(
               selectedReaction={selectedEmoji}
               onPress={onReactionListItemPressProp}
               reactionsRequestBuilder={reactionsRequestBuilder}
+              onListEmpty={() => {
+                setShowReactionList(false);
+                setSelectedEmoji(undefined);
+              }}
             />
           </CometChatBottomSheet>
         </View>

@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef, FC} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity, BackHandler} from 'react-native';
 import {
   CometChatAvatar,
   useTheme,
@@ -26,6 +26,7 @@ import {
   ChatStackParamList,
   UserStackParamList,
 } from '../../../navigation/types';
+import {useFocusEffect} from '@react-navigation/native';
 
 type ScreenProps = StackScreenProps<ChatStackParamList, 'UserInfo'>;
 type NavigationProps = StackNavigationProp<UserStackParamList, 'UserInfo'>;
@@ -198,6 +199,23 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
     }
   };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        // Navigate back to message screen (same as your onPress handler)
+        navigation.goBack();
+        return true; // Prevent default back behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [navigation]),
+  );
+
   return (
     <View style={{flex: 1, backgroundColor: theme.color.background1}}>
       {/* Header */}
@@ -235,7 +253,9 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
               textStyle: styles.avatarText,
               imageStyle: styles.avatarImage,
             }}
-            image={userObj?.getAvatar() ? {uri: userObj.getAvatar()} : undefined}
+            image={
+              userObj?.getAvatar() ? {uri: userObj.getAvatar()} : undefined
+            }
             name={userObj?.getName() ?? ''}
           />
           <Text
@@ -306,37 +326,42 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
 
       {/* Block/Unblock and Delete Chat Buttons */}
       <View style={styles.optionsContainer}>
-        <TouchableOpacity
-          onPress={() => setBlockModalOpen(true)}
-          style={styles.optionRow}>
-          <Icon
-            icon={<Block color={theme.color.error} height={24} width={24} />}
-          />
-          <Text
-            style={[
-              theme.typography.heading4.regular,
-              styles.ml5,
-              {color: theme.color.error},
-            ]}>
-            {blocked ? localize('UNBLOCK') : localize('BLOCK')}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.optionRow}>
+          <TouchableOpacity
+            onPress={() => setBlockModalOpen(true)}
+            style={styles.backButtonContainer}>
+            <Icon
+              icon={<Block color={theme.color.error} height={24} width={24} />}
+            />
+            <Text
+              style={[
+                theme.typography.heading4.regular,
+                styles.ml5,
+                {color: theme.color.error},
+              ]}>
+              {blocked ? localize('UNBLOCK') : localize('BLOCK')}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity
-          style={styles.optionRow}
-          onPress={() => setDeleteModalOpen(true)}>
-          <Icon
-            icon={<Delete color={theme.color.error} height={24} width={24} />}
-          />
-          <Text
-            style={[
-              theme.typography.heading4.regular,
-              styles.ml5,
-              {color: theme.color.error},
-            ]}>
-            {localize('DELETE_CHAT_TEXT')}
-          </Text>
-        </TouchableOpacity>
+        {/* DELETE CHAT */}
+        <View style={styles.optionRow}>
+          <TouchableOpacity
+            onPress={() => setDeleteModalOpen(true)}
+            style={styles.backButtonContainer}>
+            <Icon
+              icon={<Delete color={theme.color.error} height={24} width={24} />}
+            />
+            <Text
+              style={[
+                theme.typography.heading4.regular,
+                styles.ml5,
+                {color: theme.color.error},
+              ]}>
+              {localize('DELETE_CHAT_TEXT')}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* =============== BLOCK/UNBLOCK MODAL =============== */}

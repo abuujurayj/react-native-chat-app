@@ -16,6 +16,7 @@ import { CometChatTheme } from "../theme/type";
 import { DeepPartial } from "../shared/helper/types";
 import { CometChatListStylesInterface } from "../shared";
 import { ConfirmDialogStyle } from "../shared/views/CometChatConfirmDialog/style";
+import { JSX } from "react";
 
 export const Style = StyleSheet.create({
   listContainer: {

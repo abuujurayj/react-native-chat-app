@@ -3,7 +3,7 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatMessageOption } from "../../shared/modals";
 import { CometChatLocalize, localize } from "../../shared/resources/CometChatLocalize";
 import { ExtensionConstants, ExtensionURLs } from "../ExtensionConstants";
-import React from "react";
+import React, { JSX } from "react";
 import {
   CometChatMentionsFormatter,
   CometChatTextFormatter,

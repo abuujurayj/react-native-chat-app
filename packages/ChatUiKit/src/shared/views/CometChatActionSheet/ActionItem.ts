@@ -1,5 +1,6 @@
 import { ImageSourcePropType, ImageStyle, StyleProp, TextStyle, ViewStyle } from "react-native";
 import { ActionSheetStyle } from "../../../theme/type";
+import { JSX } from "react";
 
 export interface ActionItemInterface {
   id: string;

@@ -1,12 +1,13 @@
 import { Dimensions } from "react-native";
 import { CometChatTheme } from "../../../theme/type";
 import { deepMerge } from "../../helper/helperFunctions";
+import { DeepPartial } from "../../helper/types";
 
 export const getMentionsListStyleLight = (
   color: CometChatTheme["color"],
   spacing: CometChatTheme["spacing"],
   typography: CometChatTheme["typography"]
-): CometChatTheme["mentionsListStyle"] => {
+): DeepPartial<CometChatTheme["mentionsListStyle"]> => {
   return {
     containerStyle: {
       borderRadius: spacing.radius.r4,
@@ -57,7 +58,7 @@ export const getMentionsListStyleDark = (
   color: CometChatTheme["color"],
   spacing: CometChatTheme["spacing"],
   typography: CometChatTheme["typography"]
-): CometChatTheme["mentionsListStyle"] => {
+): DeepPartial<CometChatTheme["mentionsListStyle"]> => {
   return deepMerge(getMentionsListStyleLight(color, spacing, typography), {
     skeletonStyle: {
       linearGradientColors: ["#383838", "#272727"] as [string, string],

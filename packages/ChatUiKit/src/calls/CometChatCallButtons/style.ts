@@ -1,5 +1,6 @@
 import { ImageSourcePropType, ImageStyle, StyleSheet, ViewStyle } from "react-native";
 import { CometChatTheme } from "../../theme/type";
+import { JSX } from "react";
 
 export type CallButtonStyle = {
   containerStyle: ViewStyle;
@@ -33,4 +34,4 @@ export const getCallButtonStyle = (
       height: spacing.spacing.s6,
       width: spacing.spacing.s6,
     },
-  });
+  }) as CometChatTheme['callButtonStyles'];

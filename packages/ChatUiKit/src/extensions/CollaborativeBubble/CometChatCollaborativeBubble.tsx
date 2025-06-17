@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { JSX, useCallback } from "react";
 import { NativeModules, Pressable, Text, TextStyle, View, ViewStyle } from "react-native";
 import { useTheme } from "../../theme";
 

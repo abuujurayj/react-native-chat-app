@@ -1,16 +1,14 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { JSX, useCallback, useEffect, useRef, useState } from "react";
 import { Keyboard, KeyboardEventName, Platform, TouchableOpacity } from "react-native";
 import {
   AdditionalParams,
-  ChatConfigurator,
   CometChatMessageTemplate,
   CometChatUIEventHandler,
   CometChatUIEvents,
-  DataSource,
-  DataSourceDecorator,
   MessageBubbleAlignmentType,
 } from "../../shared";
+import { ChatConfigurator, DataSource, DataSourceDecorator } from "../../shared/framework";
 import { CometChatUIKit } from "../../shared/CometChatUiKit/CometChatUIKit";
 import { MessageCategoryConstants, ViewAlignment } from "../../shared/constants/UIKitConstants";
 import { Icon } from "../../shared/icons/Icon";

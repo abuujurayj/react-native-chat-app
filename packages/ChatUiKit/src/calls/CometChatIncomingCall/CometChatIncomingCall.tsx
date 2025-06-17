@@ -22,6 +22,7 @@ import { useTheme } from "../../theme";
 import { IncomingCallStyle } from "./style";
 import { deepMerge } from "../../shared/helper/helperFunctions";
 import { DeepPartial } from "../../shared/helper/types";
+import { JSX } from "react";
 
 const listnerID = "CALL_LISTENER_" + new Date().getTime();
 const CometChatCalls = CallingPackage.CometChatCalls;
@@ -89,12 +90,12 @@ export const CometChatIncomingCall = (props: CometChatIncomingCallInterface): JS
 
   const theme = useTheme();
   const [showCallScreen, setShowCallScreen] = useState(false);
-  const acceptedCall = useRef<CometChat.Call>();
+  const acceptedCall = useRef<CometChat.Call>(undefined);
 
   /** Reference to the call listener */
-  const callListener = useRef<any>();
+  const callListener = useRef<any>(undefined);
   /** Reference to the call settings builder instance */
-  const callSettings = useRef<any>();
+  const callSettings = useRef<any>(undefined);
 
   // Merge the default and custom styles for incoming calls.
   const incomingCallStyle = useMemo(() => {

@@ -2,6 +2,7 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { MessageBubbleAlignmentType } from "../base/Types";
 import { CometChatMessageOption } from "./CometChatMessageOption";
 import { CometChatTheme } from "../../theme/type";
+import { JSX } from "react";
 
 /**
  * Represents the interface for a message template.

@@ -294,7 +294,9 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
       }}
     >
       <TextInput
-        ref={(el) => (answerRefs.current[index] = el)}
+        ref={(el) => {
+          answerRefs.current[index] = el;
+        }}
         value={item}
         onChangeText={(text) => handleAnswerTextChange(text, index)}
         placeholder={answerPlaceholderText}

@@ -16,8 +16,8 @@ This is a reference application showcasing the integration of [CometChat's React
 
 Sign up for a [CometChat](https://app.cometchat.com/) account to obtain your app credentials: _`App ID`_, _`Region`_, and _`Auth Key`_
 
-- Node.js 18 or higher
-- React Native 0.77
+- **Node.js** 18 or higher
+- **React Native** Version 0.77 or later (up to the latest version) 
 
 **iOS**
 - XCode

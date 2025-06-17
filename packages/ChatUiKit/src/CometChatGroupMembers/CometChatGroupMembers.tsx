@@ -36,6 +36,7 @@ import { MenuItemInterface } from "../shared/views/CometChatTooltipMenu/CometCha
 import ChangeCircle from "../shared/icons/components/change-circle";
 import Block from "../shared/icons/components/block";
 import Cancel from "../shared/icons/components/cancel";
+import { JSX } from "react";
 
 /**
  * Props for the CometChatGroupMembers component.

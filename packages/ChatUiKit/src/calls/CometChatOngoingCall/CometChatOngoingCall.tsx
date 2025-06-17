@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { CallingPackage } from "../CallingPackage";
 import { useTheme } from "../../theme";
+import { JSX } from "react";
 
 const CometChatCalls = CallingPackage.CometChatCalls;
 

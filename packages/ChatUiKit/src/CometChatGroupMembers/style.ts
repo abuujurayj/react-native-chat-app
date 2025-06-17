@@ -3,6 +3,7 @@ import { CometChatListStylesInterface } from "../shared";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import { CometChatTheme } from "../theme/type";
 import { DeepPartial } from "../shared/helper/types";
+import { JSX } from "react";
 
 export type GroupMemberStyle = DeepPartial<CometChatListStylesInterface> & {
   skeletonStyle: {

@@ -3,6 +3,8 @@ import {View, Text, TouchableOpacity} from 'react-native';
 import {RouteProp} from '@react-navigation/native';
 import {
   CometChatGroupMembers,
+  CometChatUIEventHandler,
+  CometChatUIEvents,
   localize,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
@@ -11,7 +13,8 @@ import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {ChatStackParamList} from '../../../navigation/types';
 import {styles} from './TransferOwnershipStyles';
-import ArrowBack from '../../../assets/icons/ArrowBack'
+import ArrowBack from '../../../assets/icons/ArrowBack';
+import {CommonUtils} from '../../../utils/CommonUtils';
 
 type TransferOwnershipScreenProps = {
   route: RouteProp<ChatStackParamList, 'TransferOwnershipSection'>;
@@ -38,6 +41,9 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
   const leaveGroup = (group: CometChat.Group) => {
     CometChat.leaveGroup(group.getGuid())
       .then(() => {
+        CometChatUIEventHandler.emitGroupEvent(CometChatUIEvents.ccGroupLeft, {
+          leftGroup: CommonUtils.clone(group),
+        });
         navigation.pop(3);
       })
       .catch(error => {
@@ -59,13 +65,20 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
   };
 
   return (
-    <View style={{flex:1,backgroundColor: theme.color.background1}}>
+    <View style={{flex: 1, backgroundColor: theme.color.background1}}>
       {/* Header */}
       <View style={styles.headerSection}>
-        <TouchableOpacity style={styles.backButtonContainer} onPress={handleBack}>
+        <TouchableOpacity
+          style={styles.backButtonContainer}
+          onPress={handleBack}>
           <Icon
-            icon={<ArrowBack color={theme.color.iconPrimary} height={24} width={24}/>}
-            
+            icon={
+              <ArrowBack
+                color={theme.color.iconPrimary}
+                height={24}
+                width={24}
+              />
+            }
           />
         </TouchableOpacity>
         <Text

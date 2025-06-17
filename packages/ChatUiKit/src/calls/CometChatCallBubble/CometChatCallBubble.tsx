@@ -5,6 +5,7 @@ import { useTheme } from "../../theme";
 import { localize } from "../../shared";
 import { deepMerge } from "../../shared/helper/helperFunctions";
 import { DeepPartial } from "../../shared/helper/types";
+import { JSX } from "react";
 
 /**
  * Props for the CometChatMeetCallBubble component.
@@ -36,20 +37,20 @@ export const CometChatMeetCallBubble = (props: CometChatMeetCallBubbleInterface)
   const { icon, titleText, subTitleText, buttonText, onClick, style } = props;
 
   return (
-    <View style={style.containerStyle}>
+    <View style={style?.containerStyle}>
       {/* Row container for icon and texts */}
       <View style={styles.row}>
-        <View style={style.iconContainerStyle}>{icon}</View>
+        <View style={style?.iconContainerStyle}>{icon}</View>
         <View style={styles.textContainer}>
-          <Text style={style.titleStyle}>{titleText}</Text>
-          <Text style={style.subtitleStyle}>{subTitleText}</Text>
+          <Text style={style?.titleStyle}>{titleText}</Text>
+          <Text style={style?.subtitleStyle}>{subTitleText}</Text>
         </View>
       </View>
       {/* Divider */}
-      <View style={style.dividerStyle} />
+      <View style={style?.dividerStyle} />
       {/* Action button */}
-      <TouchableOpacity style={style.buttonStyle} onPress={onClick}>
-        <Text style={style.buttonTextStyle}>{buttonText}</Text>
+      <TouchableOpacity style={style?.buttonStyle} onPress={onClick}>
+        <Text style={style?.buttonTextStyle}>{buttonText}</Text>
       </TouchableOpacity>
     </View>
   );

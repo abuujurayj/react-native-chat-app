@@ -1,5 +1,5 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import React from "react";
+import React, { JSX } from "react";
 import { StyleProp, Text, TextStyle, View } from "react-native";
 import { CometChatUIKit } from "../../CometChatUiKit";
 import {
@@ -361,7 +361,7 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
         // Break the string into segments split by the regex
         let match;
         let lastIndex = 0;
-        let segments = [];
+        let segments : any[] = [];
 
         while ((match = regex.exec(inputText)) !== null) {
           // Add preceding non-UID segment, if any
@@ -436,12 +436,12 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
       return inputText;
     } else if (React.isValidElement(inputText)) {
       // inputText is a React element
-      if ((inputText as React.ReactElement).props.children) {
+      if ((inputText as React.ReactElement<any>).props.children) {
         // If the React element have children, we map over these children
         // and call addMentionsView recursively for each child.
-        return React.cloneElement(inputText as React.ReactElement, {
+        return React.cloneElement(inputText as React.ReactElement<any>, {
           children: React.Children.map(
-            (inputText as React.ReactElement).props.children,
+            (inputText as React.ReactElement<any>).props.children,
             (child) => {
               return this.addMentionsView(child);
             }

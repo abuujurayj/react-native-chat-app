@@ -1,6 +1,6 @@
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import React, {useCallback, useContext, useRef, useState} from 'react';
-import {TouchableOpacity, View, Platform } from 'react-native';
+import {TouchableOpacity, View } from 'react-native';
 import {
   CometChatAvatar,
   CometChatConversations,

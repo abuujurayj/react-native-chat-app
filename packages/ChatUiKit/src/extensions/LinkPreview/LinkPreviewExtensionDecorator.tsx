@@ -1,5 +1,5 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import React from "react";
+import React, { JSX } from "react";
 import { AdditionalParams, MessageBubbleAlignmentType } from "../../shared/base/Types";
 import { DataSource, DataSourceDecorator } from "../../shared/framework";
 import { BubbleStyles, CometChatTheme } from "../../theme/type";

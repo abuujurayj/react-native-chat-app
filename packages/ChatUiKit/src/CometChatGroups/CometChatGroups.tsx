@@ -17,6 +17,7 @@ import { useThemeInternal } from "../theme/hook";
 import { GroupStyle } from "./GroupsStyle";
 import { Skeleton } from "./Skeleton";
 import { Style } from "./style";
+import { JSX } from "react";
 
 // Unique listener IDs for group events and UI events.
 const groupListenerId = "grouplist_" + new Date().getTime();
