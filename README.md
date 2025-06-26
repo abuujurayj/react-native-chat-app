@@ -18,6 +18,7 @@ CometChat React Native UIKit provides a pre-built user interface kit that develo
 Dive straight into our Sample Apps to see CometChat UI Kit in action! Whether you're building a messaging app or enhancing your existing project, this sample app showcases the full potential of our React Native UI components.
 - [Sample App ](examples/SampleApp#readme)
 - [Sample App with Push Notifications](examples/SampleAppWithPushNotifications#readme)
+- [Sample App Expo](examples/SampleAppExpo#readme)
 
 ## Prerequisites
 

@@ -37,19 +37,14 @@ Sign up for a [CometChat](https://app.cometchat.com/) account to obtain your app
    git clone https://github.com/cometchat/cometchat-uikit-react-native.git
    ```
 
-2. Checkout v5 branch:
-   ```sh
-   git checkout v5
-   ```
+1. Run `npm install` to install the dependencies.
 
-3. Run `npm install` to install the dependencies.
-
-4. Change into the specific app's directory (e.g., SampleApp).
+1. Change into the specific app's directory (e.g., SampleApp).
    ```sh
      cd examples/SampleApp
    ```
 
-5. `[Optional]` Configure CometChat credentials:
+1. `[Optional]` Configure CometChat credentials:
     - Open the `AppConstants.tsx` file located at `examples/SampleApp/src/utils/AppConstants.tsx` and enter your CometChat _`appId`_, _`region`_, and _`authKey`_:
       ```ts
       export const AppConstants = {
@@ -60,13 +55,13 @@ Sign up for a [CometChat](https://app.cometchat.com/) account to obtain your app
       }
       ```
 
-6. For iOS, install dependencies after navigating to ios:
+1. For iOS, install dependencies after navigating to ios:
    ```sh
     cd ios
     pod install
    ```
 
-7. Run the app on a device or emulator from the repo root.
+1. Run the app on a device or emulator from the repo root.
    ```sh
     npm start
     npm run android
