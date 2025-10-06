@@ -168,7 +168,7 @@ const CometChatBottomSheet = forwardRef(
             flex: 1,
             backgroundColor: overlayAnim.interpolate({
               inputRange: [0, 0.2],
-              outputRange: ["rgba(0,0,0,0)", "rgba(0,0,0,0.2)"],
+              outputRange: ["rgba(0,0,0,0)", "rgba(0,0,0,0.35)"],
             }),
           }}
           onStartShouldSetResponder={() => {

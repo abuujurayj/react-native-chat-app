@@ -5,10 +5,10 @@ import {
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
 import {useRoute, useNavigation, RouteProp} from '@react-navigation/native';
-import {ChatStackParamList} from '../../../navigation/types';
+import {RootStackParamList} from '../../../navigation/types';
 
 const ViewMembers: React.FC = () => {
-  const route = useRoute<RouteProp<ChatStackParamList, 'ViewMembers'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'ViewMembers'>>();
   const navigation = useNavigation();
   const {group} = route.params;
   const theme = useTheme();

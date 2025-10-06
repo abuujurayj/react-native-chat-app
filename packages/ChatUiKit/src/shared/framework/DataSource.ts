@@ -225,7 +225,10 @@ export interface DataSource {
     additionalAuxiliaryHeaderOptionsParams?: AdditionalAuxiliaryHeaderOptionsParams
   ): JSX.Element | null;
 
-  getAllTextFormatters(loggedInUser?: CometChat.User): CometChatTextFormatter[];
-  getMentionsFormatter(loggedInUser?: CometChat.User): CometChatMentionsFormatter;
+  getAllTextFormatters(loggedInUser?: CometChat.User, theme?: CometChatTheme): CometChatTextFormatter[];
+  getMentionsFormatter(
+    loggedInUser?: CometChat.User,
+    theme?: CometChatTheme
+  ): CometChatMentionsFormatter;
   getUrlsFormatter(loggedInUser?: CometChat.User): CometChatUrlsFormatter;
 }

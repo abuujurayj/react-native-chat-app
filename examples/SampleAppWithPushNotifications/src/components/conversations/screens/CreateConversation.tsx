@@ -1,4 +1,6 @@
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {
+  useState,
+} from 'react';
 import {
   View,
   Text,
@@ -13,44 +15,21 @@ import {
   useTheme,
   CometChatUsers,
 } from '@cometchat/chat-uikit-react-native';
-import {ChatStackParamList} from '../../../navigation/types';
+import {RootStackParamList} from '../../../navigation/types';
 import Groups from '../../groups/Groups';
 import {Icon} from '@cometchat/chat-uikit-react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
-import { toggleBottomTab } from '../../../navigation/helper';
-import ArrowBack from '../../../assets/icons/ArrowBack'
+import ArrowBack from '../../../assets/icons/ArrowBack';
 
 // Define prop types for the component using React Navigation's types
 type Props = {
-  route: RouteProp<ChatStackParamList, 'CreateConversation'>;
-  navigation: StackNavigationProp<ChatStackParamList, 'CreateConversation'>;
+  route: RouteProp<RootStackParamList, 'CreateConversation'>;
+  navigation: StackNavigationProp<RootStackParamList, 'CreateConversation'>;
 };
 
 const CreateConversation: React.FC<Props> = ({route, navigation}) => {
   const theme = useTheme();
 
-const themeRef = useRef(theme);
-  const navigationRef = useRef(navigation);
-  const routeRef = useRef(route);
-
-  useEffect(() => {
-      themeRef.current = theme;
-      navigationRef.current = navigation;
-      routeRef.current = route;
-    }, [theme, navigation, route]);
-  
-    const toggleTab = useCallback(() => {
-      return toggleBottomTab(navigationRef.current, themeRef.current);
-    }, [theme, navigation, route]);
-  
-    useLayoutEffect(() => {
-      const cleanup = toggleTab();
-      return () => {
-        cleanup();
-      };
-    }, [toggleTab]);
-
-  
   const {
     background1,
     background3,
@@ -67,7 +46,9 @@ const themeRef = useRef(theme);
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.rowCenter} onPress={navigation.goBack}>
-          <Icon icon={<ArrowBack color={iconPrimary}  height={24} width={24} />} />
+          <Icon
+            icon={<ArrowBack color={iconPrimary} height={24} width={24} />}
+          />
         </TouchableOpacity>
         <Text style={[heading1.bold, styles.headerText, {color: textPrimary}]}>
           {localize('NEW_CHAT')}

@@ -5,42 +5,36 @@ import React, {
   useMemo,
   useRef,
   useState,
-} from "react";
-import {
-  View,
-  TouchableOpacity,
-  Text,
-  TextStyle,
-  ViewStyle,
-} from "react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
+} from 'react';
+import {View, TouchableOpacity, Text, TextStyle, ViewStyle} from 'react-native';
+import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {
   CometChatListItem,
   localize,
   useTheme,
-} from "@cometchat/chat-uikit-react-native";
-import { CallHistory } from "./CallHistory";
-import { CallLogDetailHeader } from "./CallLogDetailHeader";
-import { Icon } from "@cometchat/chat-uikit-react-native";
-import { CallParticipants } from "./CallParticipants";
-import { CallDetailHelper, CallStatus } from "./CallDetailHelper";
-import { CallRecordings } from "./CallRecordings";
-import { StackScreenProps } from "@react-navigation/stack";
-import { ICONS } from "@cometchat/chat-uikit-react-native/src/shared/icons/icon-mapping";
-import { CallStackParamList } from "../../navigation/paramLists";
+} from '@cometchat/chat-uikit-react-native';
+import {CallHistory} from './CallHistory';
+import {CallLogDetailHeader} from './CallLogDetailHeader';
+import {Icon} from '@cometchat/chat-uikit-react-native';
+import {CallParticipants} from './CallParticipants';
+import {CallDetailHelper, CallStatus} from './CallDetailHelper';
+import {CallRecordings} from './CallRecordings';
+import {StackScreenProps} from '@react-navigation/stack';
+import {ICONS} from '@cometchat/chat-uikit-react-native/src/shared/icons/icon-mapping';
+import {RootStackParamList} from '../../navigation/types';
 
-const listenerId = "userListener_" + new Date().getTime();
+const listenerId = 'userListener_' + new Date().getTime();
 const TABS = {
-  DETAILS: "Details",
-  PARTICIPANTS: "Participants",
-  RECORDINGS: "Recordings",
-  HISTORY: "History",
+  DETAILS: 'Details',
+  PARTICIPANTS: 'Participants',
+  RECORDINGS: 'Recordings',
+  HISTORY: 'History',
 };
 
-type Props = StackScreenProps<CallStackParamList, "CallDetails">;
+type Props = StackScreenProps<RootStackParamList, 'CallDetails'>;
 
-export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
-  const { call } = route.params;
+export const CallDetails: React.FC<Props> = ({route, navigation}) => {
+  const {call} = route.params;
 
   const theme = useTheme();
   const [group, setGroup] = useState<CometChat.Group | null>(null);
@@ -56,20 +50,20 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
     itemTextStyle: TextStyle;
     selectedItemTextStyle: TextStyle;
   }>();
-  const BackIcon = ICONS["arrow-back"];
+  const BackIcon = ICONS['arrow-back'];
 
   useEffect(() => {
-    console.log("CALL RECEIVER: ", call);
+    console.log('CALL RECEIVER: ', call);
     CometChat.getLoggedinUser().then((loggedUser: CometChat.User | any) => {
       loggedInUser.current = loggedUser;
       let user =
-        call?.getReceiverType() == "user"
+        call?.getReceiverType() == 'user'
           ? loggedInUser.current?.getUid() === call?.getInitiator()?.getUid()
             ? call.getReceiver()
             : call?.getInitiator()
           : undefined;
       let group =
-        call?.getReceiverType() == "group"
+        call?.getReceiverType() == 'group'
           ? loggedInUser.current?.getUid() === call?.getInitiator()?.getUid()
             ? call.getReceiver()
             : call?.getInitiator()
@@ -84,7 +78,7 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
       CometChat.getGroup(group.getGuid()).then(
         (groupObject: CometChat.Group) => {
           setGroup(groupObject);
-        }
+        },
       );
     });
   }, [call]);
@@ -103,7 +97,7 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
             setUser(userDetails);
           }
         },
-      })
+      }),
     );
     return () => {
       CometChat.removeUserListener(listenerId);
@@ -113,40 +107,44 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
   useEffect(() => {
     setTableStyle({
       containerStyle: {
+        //flex: 1,
         backgroundColor: theme.color.background1,
-        flexDirection: "row",
-        alignItems: "center",
-        width: "100%",
+        flexDirection: 'row',
+        //justifyContent: 'space-evenly', // ✅ Ensures even spacing
+        alignItems: 'center', // Optional, ensures vertical alignment
+        width: '100%', // ✅ Ensures full width for proper spacing
         borderBottomWidth: 1,
         borderColor: theme.color.borderDefault,
-        justifyContent: "space-evenly",
+        justifyContent: 'space-evenly',
       },
       itemStyle: {
+        // paddingHorizontal: theme.spacing.padding.p4,
         paddingVertical: theme.spacing.padding.p2,
-        flexDirection: "row",
+        flexDirection: 'row',
         borderBottomWidth: theme.spacing.spacing.s0_5,
-        borderBottomColor: "transparent",
-        alignItems: "center",
-        justifyContent: "center",
+        borderBottomColor: 'transparent',
+        alignItems: 'center',
+        justifyContent: 'center',
         flex: 1,
       },
       selectedItemStyle: {
+        // paddingHorizontal: theme.spacing.padding.p4,
         paddingVertical: theme.spacing.padding.p2,
-        flexDirection: "row",
+        flexDirection: 'row',
         borderBottomWidth: theme.spacing.spacing.s0_5,
         borderBottomColor: theme.color.primary,
-        alignItems: "center",
-        justifyContent: "center",
+        alignItems: 'center',
+        justifyContent: 'center',
         flex: 1,
       },
       itemEmojiStyle: {
         color: theme.color.textSecondary,
-        borderColor: "transparent",
+        borderColor: 'transparent',
         ...theme.typography.body.medium,
       },
       selectedItemEmojiStyle: {
         color: theme.color.textSecondary,
-        borderColor: "transparent",
+        borderColor: 'transparent',
         ...theme.typography.body.medium,
       },
       itemTextStyle: {
@@ -179,28 +177,28 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
 
   const callTypeAndStatus = useMemo(
     (): {
-      type: "incoming" | "outgoing";
+      type: 'incoming' | 'outgoing';
       callStatus: CallStatus;
     } => CallDetailHelper.getCallType(call),
-    [call]
+    [call],
   );
 
   const _style = useMemo(() => {
     return {
       headerContainerStyle: {
-        alignItems: "flex-start",
-        justifyContent: "center",
-        width: "100%",
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        width: '100%',
         borderRadius: 0,
         paddingHorizontal: 0,
       },
       titleSeparatorStyle: {
         borderBottomWidth: 1,
         borderBottomColor: theme.color.borderLight,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
       },
       containerStyle: {
         backgroundColor: theme.color.background2,
@@ -208,7 +206,7 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
       },
       itemStyle: {
         containerStyle: {
-          flexDirection: "row" as const,
+          flexDirection: 'row' as const,
           paddingRight: theme.spacing.padding.p4,
           paddingLeft: theme.spacing.padding.p2,
           paddingVertical: theme.spacing.padding.p2,
@@ -245,7 +243,7 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
 
   const callStatusDisplayString = useMemo(() => {
     return CallDetailHelper.getCallStatusDisplayText(
-      callTypeAndStatus.callStatus
+      callTypeAndStatus.callStatus,
     );
   }, [callTypeAndStatus]);
 
@@ -253,25 +251,24 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
     () =>
       CallDetailHelper.getCallStatusDisplayIcon(
         callTypeAndStatus.callStatus,
-        theme
+        theme,
       ),
-    [callTypeAndStatus, theme]
+    [callTypeAndStatus, theme],
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.color.background1 }}>
-      <View style={{ flex: 1 }}>
+    <View style={{flex: 1, backgroundColor: theme.color.background1}}>
+      <View style={{flex: 1}}>
         <View
           style={{
-            flexDirection: "row",
-            justifyContent: "flex-start",
-            alignItems: "center",
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
             gap: theme.spacing.padding.p2,
             paddingVertical: theme.spacing.padding.p2,
             paddingHorizontal: theme.spacing.padding.p5,
             minHeight: 64,
-          }}
-        >
+          }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon
               imageStyle={{
@@ -283,8 +280,7 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
                 <BackIcon
                   height={24}
                   width={24}
-                  color={theme.color.iconPrimary}
-                ></BackIcon>
+                  color={theme.color.iconPrimary}></BackIcon>
               }
             />
           </TouchableOpacity>
@@ -292,39 +288,35 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
             style={{
               color: theme.color.textPrimary,
               ...theme.typography.heading1.bold,
-            }}
-          >
-            {localize("CALL_DETAILS")}
+            }}>
+            {localize('CALL_DETAILS')}
           </Text>
         </View>
 
         {(user || group) && (
-          <View style={{ flexDirection: "column" }}>
+          <View style={{flexDirection: 'column'}}>
             <CallLogDetailHeader
-              {...(user && { user })}
-              {...(group && { group })}
-            ></CallLogDetailHeader>
+              {...(user && {user})}
+              {...(group && {group})}></CallLogDetailHeader>
             <View
               style={{
-                flexDirection: "row",
-                width: "100%",
-                alignItems: "center",
+                flexDirection: 'row',
+                width: '100%',
+                alignItems: 'center',
                 backgroundColor: theme.color.background2,
-              }}
-            >
+              }}>
               <Icon
                 icon={CallStatusIcon}
-                containerStyle={{ marginLeft: theme.spacing.margin.m4 }}
-              ></Icon>
+                containerStyle={{marginLeft: theme.spacing.margin.m4}}></Icon>
               <CometChatListItem
                 id={call.sessionId}
                 avatarStyle={_style.itemStyle.avatarStyle}
                 containerStyle={_style.itemStyle.containerStyle}
-                headViewContainerStyle={{ flexDirection: "row" }}
+                headViewContainerStyle={{flexDirection: 'row'}}
                 titleStyle={_style.itemStyle.titleStyle}
                 title={callStatusDisplayString}
                 trailingViewContainerStyle={{
-                  alignSelf: "center",
+                  alignSelf: 'center',
                 }}
                 SubtitleView={
                   <Text style={_style.itemStyle.subtitleStyle}>
@@ -341,16 +333,15 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
 
             <View
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                width: "100%",
+                flexDirection: 'row',
+                alignItems: 'center',
+                width: '100%',
                 borderBottomWidth: 1,
                 borderColor: theme.color.borderDefault,
-                justifyContent: "space-evenly",
+                justifyContent: 'space-evenly',
                 paddingHorizontal: 0,
-              }}
-            >
-              {["Participants", "Recordings", "History"].map(
+              }}>
+              {['Participants', 'Recordings', 'History'].map(
                 (tabTitle, index) => (
                   <TouchableOpacity
                     key={index}
@@ -359,26 +350,23 @@ export const CallDetails: React.FC<Props> = ({ route, navigation }) => {
                         ? tabStyle!.selectedItemStyle
                         : tabStyle!.itemStyle
                     }
-                    onPress={() => setSelectedTab(tabTitle)}
-                  >
+                    onPress={() => setSelectedTab(tabTitle)}>
                     <Text
                       style={
                         selectedTab === tabTitle
                           ? tabStyle!.selectedItemTextStyle
                           : tabStyle!.itemTextStyle
-                      }
-                    >
+                      }>
                       {tabTitle}
                     </Text>
                   </TouchableOpacity>
-                )
+                ),
               )}
             </View>
             {selectedTab === TABS.PARTICIPANTS && (
               <CallParticipants
                 call={call}
-                data={call?.getParticipants()}
-              ></CallParticipants>
+                data={call?.getParticipants()}></CallParticipants>
             )}
             {selectedTab === TABS.HISTORY && (
               <CallHistory user={getUserToFetchHistory()}></CallHistory>

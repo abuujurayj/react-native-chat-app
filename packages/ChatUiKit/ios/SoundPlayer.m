@@ -101,6 +101,14 @@ RCT_EXPORT_METHOD(pause: (RCTResponseSenderBlock) resolve) {
     }
 }
 
+RCT_EXPORT_METHOD(releaseMediaPlayer) {
+    if (audioPlayer) {
+        [audioPlayer stop];
+        audioPlayer = nil;
+    }
+    currentUrl = nil;
+}
+
 RCT_EXPORT_METHOD(getCurrentTime: (RCTResponseSenderBlock)resolve) {
   if ([audioPlayer isPlaying]) {
       NSString *response = [NSString stringWithFormat:@"{\"time\": %f}",[audioPlayer currentTime]];

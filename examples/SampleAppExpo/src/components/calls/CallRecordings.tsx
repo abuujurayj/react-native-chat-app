@@ -1,9 +1,6 @@
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import {
-  useTheme,
-  CometChatListItem,
-} from "@cometchat/chat-uikit-react-native";
-import React, { useRef, useEffect, useMemo, useState } from "react";
+import {CometChat} from '@cometchat/chat-sdk-react-native';
+import {useTheme, CometChatListItem} from '@cometchat/chat-uikit-react-native';
+import React, {useRef, useEffect, useMemo, useState} from 'react';
 import {
   View,
   FlatList,
@@ -12,16 +9,16 @@ import {
   NativeEventEmitter,
   NativeModules,
   Platform,
-} from "react-native";
-import { PlayArrow } from "./icons";
-import { Icon } from "@cometchat/chat-uikit-react-native";
-import { CallDetailHelper } from "./CallDetailHelper";
+} from 'react-native';
+import {PlayArrow} from './icons';
+import {Icon} from '@cometchat/chat-uikit-react-native';
+import {CallDetailHelper} from './CallDetailHelper';
 
-const { FileManager } = NativeModules;
+const {FileManager} = NativeModules;
 const eventEmitter = new NativeEventEmitter(FileManager);
 
-export const CallRecordings = (props: { call: any }) => {
-  const { call } = props;
+export const CallRecordings = (props: {call: any}) => {
+  const {call} = props;
   const [data, setData] = useState(call.getRecordings());
 
   const theme = useTheme();
@@ -40,15 +37,15 @@ export const CallRecordings = (props: { call: any }) => {
         loggedInUser.current = u;
       })
       .catch((e: any) => {
-        console.log("Error getting logged in user", e);
+        // onError && onError(e);
       });
   }, []);
 
   useEffect(() => {
-    if (Platform.OS == "android") {
+    if (Platform.OS == 'android') {
       listener.current = eventEmitter.addListener(
-        "downloadComplete",
-        (data: { downloadId: number }) => {
+        'downloadComplete',
+        (data: {downloadId: number}) => {
           if (
             data.downloadId &&
             downloadIdRef.current &&
@@ -58,11 +55,11 @@ export const CallRecordings = (props: { call: any }) => {
             setFileExists(true);
             openFile(fileUrl);
           }
-        }
+        },
       );
     }
     return () => {
-      if (Platform.OS == "android") {
+      if (Platform.OS == 'android') {
         listener.current.remove();
       }
     };
@@ -94,17 +91,17 @@ export const CallRecordings = (props: { call: any }) => {
       fileUrl,
       getFileName(fileUrl),
       (result: string) => {
-        if (Platform.OS == "ios") {
+        if (Platform.OS == 'ios') {
           let parsedResult = JSON.parse(result);
           if (parsedResult.success == true) {
             setProcessing(false);
             setFileExists(true);
           }
           openFile(fileUrl);
-        } else if (Platform.OS == "android") {
+        } else if (Platform.OS == 'android') {
           downloadIdRef.current = JSON.parse(result).downloadId;
         }
-      }
+      },
     );
   };
 
@@ -120,25 +117,25 @@ export const CallRecordings = (props: { call: any }) => {
   };
 
   const getFileName = (fileUrl: any) => {
-    return fileUrl.substring(fileUrl.lastIndexOf("/") + 1).replace(" ", "_");
+    return fileUrl.substring(fileUrl.lastIndexOf('/') + 1).replace(' ', '_');
   };
 
   const _style = useMemo(() => {
     return {
       headerContainerStyle: {
-        alignItems: "flex-start",
-        justifyContent: "center",
-        width: "100%",
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        width: '100%',
         borderRadius: 0,
         paddingHorizontal: 0,
       },
       titleSeparatorStyle: {
         borderBottomWidth: 1,
         borderBottomColor: theme.color.borderLight,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
       },
       containerStyle: {
         backgroundColor: theme.color.background1,
@@ -146,7 +143,7 @@ export const CallRecordings = (props: { call: any }) => {
       },
       itemStyle: {
         containerStyle: {
-          flexDirection: "row" as const,
+          flexDirection: 'row' as const,
           paddingHorizontal: theme.spacing.padding.p4,
           paddingVertical: theme.spacing.padding.p2,
           gap: theme.spacing.spacing.s3,
@@ -181,8 +178,8 @@ export const CallRecordings = (props: { call: any }) => {
     return CallDetailHelper.getFormattedInitiatedAt(call);
   }, [call]);
 
-  const _render = ({ item, index }: any) => {
-    const title = item["rid"];
+  const _render = ({item, index}: any) => {
+    const title = item['rid'];
 
     return (
       <React.Fragment key={index}>
@@ -194,33 +191,29 @@ export const CallRecordings = (props: { call: any }) => {
               style={{
                 ...theme.typography.body.regular,
                 color: theme.color.textSecondary,
-              }}
-            >
+              }}>
               {formattedInitiatedAt}
             </Text>
           }
           titleStyle={_style.itemStyle.titleStyle}
           containerStyle={_style.itemStyle.containerStyle}
           trailingViewContainerStyle={{
-            alignSelf: "center",
+            alignSelf: 'center',
           }}
           TrailingView={
             <Pressable
               onPress={() => {
                 setFileUrl(item.getRecordingURL());
                 setReopenCount(reOpenCount + 1);
-              }}
-            >
+              }}>
               <Icon
                 icon={
                   <PlayArrow
                     height={24}
                     width={24}
-                    color={theme.color.iconHighlight}
-                  ></PlayArrow>
+                    color={theme.color.iconHighlight}></PlayArrow>
                 }
-                containerStyle={{ marginLeft: theme.spacing.margin.m4 }}
-              ></Icon>
+                containerStyle={{marginLeft: theme.spacing.margin.m4}}></Icon>
             </Pressable>
           }
         />
@@ -229,11 +222,11 @@ export const CallRecordings = (props: { call: any }) => {
   };
 
   return (
-    <View style={{ backgroundColor: theme.color.background1 }}>
+    <View style={{backgroundColor: theme.color.background1}}>
       {data.length && (
         <FlatList
           data={data}
-          keyExtractor={(item, index) => item.sessionId + "_" + index}
+          keyExtractor={(item, index) => item.sessionId + '_' + index}
           renderItem={_render}
         />
       )}

@@ -1,6 +1,6 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React, { JSX } from "react";
-import { StyleProp, Text, TextStyle, View } from "react-native";
+import { ColorValue, StyleProp, Text, TextStyle } from "react-native";
 import { CometChatUIKit } from "../../CometChatUiKit";
 import {
   MentionsTargetElement,
@@ -12,12 +12,32 @@ import { localize } from "../../resources";
 import { SuggestionItem } from "../../views/CometChatSuggestionList";
 import { CometChatTextFormatter } from "../CometChatTextFormatter";
 import { CometChatTheme } from "../../../theme/type";
+import { deepMerge } from "../../helper/helperFunctions";
 
 /**
  * Represents the CometChatMentionsFormatter class.
  * This class extends the CometChatTextFormatter class and provides methods for handling mentions in text.
  * @extends CometChatTextFormatter
  */
+
+type MentionsSubStyle = {
+  textStyle?: TextStyle;
+  selfTextStyle?: TextStyle;
+};
+
+type MentionContext = "composer" | "conversation" | "incoming" | "outgoing";
+
+function isCometChatTheme(t: unknown): t is CometChatTheme {
+  return (
+    !!t &&
+    typeof t === "object" &&
+    "typography" in t &&
+    "color" in t &&
+    typeof (t as any).typography === "object" &&
+    typeof (t as any).color === "object"
+  );
+}
+
 export class CometChatMentionsFormatter extends CometChatTextFormatter {
   /**
    * List of users for mentions.
@@ -43,6 +63,29 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
    * Custom request object to fetch users or group members.
    */
   private customRequest?: CometChat.UsersRequestBuilder | CometChat.GroupMembersRequestBuilder;
+
+  private composerStyle: MentionsSubStyle;
+  private conversationStyle: MentionsSubStyle;
+  private incomingBubbleStyle: MentionsSubStyle;
+  private outgoingBubbleStyle: MentionsSubStyle;
+  private currentContext: MentionContext = "incoming";
+  private resolveStyle(isSelf: boolean): TextStyle {
+    let style: MentionsSubStyle;
+    switch (this.currentContext) {
+      case "composer":
+        style = this.composerStyle;
+        break;
+      case "conversation":
+        style = this.conversationStyle;
+        break;
+      case "outgoing":
+        style = this.outgoingBubbleStyle;
+        break;
+      default:
+        style = this.incomingBubbleStyle;
+    }
+    return isSelf ? (style.selfTextStyle ?? {}) : (style.textStyle ?? {});
+  }
 
   /**
    * Limit of unique users to be added in the composer.
@@ -76,11 +119,33 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
    * Initializes a new CometChatMentionsFormatter.
    * @param {CometChat.User} loggedInUser - The user who is currently logged in.
    */
-  constructor(loggedInUser?: CometChat.User) {
+  constructor(themeOrUser?: CometChatTheme | CometChat.User, loggedInUser?: CometChat.User) {
     super();
     this.regexPattern = /<@uid:(.*?)>/g;
     this.trackCharacter = "@";
-    this.loggedInUser = loggedInUser;
+
+    const theme = isCometChatTheme(themeOrUser) ? themeOrUser : undefined;
+    this.loggedInUser = isCometChatTheme(themeOrUser)
+      ? loggedInUser
+      : (themeOrUser as CometChat.User | undefined);
+
+    const fallback: MentionsSubStyle = {
+      textStyle: { fontWeight: "700", fontSize: 14, lineHeight: 19.6, color: "#6852D6" },
+      selfTextStyle: { fontWeight: "700", fontSize: 14, lineHeight: 19.6, color: "#FFAB00" },
+    };
+
+    const fromTheme = (c: ColorValue): MentionsSubStyle => {
+      const baseStyle = theme?.typography?.body?.bold || {};
+      return {
+        textStyle: { ...baseStyle, color: c },
+        selfTextStyle: { ...baseStyle, color: theme?.color?.warning || "#FFAB00" },
+      };
+    };
+
+    this.incomingBubbleStyle = theme ? fromTheme(theme.color.receiveBubbleTextHighlight) : fallback;
+    this.outgoingBubbleStyle = theme ? fromTheme(theme.color.sendBubbleTextHighlight) : fallback;
+    this.composerStyle = this.incomingBubbleStyle; // reasonable defaults
+    this.conversationStyle = this.incomingBubbleStyle;
   }
 
   /**
@@ -282,13 +347,38 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
     return this.mentionsStyle;
   }
 
-  /**
-   * Sets the mentions style.
-   *
-   * @param {CometChatTheme["mentionsStyle"]} mentionsStyle - The mentions style to be set.
-   */
-  setMentionsStyle(mentionsStyle?: CometChatTheme["mentionsStyle"]) {
-    this.mentionsStyle = mentionsStyle;
+  setComposerMentionStyle(s: MentionsSubStyle) {
+    this.composerStyle = deepMerge(this.composerStyle, s);
+    return this;
+  }
+  setConversationMentionStyle(s: MentionsSubStyle) {
+    this.conversationStyle = deepMerge(this.conversationStyle, s);
+    return this;
+  }
+  setIncomingBubbleMentionStyle(s: MentionsSubStyle) {
+    this.incomingBubbleStyle = deepMerge(this.incomingBubbleStyle, s);
+    return this;
+  }
+  setOutgoingBubbleMentionStyle(s: MentionsSubStyle) {
+    this.outgoingBubbleStyle = deepMerge(this.outgoingBubbleStyle, s);
+    return this;
+  }
+
+  /** maintain back-compat */
+  setMentionsStyle(patch?: CometChatTheme["mentionsStyle"]) {
+    if (!patch) return this;
+    const apply = (dst: MentionsSubStyle) => deepMerge(dst, patch);
+    this.setIncomingBubbleMentionStyle(apply(this.incomingBubbleStyle))
+      .setOutgoingBubbleMentionStyle(apply(this.outgoingBubbleStyle))
+      .setComposerMentionStyle(apply(this.composerStyle))
+      .setConversationMentionStyle(apply(this.conversationStyle));
+    return this;
+  }
+
+  /** called from data-sources */
+  setContext(ctx: MentionContext) {
+    this.currentContext = ctx;
+    return this;
   }
 
   getFormattedText(
@@ -319,19 +409,6 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
       this.temp(this.messageObject, uid);
       return;
     }
-
-    // let obj = { uid, trackCharacter: this.trackCharacter };
-    // CometChatUIEventHandler.emitUIEvent(CometChatUIEvents.ccMentionClick, {
-    //   item: {
-    //     body: {
-    //       CometChatUserGroupMembersObject: obj,
-    //       message: this.messageObject ?? null,
-    //       id: uid,
-    //     },
-    //     // event,
-    //     source: "mentions", //add through enum
-    //   }
-    // });
   };
 
   /**
@@ -361,7 +438,7 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
         // Break the string into segments split by the regex
         let match;
         let lastIndex = 0;
-        let segments : any[] = [];
+        let segments: any[] = [];
 
         while ((match = regex.exec(inputText)) !== null) {
           // Add preceding non-UID segment, if any
@@ -387,10 +464,15 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
           if (userRegistry.hasOwnProperty(segment)) {
             let _loggedInUser = this.loggedInUser || CometChatUIKit.loggedInUser;
 
-            let textStyle =
-              _loggedInUser?.getUid() == segment
-                ? this.getMentionsStyle()?.selfTextStyle
-                : this.getMentionsStyle()?.textStyle;
+            const isSelf = _loggedInUser?.getUid() === segment;
+            const isOutgoing =
+              this.messageObject?.getSender()?.getUid() === _loggedInUser?.getUid();
+
+            if (this.target === MentionsTargetElement.textbubble) {
+              // Only for bubbles – keep whatever was set for conversation & composer
+              this.setContext(isOutgoing ? "outgoing" : "incoming");
+            }
+            const textStyle = this.resolveStyle(isSelf);
             let onPressProp = this.temp
               ? { onPress: (event: any) => this.onMentionClick(event, segment) }
               : {};

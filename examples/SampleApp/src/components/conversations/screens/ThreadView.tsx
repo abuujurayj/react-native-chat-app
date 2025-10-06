@@ -20,10 +20,10 @@ import {
 } from '@cometchat/chat-uikit-react-native';
 import {Icon} from '@cometchat/chat-uikit-react-native';
 import {useTheme} from '@cometchat/chat-uikit-react-native';
-import {ChatStackParamList} from '../../../navigation/types';
+import {RootStackParamList} from '../../../navigation/types';
 import ArrowBack from '../../../assets/icons/ArrowBack';
 
-type ThreadViewRouteProp = RouteProp<ChatStackParamList, 'ThreadView'>;
+type ThreadViewRouteProp = RouteProp<RootStackParamList, 'ThreadView'>;
 
 const ThreadView = () => {
   const {params} = useRoute<ThreadViewRouteProp>();

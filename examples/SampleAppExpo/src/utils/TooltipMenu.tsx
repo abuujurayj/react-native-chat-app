@@ -34,13 +34,7 @@ type CometChatTooltipMenuProps = {
 };
 
 export const TooltipMenu = (props: CometChatTooltipMenuProps) => {
-  const {
-    visible = false,
-    onDismiss = () => null,
-    onClose = () => null,
-    event,
-    menuItems,
-  } = props;
+  const { visible = false, onDismiss = () => null, onClose = () => null, event, menuItems } = props;
   const theme = useTheme();
 
   const position = useMemo(() => {
@@ -68,12 +62,12 @@ export const TooltipMenu = (props: CometChatTooltipMenuProps) => {
 
   return (
     <Modal
-      presentationStyle="overFullScreen"
+      presentationStyle='overFullScreen'
       transparent={true}
       visible={visible}
       onRequestClose={onClose}
       onDismiss={onDismiss}
-      animationType="fade"
+      animationType='fade'
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={tooltipStyles.overlay}>
@@ -93,7 +87,7 @@ export const TooltipMenu = (props: CometChatTooltipMenuProps) => {
             {menuItems.map((item, i) => {
               return (
                 <TouchableOpacity
-                  key={i} 
+                  key={i} // Ensure each item has a unique key
                   onPress={() => {
                     item.onPress();
                     onClose();

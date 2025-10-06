@@ -1,13 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { Animated, Dimensions, Easing, StyleSheet, useColorScheme, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
+// import { useThemeInternal } from "../../../theme/hook";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -59,7 +53,7 @@ const SkeletonBox = ({ index, boxSize, gradientColors }: any) => {
 export const Skeleton = () => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const [isLoading, setIsLoading] = useState(true);
-  const mode = useColorScheme();
+  const  mode  = useColorScheme();
 
   // Define static colors
   const color = {
@@ -83,12 +77,8 @@ export const Skeleton = () => {
           speed: 1,
         };
 
-  const {
-    linearGradientColors,
-    shimmerBackgroundColor,
-    shimmerOpacity,
-    speed,
-  } = skeletonStyle;
+  const { linearGradientColors, shimmerBackgroundColor, shimmerOpacity, speed } =
+    skeletonStyle;
 
   useEffect(() => {
     const startShimmer = () => {

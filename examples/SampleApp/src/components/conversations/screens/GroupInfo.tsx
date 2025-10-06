@@ -18,7 +18,7 @@ import {
   CometChatUIKit,
   CometChatUiKitConstants,
 } from '@cometchat/chat-uikit-react-native';
-import {ChatStackParamList} from '../../../navigation/types';
+import {RootStackParamList} from '../../../navigation/types';
 import {listners} from '../helper/GroupListeners';
 import {styles} from './GroupInfoStyles';
 import {leaveGroup} from '../../../utils/helper';
@@ -31,8 +31,8 @@ import Block from '../../../assets/icons/Block';
 import Delete from '../../../assets/icons/Delete';
 
 type GroupInfoProps = {
-  route: RouteProp<ChatStackParamList, 'GroupInfo'>;
-  navigation: StackNavigationProp<ChatStackParamList, 'GroupInfo'>;
+  route: RouteProp<RootStackParamList, 'GroupInfo'>;
+  navigation: StackNavigationProp<RootStackParamList, 'GroupInfo'>;
 };
 
 const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {

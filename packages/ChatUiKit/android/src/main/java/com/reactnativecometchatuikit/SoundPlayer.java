@@ -25,6 +25,7 @@ public class SoundPlayer extends ReactContextBaseJavaModule {
     public static final String MODULE_NAME = "SoundPlayer";
     public static final String EVENT_NAME = "soundPlayStatus";
     private static String currentUrl = "";
+    private static String prevUrl = "";
     DeviceEventManagerModule.RCTDeviceEventEmitter eventEmitter = null;
 
     SoundPlayer(ReactApplicationContext context) {
@@ -61,6 +62,11 @@ public class SoundPlayer extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void play(String url, Callback resolve) {
+        if (!prevUrl.equals("")){
+            this.stop();
+            emitEvent("complete", prevUrl);
+        }
+        
         if (mediaPlayer == null)
             eventEmitter = getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
 
@@ -74,6 +80,9 @@ public class SoundPlayer extends ReactContextBaseJavaModule {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
                 emitEvent("complete", url);
+                if (prevUrl.equals(url)){
+                    prevUrl = "";
+                }
             }
         });
 
@@ -86,6 +95,7 @@ public class SoundPlayer extends ReactContextBaseJavaModule {
             if (duration > -1) {
                 duration = duration / 1000;
             }
+            prevUrl = url;
             obj.put("duration", duration);
             obj.put("url", currentUrl);
             resolve.invoke(obj.toString());

@@ -1,36 +1,35 @@
-import React, { useCallback, useState } from "react";
-import { SafeAreaView } from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import React, {useCallback, useEffect, useState} from 'react';
+import {SafeAreaView} from 'react-native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 import {
   CometChatGroups,
   CometChatUIEventHandler,
   CometChatUIEvents,
   CometChatUIKit,
   useTheme,
-} from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import { styles } from "./styles";
+} from '@cometchat/chat-uikit-react-native';
+import {CometChat} from '@cometchat/chat-sdk-react-native';
+import {RootStackParamList} from '../../navigation/types';
+import {styles} from './styles';
 
 import {
   GroupScreenAppBarOptions,
   CreateGroupBottomSheet,
   JoinGroupBottomSheet,
-} from "./GroupHelper";
-import { GroupStackParamList } from "../../navigation/paramLists";
+} from './GroupHelper';
+import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
 
-type GroupNavigationProp = StackNavigationProp<
-  GroupStackParamList,
-  "GroupsScreen"
->;
+type GroupNavigationProp = StackNavigationProp<RootStackParamList, 'Groups'>;
 
 interface GroupsProps {
   hideHeader?: boolean;
 }
 
-const Groups: React.FC<GroupsProps> = ({ hideHeader = false }) => {
+const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
   const theme = useTheme();
   const navigation = useNavigation<GroupNavigationProp>();
+  const [pendingChat, setPendingChat] = useState<CometChat.Group | null>(null);
 
   // State to handle showing/hiding bottom sheets
   const [isCreateGroupSheetVisible, setCreateGroupSheetVisible] =
@@ -43,23 +42,35 @@ const Groups: React.FC<GroupsProps> = ({ hideHeader = false }) => {
   // Condition to hide the entire screen if needed
   const [shouldHide, setShouldHide] = useState(false);
 
+  useEffect(() => {
+    if (!isCreateGroupSheetVisible && !isJoinGroupSheetVisible && pendingChat) {
+      const timer = setTimeout(() => {
+        navigation.navigate(SCREEN_CONSTANTS.MESSAGES, {group: pendingChat});
+        setPendingChat(null);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isCreateGroupSheetVisible, isJoinGroupSheetVisible, pendingChat]);
+
   useFocusEffect(
     useCallback(() => {
       setShouldHide(false);
       return () => {
-        // If route length == 1 => user switched tabs, so hide the screen
-        if (navigation.getState().routes.length === 1) {
-          setShouldHide(true);
-        }
+        setShouldHide(true);
       };
-    }, [navigation])
+    }, [navigation]),
   );
 
   /**
    * Navigates to the Messages screen after group creation or join.
    */
   const handleNavigateToMessages = (group: CometChat.Group) => {
-    navigation.navigate("Messages", { group });
+    // close any open sheet first
+    setCreateGroupSheetVisible(false);
+    setJoinGroupSheetVisible(false);
+
+    // save the group – navigation will happen in a useEffect below
+    setPendingChat(group);
   };
 
   /**
@@ -88,7 +99,7 @@ const Groups: React.FC<GroupsProps> = ({ hideHeader = false }) => {
       const joinedGroup = await CometChat.joinGroup(
         group.getGuid(),
         group.getType() as CometChat.GroupType,
-        ""
+        '',
       );
 
       handleNavigateToMessages(joinedGroup);
@@ -97,10 +108,10 @@ const Groups: React.FC<GroupsProps> = ({ hideHeader = false }) => {
         {
           joinedUser: CometChatUIKit.loggedInUser,
           joinedGroup: joinedGroup,
-        }
+        },
       );
     } catch (error) {
-      console.log("Error joining public group:", error);
+      console.log('Error joining public group:', error);
     }
   };
 
@@ -110,9 +121,8 @@ const Groups: React.FC<GroupsProps> = ({ hideHeader = false }) => {
     <SafeAreaView
       style={[
         styles.safeAreaContainer,
-        { backgroundColor: theme.color.background1 },
-      ]}
-    >
+        {backgroundColor: theme.color.background1},
+      ]}>
       {/* CometChatGroups list component */}
       <CometChatGroups
         AppBarOptions={() => (

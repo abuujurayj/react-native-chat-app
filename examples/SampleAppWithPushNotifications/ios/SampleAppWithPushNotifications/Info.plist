@@ -48,6 +48,8 @@
 	<string></string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This is for Mic permission</string>
+	<key>RCTNewArchEnabled</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>voip</string>

@@ -23,13 +23,12 @@ import Videocam from '../../../assets/icons/VideoCam';
 import Call from '../../../assets/icons/Call';
 import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {
-  ChatStackParamList,
-  UserStackParamList,
+  RootStackParamList,
 } from '../../../navigation/types';
 import {useFocusEffect} from '@react-navigation/native';
 
-type ScreenProps = StackScreenProps<ChatStackParamList, 'UserInfo'>;
-type NavigationProps = StackNavigationProp<UserStackParamList, 'UserInfo'>;
+type ScreenProps = StackScreenProps<RootStackParamList, 'UserInfo'>;
+type NavigationProps = StackNavigationProp<RootStackParamList, 'UserInfo'>;
 type Props = ScreenProps & {navigation: NavigationProps};
 
 const UserInfo: FC<Props> = ({route, navigation}) => {

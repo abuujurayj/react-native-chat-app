@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, FC } from "react";
-import { View, Text, TouchableOpacity, BackHandler } from "react-native";
+import React, {useState, useEffect, useRef, FC} from 'react';
+import {View, Text, TouchableOpacity, BackHandler} from 'react-native';
 import {
   CometChatAvatar,
   useTheme,
@@ -9,31 +9,30 @@ import {
   CometChatConversationEvents,
   CometChatConfirmDialog,
   CometChatOutgoingCall,
-} from "@cometchat/chat-uikit-react-native";
-import { Icon } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import { permissionUtil } from "@cometchat/chat-uikit-react-native/src/shared/utils/PermissionUtil";
-import { CallTypeConstants } from "@cometchat/chat-uikit-react-native/src/shared/constants/UIKitConstants";
-import { blockUser, getLastSeenTime, unblock } from "../../../utils/helper";
-import { styles } from "./UserInfoStyles";
-import ArrowBack from "../../../assets/icons/ArrowBack";
-import Block from "../../../assets/icons/Block";
-import Delete from "../../../assets/icons/Delete";
-import Videocam from "../../../assets/icons/VideoCam";
-import Call from "../../../assets/icons/Call";
-import { StackNavigationProp, StackScreenProps } from "@react-navigation/stack";
-import { useFocusEffect } from "@react-navigation/native";
+} from '@cometchat/chat-uikit-react-native';
+import {Icon} from '@cometchat/chat-uikit-react-native';
+import {CometChat} from '@cometchat/chat-sdk-react-native';
+import {permissionUtil} from '@cometchat/chat-uikit-react-native/src/shared/utils/PermissionUtil';
+import {CallTypeConstants} from '@cometchat/chat-uikit-react-native/src/shared/constants/UIKitConstants';
+import {blockUser, getLastSeenTime, unblock} from '../../../utils/helper';
+import {styles} from './UserInfoStyles';
+import ArrowBack from '../../../assets/icons/ArrowBack';
+import Block from '../../../assets/icons/Block';
+import Delete from '../../../assets/icons/Delete';
+import Videocam from '../../../assets/icons/VideoCam';
+import Call from '../../../assets/icons/Call';
+import {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {
-  ChatStackParamList,
-  UserStackParamList,
-} from "../../../navigation/paramLists";
+  RootStackParamList,
+} from '../../../navigation/types';
+import {useFocusEffect} from '@react-navigation/native';
 
-type ScreenProps = StackScreenProps<ChatStackParamList, "UserInfo">;
-type NavigationProps = StackNavigationProp<UserStackParamList, "UserInfo">;
-type Props = ScreenProps & { navigation: NavigationProps };
+type ScreenProps = StackScreenProps<RootStackParamList, 'UserInfo'>;
+type NavigationProps = StackNavigationProp<RootStackParamList, 'UserInfo'>;
+type Props = ScreenProps & {navigation: NavigationProps};
 
-const UserInfo: FC<Props> = ({ route, navigation }) => {
-  const { user } = route.params;
+const UserInfo: FC<Props> = ({route, navigation}) => {
+  const {user} = route.params;
   const theme = useTheme();
   const [userObj, setUserObj] = useState<CometChat.User>(user);
   /** STATES **/
@@ -45,8 +44,8 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const [userStatus, setUserStatus] = useState(userObj.getStatus());
-  const listenerId = useRef<string>("CallListener_" + Date.now());
-  const userStatusListenerId = "user_status_" + new Date().getTime();
+  const listenerId = useRef<string>('CallListener_' + Date.now());
+  const userStatusListenerId = 'user_status_' + new Date().getTime();
 
   const [callObj, setCallObj] = useState<CometChat.Call>();
 
@@ -63,7 +62,7 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
           setDisableButton(true);
         },
         onOutgoingCallAccepted: () => {
-          console.log("call accepted");
+          console.log('call accepted');
         },
         onOutgoingCallRejected: () => {
           setDisableButton(false);
@@ -72,7 +71,7 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
         onIncomingCallCancelled: () => {
           setDisableButton(false);
         },
-      })
+      }),
     );
     CometChatUIEventHandler.addCallListener(listenerId.current, {
       ccCallRejected: () => {
@@ -98,7 +97,7 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
             setUserStatus(offlineUser.getStatus());
           }
         },
-      })
+      }),
     );
 
     return () => {
@@ -109,22 +108,22 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
   }, [userObj]);
 
   const translations = {
-    lastSeen: "Last seen",
+    lastSeen: 'Last seen',
     minutesAgo: (minutes: number) =>
-      `${minutes} minute${minutes === 1 ? "" : "s"} ago`,
-    hoursAgo: (hours: number) => `${hours} hour${hours === 1 ? "" : "s"} ago`,
+      `${minutes} minute${minutes === 1 ? '' : 's'} ago`,
+    hoursAgo: (hours: number) => `${hours} hour${hours === 1 ? '' : 's'} ago`,
   };
 
   const makeVoiceCall = async (): Promise<void> => {
     if (disableButton) return;
-    if (!(await permissionUtil.startResourceBasedTask(["mic"]))) return;
+    if (!(await permissionUtil.startResourceBasedTask(['mic']))) return;
     callType.current = CallTypeConstants.audio;
     makeCall(CallTypeConstants.audio);
   };
 
   const makeVideoCall = async (): Promise<void> => {
     if (disableButton) return;
-    if (!(await permissionUtil.startResourceBasedTask(["mic", "camera"])))
+    if (!(await permissionUtil.startResourceBasedTask(['mic', 'camera'])))
       return;
     callType.current = CallTypeConstants.video;
     makeCall(CallTypeConstants.video);
@@ -141,23 +140,23 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
         receiverID,
         callTypeValue,
         receiverType,
-        CometChat.CATEGORY_CALL
+        CometChat.CATEGORY_CALL,
       );
 
       CometChat.initiateCall(call).then(
-        (initiatedCall) => {
+        initiatedCall => {
           setCallObj(initiatedCall);
           setDisableButton(true);
           CometChatUIEventHandler.emitCallEvent(CallUIEvents.ccOutgoingCall, {
             call: initiatedCall,
           });
         },
-        (error) => {
-          console.log("Call initialization failed with exception:", error);
+        error => {
+          console.log('Call initialization failed with exception:', error);
           CometChatUIEventHandler.emitCallEvent(CallUIEvents.ccCallFailed, {
             call,
           });
-        }
+        },
       );
     }
   };
@@ -178,23 +177,23 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
   const handleDeleteConversationConfirm = () => {
     setDeleteModalOpen(false); // close the dialog
     if (userObj) {
-      CometChat.getConversation(userObj.getUid(), "user")
-        .then((conversation) => {
-          CometChat.deleteConversation(userObj.getUid(), "user")
-            .then((deletedConversation) => {
+      CometChat.getConversation(userObj.getUid(), 'user')
+        .then(conversation => {
+          CometChat.deleteConversation(userObj.getUid(), 'user')
+            .then(deletedConversation => {
               console.log(deletedConversation);
               CometChatUIEventHandler.emitConversationEvent(
                 CometChatConversationEvents.ccConversationDeleted,
-                { conversation: conversation }
+                {conversation: conversation},
               );
               navigation.pop(2);
             })
-            .catch((error) => {
-              console.log("Error while deleting conversation:", error);
+            .catch(error => {
+              console.log('Error while deleting conversation:', error);
             });
         })
-        .catch((error) => {
-          console.log("Error while deleting conversation:", error);
+        .catch(error => {
+          console.log('Error while deleting conversation:', error);
         });
     }
   };
@@ -208,22 +207,21 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
       };
 
       const subscription = BackHandler.addEventListener(
-        "hardwareBackPress",
-        onBackPress
+        'hardwareBackPress',
+        onBackPress,
       );
 
       return () => subscription.remove();
-    }, [navigation])
+    }, [navigation]),
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.color.background1 }}>
+    <View style={{flex: 1, backgroundColor: theme.color.background1}}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButtonContainer}
-          onPress={() => navigation.goBack()}
-        >
+          onPress={() => navigation.goBack()}>
           <Icon
             icon={
               <ArrowBack
@@ -238,17 +236,15 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
           style={[
             theme.typography.heading1.bold,
             styles.smallPaddingLeft,
-            { color: theme.color.textPrimary },
-          ]}
-        >
-          {localize("USER_INFO")}
+            {color: theme.color.textPrimary},
+          ]}>
+          {localize('USER_INFO')}
         </Text>
       </View>
 
       {/* User Information Section */}
       <View
-        style={[styles.profileCard, { borderColor: theme.color.borderLight }]}
-      >
+        style={[styles.profileCard, {borderColor: theme.color.borderLight}]}>
         <View style={styles.profileInfo}>
           <CometChatAvatar
             style={{
@@ -257,30 +253,28 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
               imageStyle: styles.avatarImage,
             }}
             image={
-              userObj?.getAvatar() ? { uri: userObj.getAvatar() } : undefined
+              userObj?.getAvatar() ? {uri: userObj.getAvatar()} : undefined
             }
-            name={userObj?.getName() ?? ""}
+            name={userObj?.getName() ?? ''}
           />
           <Text
             style={[
               theme.typography.heading3.medium,
               styles.mt10Centered,
-              { color: theme.color.textPrimary },
-            ]}
-          >
+              {color: theme.color.textPrimary},
+            ]}>
             {userObj?.getName()}
           </Text>
           <Text
             style={[
               theme.typography.caption1.medium,
               styles.mt5Centered,
-              { color: theme.color.textSecondary },
-            ]}
-          >
+              {color: theme.color.textSecondary},
+            ]}>
             {userObj &&
               !(userObj.getBlockedByMe() || userObj.getHasBlockedMe()) &&
-              (userStatus === "online"
-                ? "Online"
+              (userStatus === 'online'
+                ? 'Online'
                 : getLastSeenTime(userObj.getLastActiveAt(), translations))}
           </Text>
         </View>
@@ -290,10 +284,9 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
           <TouchableOpacity
             style={[
               styles.callActionButton,
-              { borderColor: theme.color.borderDefault },
+              {borderColor: theme.color.borderDefault},
             ]}
-            onPress={makeVoiceCall}
-          >
+            onPress={makeVoiceCall}>
             <Icon
               icon={<Call color={theme.color.primary} height={24} width={24} />}
             />
@@ -301,20 +294,18 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
               style={[
                 theme.typography.caption1.regular,
                 styles.mt5Centered,
-                { color: theme.color.textSecondary },
-              ]}
-            >
-              {localize("VOICE")}
+                {color: theme.color.textSecondary},
+              ]}>
+              {localize('VOICE')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.callActionButton,
-              { borderColor: theme.color.borderDefault },
+              {borderColor: theme.color.borderDefault},
             ]}
-            onPress={makeVideoCall}
-          >
+            onPress={makeVideoCall}>
             <Icon
               icon={
                 <Videocam color={theme.color.primary} height={24} width={24} />
@@ -324,10 +315,9 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
               style={[
                 theme.typography.caption1.regular,
                 styles.mt5Centered,
-                { color: theme.color.textSecondary },
-              ]}
-            >
-              {localize("MESSAGE_VIDEO")}
+                {color: theme.color.textSecondary},
+              ]}>
+              {localize('MESSAGE_VIDEO')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -338,8 +328,7 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
         <View style={styles.optionRow}>
           <TouchableOpacity
             onPress={() => setBlockModalOpen(true)}
-            style={styles.backButtonContainer}
-          >
+            style={styles.backButtonContainer}>
             <Icon
               icon={<Block color={theme.color.error} height={24} width={24} />}
             />
@@ -347,10 +336,9 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
               style={[
                 theme.typography.heading4.regular,
                 styles.ml5,
-                { color: theme.color.error },
-              ]}
-            >
-              {blocked ? localize("UNBLOCK") : localize("BLOCK")}
+                {color: theme.color.error},
+              ]}>
+              {blocked ? localize('UNBLOCK') : localize('BLOCK')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -359,8 +347,7 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
         <View style={styles.optionRow}>
           <TouchableOpacity
             onPress={() => setDeleteModalOpen(true)}
-            style={styles.backButtonContainer}
-          >
+            style={styles.backButtonContainer}>
             <Icon
               icon={<Delete color={theme.color.error} height={24} width={24} />}
             />
@@ -368,10 +355,9 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
               style={[
                 theme.typography.heading4.regular,
                 styles.ml5,
-                { color: theme.color.error },
-              ]}
-            >
-              {localize("DELETE_CHAT_TEXT")}
+                {color: theme.color.error},
+              ]}>
+              {localize('DELETE_CHAT_TEXT')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -382,15 +368,15 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
         isOpen={isBlockModalOpen}
         onCancel={() => setBlockModalOpen(false)}
         onConfirm={handleBlockUnblockConfirm}
-        onDismiss={() => console.log("Block/Unblock Modal dismissed")}
+        onDismiss={() => console.log('Block/Unblock Modal dismissed')}
         titleText={
-          blocked ? localize("UNBLOCK_CONTACT") : localize("BLOCK_USER")
+          blocked ? localize('UNBLOCK_CONTACT') : localize('BLOCK_USER')
         }
         messageText={
-          blocked ? localize("UNBLOCK_SURE") : localize("BLOCK_SURE")
+          blocked ? localize('UNBLOCK_SURE') : localize('BLOCK_SURE')
         }
-        cancelButtonText={localize("CANCEL")}
-        confirmButtonText={blocked ? localize("UNBLOCK") : localize("BLOCK")}
+        cancelButtonText={localize('CANCEL')}
+        confirmButtonText={blocked ? localize('UNBLOCK') : localize('BLOCK')}
         icon={<Block color={theme.color.error} height={45} width={45} />}
       />
 
@@ -399,37 +385,37 @@ const UserInfo: FC<Props> = ({ route, navigation }) => {
         isOpen={isDeleteModalOpen}
         onCancel={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteConversationConfirm}
-        onDismiss={() => console.log("Delete Modal dismissed")}
-        titleText={localize("DELETE_CHAT")}
-        messageText={localize("SURE_TO_DELETE_CHAT")}
-        cancelButtonText={localize("CANCEL")}
-        confirmButtonText={localize("DELETE")}
+        onDismiss={() => console.log('Delete Modal dismissed')}
+        titleText={localize('DELETE_CHAT')}
+        messageText={localize('SURE_TO_DELETE_CHAT')}
+        cancelButtonText={localize('CANCEL')}
+        confirmButtonText={localize('DELETE')}
         icon={<Delete color={theme.color.error} height={45} width={45} />}
       />
 
       {callObj && (
         <CometChatOutgoingCall
           call={callObj}
-          onEndCallButtonPressed={(call) => {
+          onEndCallButtonPressed={call => {
             CometChat.rejectCall(
               call?.getSessionId(),
-              CometChat.CALL_STATUS.CANCELLED
+              CometChat.CALL_STATUS.CANCELLED,
             ).then(
-              (rejectedCall) => {
-                console.log("🚀 ~ rejectedCall:", rejectedCall);
+              rejectedCall => {
+                console.log('🚀 ~ rejectedCall:', rejectedCall);
                 CometChatUIEventHandler.emitCallEvent(
                   CallUIEvents.ccCallRejected,
                   {
                     call: rejectedCall,
-                  }
+                  },
                 );
                 setCallObj(undefined);
               },
-              (err) => {
-                console.log("🚀 ~ err:", err);
+              err => {
+                console.log('🚀 ~ err:', err);
                 setCallObj(undefined);
                 // onError && onError(err);
-              }
+              },
             );
           }}
         />

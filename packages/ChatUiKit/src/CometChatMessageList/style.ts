@@ -245,14 +245,10 @@ export const getMessageListStylesLight = (
           textStyle: {
             ...typography.body.bold,
             color: color.receiveBubbleTextHighlight,
-            //backgroundColor: '#6852D633',
-            //paddingHorizontal: spacing.padding.p0_5
           },
           selfTextStyle: {
             ...typography.body.bold,
             color: color.warning,
-            //backgroundColor: '#FFAB0033',
-            //paddingHorizontal: spacing.padding.p0_5
           },
         },
       },
@@ -425,14 +421,10 @@ export const getMessageListStylesLight = (
           textStyle: {
             ...typography.body.bold,
             color: color.sendBubbleTextHighlight,
-            //backgroundColor: '#F9F8FD33',
-            //paddingHorizontal: spacing.padding.p0_5,
           },
           selfTextStyle: {
             ...typography.body.bold,
             color: color.warning,
-            //backgroundColor: '#FFAB0033',
-            //paddingHorizontal: spacing.padding.p0_5
           },
         },
       },
@@ -699,14 +691,10 @@ export const getMessageListStylesDark = (
           textStyle: {
             ...typography.body.bold,
             color: color.receiveBubbleTextHighlight,
-            //backgroundColor: '#6852D633',
-            //paddingHorizontal: spacing.padding.p0_5
           },
           selfTextStyle: {
             ...typography.body.bold,
             color: color.warning,
-            //backgroundColor: '#FFAB0033',
-            //paddingHorizontal: spacing.padding.p0_5
           },
         },
       },
@@ -879,14 +867,10 @@ export const getMessageListStylesDark = (
           textStyle: {
             ...typography.body.bold,
             color: color.sendBubbleTextHighlight,
-            //backgroundColor: '#F9F8FD33',
-            //paddingHorizontal: spacing.padding.p0_5
           },
           selfTextStyle: {
             ...typography.body.bold,
             color: color.warning,
-            //backgroundColor: '#FFAB0033',
-            //paddingHorizontal: spacing.padding.p0_5
           },
         },
       },

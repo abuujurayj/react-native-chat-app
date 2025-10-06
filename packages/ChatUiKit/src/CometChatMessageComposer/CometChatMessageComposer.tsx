@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 
 import {
   ColorValue,
   Dimensions,
-  Image,
   ImageSourcePropType,
   ImageStyle,
+  InteractionManager,
   KeyboardAvoidingView,
   KeyboardAvoidingViewProps,
   Modal,
@@ -60,6 +60,13 @@ import { CometChatTheme } from "../theme/type";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import { JSX } from "react";
 
+type MentionOverlap = {
+  key: string;
+  value: SuggestionItem;
+  start: number;
+  end: number;
+};
+
 const { FileManager, CommonUtil } = NativeModules;
 
 const uiEventListenerShow = "uiEvent_show_" + new Date().getTime();
@@ -75,19 +82,6 @@ const MessagePreviewTray = (props: any) => {
       onCloseClick={onClose}
     />
   ) : null;
-};
-
-const ImageButton = (props: any) => {
-  const { image, onClick, buttonStyle, imageStyle, disable } = props;
-  return (
-    <TouchableOpacity
-      activeOpacity={disable ? 1 : undefined}
-      onPress={disable ? () => {} : onClick}
-      style={buttonStyle}
-    >
-      <Image source={image} style={[{ height: 24, width: 24 }, imageStyle]} />
-    </TouchableOpacity>
-  );
 };
 
 const AttachIconButton = (props: {
@@ -556,7 +550,7 @@ export const CometChatMessageComposer = React.forwardRef(
       }
     }, []);
 
-    const isTyping = useRef<NodeJS.Timeout | null>(null);
+    const isTyping = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     /**
      * Event callback
@@ -645,7 +639,7 @@ export const CometChatMessageComposer = React.forwardRef(
 
         plainTextInput.current = getPlainString(message?.text, edits);
         setPlainText(plainTextInput.current);
-        setOriginalText(plainTextInput.current.trim());  
+        setOriginalText(plainTextInput.current.trim());
         setHasEdited(false);
         const hashMap = new Map();
         let offset = 0; // Tracks shift in position due to replacements
@@ -1090,6 +1084,7 @@ export const CometChatMessageComposer = React.forwardRef(
       if (!disableMentions) {
         let mentionsFormatter = ChatConfigurator.getDataSource().getMentionsFormatter();
         mentionsFormatter.setLoggedInUser(CometChatUIKit.loggedInUser!);
+        mentionsFormatter.setContext("composer");
         mentionsFormatter.setMentionsStyle(
           mergedComposerStyle.mentionsStyle as CometChatTheme["mentionsStyle"]
         );
@@ -1368,7 +1363,7 @@ export const CometChatMessageComposer = React.forwardRef(
       );
     }
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     const openList = (selection: { start: number; end: number }) => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
@@ -1447,28 +1442,183 @@ export const CometChatMessageComposer = React.forwardRef(
       return _plainString;
     };
 
+    const parseMentionKey = (key: string): { start: number; end: number } | undefined => {
+      const [startStr, endStr] = key.split("_");
+      const start = Number(startStr);
+      const end = Number(endStr);
+
+      const isValid = Number.isFinite(start) && Number.isFinite(end);
+
+      if (typeof __DEV__ !== "undefined" && __DEV__ && !isValid) {
+        throw new Error(`Invalid mention key: "${key}" (expected "start_end")`);
+      }
+
+      return isValid ? { start, end } : undefined;
+    };
+
+    const calcDeletionRange = (
+      selection: { start: number; end: number },
+      deletionLength: number
+    ) => {
+      return selection.start === selection.end
+        ? {
+            start: Math.max(0, selection.start - deletionLength),
+            end: selection.start,
+          }
+        : { start: selection.start, end: selection.end };
+    };
+
+    const collectOverlappingMentions = (
+      range: { start: number; end: number },
+      mentionMap: Map<string, SuggestionItem>
+    ): MentionOverlap[] => {
+      const overlaps: MentionOverlap[] = [];
+
+      mentionMap.forEach((value, key) => {
+        const mentionRange = parseMentionKey(key);
+        if (!mentionRange) return;
+
+        const { start, end } = mentionRange;
+
+        // compare against the *deletion* range, not the mention itself
+        if (range.start < end && range.end > start) {
+          overlaps.push({ key, value, start, end });
+        }
+      });
+
+      overlaps.sort((a, b) => a.start - b.start);
+      return overlaps;
+    };
+
+    const removeMentionsFromTextAndMap = (
+      text: string,
+      overlaps: MentionOverlap[],
+      map: Map<string, SuggestionItem>
+    ) => {
+      let adjustment = 0;
+      let newText = text;
+
+      overlaps.forEach(({ key, value, start, end }) => {
+        const adjStart = start + adjustment;
+        const adjEnd = end + adjustment;
+
+        newText = newText.slice(0, adjStart) + newText.slice(adjEnd);
+        map.delete(key);
+        adjustment -= adjEnd - adjStart;
+
+        // keep formatter in sync
+        if (!ifIdExists(value.id, map)) {
+          const fmt = allFormatters.current.get(value.trackingCharacter!);
+          if (fmt instanceof CometChatMentionsFormatter) {
+            const users = fmt.getSuggestionItems().filter((u) => u.id !== value.id);
+            fmt.setSuggestionItems(users);
+            if (!getMentionLimitView(fmt)) setWarningMessage("");
+          }
+        }
+      });
+
+      return { newText, totalShift: adjustment };
+    };
+
+    const shiftRemainingMentionKeys = (
+      map: Map<string, SuggestionItem>,
+      shiftStart: number,
+      delta: number
+    ) => {
+      if (delta === 0) return;
+      const shifted = new Map<string, SuggestionItem>();
+
+      map.forEach((val, key) => {
+        const range = parseMentionKey(key);
+        if (!range) {
+          // key was malformed → skip or handle as you wish
+          return;
+        }
+
+        const { start, end } = range;
+        if (start > shiftStart) {
+          shifted.set(`${start + delta}_${end + delta}`, val);
+        } else {
+          shifted.set(key, val);
+        }
+      });
+
+      map.clear();
+      shifted.forEach((v, k) => map.set(k, v));
+    };
+
+    const deleteMentionHelper = (oldText: string, newText: string) => {
+      const deletionLen = oldText.length - newText.length;
+      const range = calcDeletionRange(selectionPosition, deletionLen);
+
+      const deletionMentionMap = new Map(mentionMap.current);
+      const overlaps = collectOverlappingMentions(range, deletionMentionMap);
+
+      if (overlaps.length === 0) return false;
+
+      const { newText: finalText, totalShift } = removeMentionsFromTextAndMap(
+        oldText,
+        overlaps,
+        deletionMentionMap
+      );
+
+      shiftRemainingMentionKeys(deletionMentionMap, range.start, totalShift);
+
+      plainTextInput.current = finalText;
+      setPlainText(finalText);
+      onTextChange?.(finalText);
+      mentionMap.current = deletionMentionMap;
+
+      const firstStart = overlaps[0].start;
+      InteractionManager.runAfterInteractions(() => {
+        messageInputRef.current?.setNativeProps({
+          selection: { start: firstStart, end: firstStart },
+        });
+      });
+
+      setFormattedInputMessage();
+      return true;
+    };
+
     const textChangeHandler = (txt: string) => {
       setPlainText(txt);
       if (messagePreview) {
         setHasEdited(txt.trim() !== originalText.trim());
       }
-      let removing = plainTextInput.current?.length ?? 0 > txt.length;
-      let adding = plainTextInput.current?.length < txt.length;
-      let textDiff = txt.length - (plainTextInput.current?.length ?? 0);
-      let notAtLast = selectionPosition.start + textDiff < txt.length;
 
-      plainTextInput.current = txt;
-      onTextChange && onTextChange(txt);
+      const oldText = plainTextInput.current ?? "";
+      const newText = txt;
+
       startTyping();
+
+      // Check if this is a deletion
+      if (oldText.length > newText.length) {
+        const handled = deleteMentionHelper(oldText, newText);
+        if (handled) return;
+      }
+
+      // Existing handling for non-deletion cases
+      const removing = (plainTextInput.current?.length ?? 0) > txt.length;
+      const adding = plainTextInput.current?.length < txt.length;
+      const textDiff = txt.length - (plainTextInput.current?.length ?? 0);
+      const notAtLast = selectionPosition.start + textDiff < txt.length;
 
       let decr = 0;
 
-      let newMentionMap: any = new Map(mentionMap.current);
+      plainTextInput.current = newText;
+      setPlainText(newText);
+
+      const newMentionMap: Map<string, SuggestionItem> = new Map(mentionMap.current);
 
       mentionMap.current.forEach((value, key) => {
-        let position = { start: parseInt(key.split("_")[0]), end: parseInt(key.split("_")[1]) };
+        const range = parseMentionKey(key);
+        if (!range) {
+          // key was malformed → skip or handle as you wish
+          return;
+        }
 
-        //Runs when cursor before the mention and before the last position
+        const { start, end } = range;
+        let position = { start, end };
 
         if (
           notAtLast &&
@@ -1477,48 +1627,43 @@ export const CometChatMessageComposer = React.forwardRef(
         ) {
           if (removing) {
             decr = selectionPosition.end - selectionPosition.start - textDiff;
-            position = { start: position.start - decr, end: position.end - decr };
+            position.start -= decr;
+            position.end -= decr;
           } else if (adding) {
             decr = selectionPosition.end - selectionPosition.start + textDiff;
-            position = { start: position.start + decr, end: position.end + decr };
+            position.start += decr;
+            position.end += decr;
           }
           if (removing || adding) {
-            let newKey = `${position.start}_${position.end}`;
-            position.start >= 0 && newMentionMap.set(newKey, value);
+            const newKey = `${position.start}_${position.end}`;
+            if (position.start >= 0) newMentionMap.set(newKey, value);
             newMentionMap.delete(key);
           }
         }
 
-        // Code to delete mention from hashmap 👇
-        let expctedMentionPos = plainTextInput.current?.substring(position.start, position.end);
-
-        if (expctedMentionPos !== `${value.promptText}`) {
-          let newKey = `${position.start}_${position.end}`;
-          newMentionMap.delete(newKey);
+        /* delete mention that was edited/over-typed */
+        const expected = plainTextInput.current?.substring(position.start, position.end);
+        if (expected !== value.promptText) {
+          newMentionMap.delete(`${position.start}_${position.end}`);
 
           if (!ifIdExists(value.id, newMentionMap)) {
-            let targetedFormatter = allFormatters.current.get(value.trackingCharacter!);
+            const targetedFormatter = allFormatters.current.get(value.trackingCharacter!);
             if (!targetedFormatter) return;
-            let existingCCUsers = [...targetedFormatter.getSuggestionItems()];
-            let userPosition = existingCCUsers.findIndex(
-              (item: SuggestionItem) => item.id === value.id
-            );
-            if (userPosition !== -1) {
-              existingCCUsers.splice(userPosition, 1);
-              (targetedFormatter as CometChatMentionsFormatter).setSuggestionItems(existingCCUsers);
-            }
+            const users = [...targetedFormatter.getSuggestionItems()];
+            const idx = users.findIndex((u) => u.id === value.id);
+            if (idx !== -1) users.splice(idx, 1);
+
             if (targetedFormatter instanceof CometChatMentionsFormatter) {
-              let showWarning = getMentionLimitView(targetedFormatter);
-              if (!showWarning) {
-                setWarningMessage("");
-              }
+              targetedFormatter.setSuggestionItems(users);
+              const warn = getMentionLimitView(targetedFormatter);
+              if (!warn) setWarningMessage("");
             }
           }
         }
       });
 
       mentionMap.current = newMentionMap;
-
+      onTextChange?.(plainTextInput.current);
       setFormattedInputMessage();
     };
 
@@ -1557,7 +1702,6 @@ export const CometChatMessageComposer = React.forwardRef(
           mentionPos += 1;
         }
 
-        // Code to delete mention from hashmap 👇
         if (
           position.end === selectionPosition.end ||
           (selectionPosition.start > position.start && selectionPosition.end <= position.end)

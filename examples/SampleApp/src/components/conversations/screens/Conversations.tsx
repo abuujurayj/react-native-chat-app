@@ -1,6 +1,6 @@
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import React, {useCallback, useContext, useRef, useState} from 'react';
-import {TouchableOpacity, View } from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import {
   CometChatAvatar,
   CometChatConversations,
@@ -8,19 +8,23 @@ import {
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
 import {AuthContext} from '../../../navigation/AuthContext';
-import {useFocusEffect, useNavigation, CommonActions} from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  CommonActions,
+} from '@react-navigation/native';
 import {TooltipMenu} from '../../../utils/TooltipMenu';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {ChatStackParamList} from '../../../navigation/types';
+import {RootStackParamList} from '../../../navigation/types';
 import AccountCircle from '../../../assets/icons/AccountCircle';
 import AddComment from '../../../assets/icons/AddComment';
 import InfoIcon from '../../../assets/icons/InfoIcon';
 import Logout from '../../../assets/icons/Logout';
-import { navigationRef } from '../../../navigation/NavigationService';
-import { AppConstants } from '../../../utils/AppConstants';
+import {navigate, navigationRef} from '../../../navigation/NavigationService';
+import {AppConstants} from '../../../utils/AppConstants';
 
 type ChatNavigationProp = StackNavigationProp<
-  ChatStackParamList,
+  RootStackParamList,
   'Conversation'
 >;
 
@@ -41,15 +45,9 @@ const Conversations: React.FC<{}> = ({}) => {
   useFocusEffect(
     useCallback(() => {
       setShouldHide(false);
-      // This code runs when the screen is focused
-      // Return a cleanup function that runs when the screen is blurred or unfocused
       return () => {
-        //Cleanup runs when out of focus and route length 1 means tab switch and not screen change
-        //getState() always returns the latest state
-        if (navigation.getState().routes.length == 1) {
-          setShouldHide(true);
-          setTooltipVisible(false);
-        }
+        setShouldHide(true);
+        setTooltipVisible(false);
       };
     }, []),
   );
@@ -103,9 +101,11 @@ const Conversations: React.FC<{}> = ({}) => {
       return; // Exit if CometChat logout fails
     }
 
+
     // If all operations succeed, navigate to the LoginScreen
     setIsLoggingOut(false);
     setLogout(false);
+    // navigate('Login');
     navigationRef.dispatch(
       CommonActions.reset({
         index: 0,

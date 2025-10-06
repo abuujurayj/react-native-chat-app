@@ -28,7 +28,6 @@ import {sampleData} from '../../utils/helper';
 import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
 import {navigate, navigationRef} from '../../navigation/NavigationService';
 import Skeleton from './Skeleton'
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type GridItem = CometChat.User | {dummy: true};
 
@@ -38,7 +37,6 @@ const LoginScreen: React.FC = () => {
   const [userUID, setUserUID] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingUsers, setLoadingUsers] = useState<boolean>(true);
-  const insets = useSafeAreaInsets();
 
   const theme = useTheme();
   const mode = useColorScheme();
@@ -161,7 +159,6 @@ const LoginScreen: React.FC = () => {
   return (
     <KeyboardAvoidingView
       style={styles.keyboardAvoidingContainer}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 0 : undefined}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <SafeAreaView
         style={[styles.container, {backgroundColor: theme.color.background2}]}>

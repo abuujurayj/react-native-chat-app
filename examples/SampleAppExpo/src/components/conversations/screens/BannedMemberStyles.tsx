@@ -1,11 +1,11 @@
-import { StyleSheet } from "react-native";
+import {StyleSheet} from 'react-native';
 import {
   CometChatListStylesInterface,
   CometChatTheme,
-} from "@cometchat/chat-uikit-react-native";
-import { deepMerge } from "@cometchat/chat-uikit-react-native/src/shared/helper/helperFunctions";
-import { DeepPartial } from "@cometchat/chat-uikit-react-native/src/shared/helper/types";
-import { ColorValue, ViewStyle } from "react-native";
+} from '@cometchat/chat-uikit-react-native';
+import {deepMerge} from '@cometchat/chat-uikit-react-native/src/shared/helper/helperFunctions';
+import {DeepPartial} from '@cometchat/chat-uikit-react-native/src/shared/helper/types';
+import {ColorValue, ViewStyle} from 'react-native';
 
 export const styles = StyleSheet.create({
   flexContainer: {
@@ -13,46 +13,46 @@ export const styles = StyleSheet.create({
   },
   emptyViewContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: "10%",
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: '10%',
   },
 
   /* Modal Styles */
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
-    position: "absolute",
-    top: "30%",
-    left: "2%",
-    right: "2%",
+    position: 'absolute',
+    top: '30%',
+    left: '2%',
+    right: '2%',
     borderRadius: 10,
     padding: 20,
     elevation: 5,
   },
   modalIconContainer: {
-    alignSelf: "center",
+    alignSelf: 'center',
     marginBottom: 10,
     width: 64,
     height: 64,
     borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContentContainer: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   modalTitle: {
     marginBottom: 15,
   },
   modalDesc: {
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 20,
   },
   buttonContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   cancelButton: {
     flex: 1,
@@ -60,14 +60,14 @@ export const styles = StyleSheet.create({
     marginHorizontal: 5,
     borderRadius: 5,
     borderWidth: 1,
-    alignItems: "center",
+    alignItems: 'center',
   },
   unbanButton: {
     flex: 1,
     paddingVertical: 10,
     marginHorizontal: 5,
     borderRadius: 5,
-    alignItems: "center",
+    alignItems: 'center',
   },
 });
 
@@ -83,24 +83,24 @@ export type BannedMemberStyle = CometChatListStylesInterface & {
 };
 
 export const getBannedMemberStyleLight = (
-  theme: CometChatTheme
+  theme: CometChatTheme,
 ): DeepPartial<BannedMemberStyle> => {
-  const { color, spacing, typography } = theme;
+  const {color, spacing, typography} = theme;
   return {
     headerContainerStyle: {
-      alignItems: "flex-start",
-      justifyContent: "center",
-      width: "100%",
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      width: '100%',
       borderRadius: 0,
       paddingHorizontal: 0,
     },
     titleSeparatorStyle: {
       borderBottomWidth: 1,
       borderBottomColor: color.borderLight,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      width: "100%",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
     },
     containerStyle: {
       backgroundColor: color.background1,
@@ -108,7 +108,7 @@ export const getBannedMemberStyleLight = (
     },
     itemStyle: {
       containerStyle: {
-        flexDirection: "row",
+        flexDirection: 'row',
         paddingHorizontal: spacing.padding.p4,
         paddingVertical: spacing.padding.p2,
         gap: spacing.spacing.s3,
@@ -129,10 +129,10 @@ export const getBannedMemberStyleLight = (
       },
       headViewContainerStyle: {},
       titleSubtitleContainerStyle: {
-        alignSelf: "center",
+        alignSelf: 'center',
       },
       trailingViewContainerStyle: {
-        alignSelf: "center",
+        alignSelf: 'center',
       },
     },
     confirmSelectionStyle: {},
@@ -162,7 +162,7 @@ export const getBannedMemberStyleLight = (
       textStyle: {
         color: color.textPrimary,
         ...typography.heading4.regular,
-        textAlignVertical: "center",
+        textAlignVertical: 'center',
         paddingVertical: 0,
         height: spacing.spacing.s7,
       },
@@ -170,12 +170,12 @@ export const getBannedMemberStyleLight = (
         backgroundColor: color.background3,
         paddingVertical: spacing.spacing.s3,
         marginTop: spacing.spacing.s3,
-        width: "95%",
+        width: '95%',
         gap: spacing.spacing.s1,
-        alignContent: "space-around",
-        alignSelf: "center",
-        flexDirection: "row",
-        alignItems: "center",
+        alignContent: 'space-around',
+        alignSelf: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
       },
       icon: undefined,
       iconStyle: {
@@ -193,13 +193,13 @@ export const getBannedMemberStyleLight = (
       },
       subTitleStyle: {
         color: color.textSecondary,
-        textAlign: "center" as const,
+        textAlign: 'center' as const,
         ...typography.body.regular,
       },
       containerStyle: {
-        justifyContent: "center",
-        display: "none",
-        alignItems: "center",
+        justifyContent: 'center',
+        display: 'none',
+        alignItems: 'center',
         padding: spacing.padding.p3,
       },
     },
@@ -211,18 +211,18 @@ export const getBannedMemberStyleLight = (
       },
       subTitleStyle: {
         color: color.textSecondary,
-        textAlign: "center" as const,
+        textAlign: 'center' as const,
         ...typography.body.regular,
       },
       containerStyle: {
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: spacing.padding.p3,
       },
     },
     skeletonStyle: {
       backgroundColor: color.background3,
-      linearGradientColors: ["#E8E8E8", "#F5F5F5"] as [string, string],
+      linearGradientColors: ['#E8E8E8', '#F5F5F5'] as [string, string],
       shimmerBackgroundColor: color.staticBlack,
       shimmerOpacity: 0.01,
       speed: 1,
@@ -231,13 +231,13 @@ export const getBannedMemberStyleLight = (
 };
 
 export const getBannedMemberStyleDark = (
-  theme: CometChatTheme
+  theme: CometChatTheme,
 ): DeepPartial<BannedMemberStyle> => {
-  const { color, spacing, typography } = theme;
+  const {color, spacing, typography} = theme;
   return deepMerge(getBannedMemberStyleLight(theme), {
     skeletonStyle: {
       backgroundColor: color.background3,
-      linearGradientColors: ["#383838", "#272727"] as [string, string],
+      linearGradientColors: ['#383838', '#272727'] as [string, string],
       shimmerBackgroundColor: color.staticWhite,
       shimmerOpacity: 0.01,
       speed: 1,

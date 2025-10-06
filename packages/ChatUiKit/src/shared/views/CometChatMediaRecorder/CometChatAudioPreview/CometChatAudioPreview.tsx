@@ -17,8 +17,8 @@ import { AnimatedAudioWaves } from "../../CometChatAudioBubble/AnimatedAudioWave
 
 const { SoundPlayer } = NativeModules;
 const eventEmitter = new NativeEventEmitter(SoundPlayer);
-let listener: EmitterSubscription;
-let interval: NodeJS.Timeout;
+let listener: EmitterSubscription | undefined;
+let interval: ReturnType<typeof setTimeout>;
 
 export interface CometChatAudioBubbleInterface {
   /**
@@ -65,26 +65,32 @@ export const CometChatAudioPreview = ({
   useEffect(() => {
     if (audioUrl) {
       SoundPlayer.prepareMediaPlayer(audioUrl, (s: string) => {
-        setDuration(JSON.parse(s).duration);
+        try {
+          setDuration(JSON.parse(s).duration);
+        } catch (e) {
+          console.log("prepareMediaPlayer parse error", e);
+        }
       });
     }
 
+    // release player on unmount (all platforms) — keeps behaviour consistent with AudioBubble
     return () => {
-      Platform.OS == "android" && SoundPlayer.releaseMediaPlayer();
+      SoundPlayer.releaseMediaPlayer();
     };
   }, [audioUrl]);
 
   useEffect(() => {
     listener = eventEmitter.addListener("soundPlayStatus", (data) => {
       if (audioUrl === data.url) {
-        setStatus("paused");
+        // playback ended for this url — reset to idle, clear interval and reset time
+        setStatus("");
         clearInterval(interval);
-        setCurrentTime(duration);
+        setCurrentTime(0);
       }
     });
 
     return () => {
-      listener.remove();
+      listener?.remove();
       clearInterval(interval);
     };
   }, [audioUrl]);
@@ -114,7 +120,7 @@ export const CometChatAudioPreview = ({
       if (Platform.OS == "ios") {
         setStatus("playing");
       }
-      // Get total duration when audio starts playing
+      // Get total duration/position when resume
       SoundPlayer.getPosition((info: string) => {
         if (info) {
           if (Platform.OS == "android") {
@@ -166,7 +172,7 @@ export const CometChatAudioPreview = ({
     }
   };
 
-  const pressTime = useRef<number|null>(0);
+  const pressTime = useRef<number | null>(0);
 
   const handleTouchStart = () => {
     pressTime.current = Date.now();

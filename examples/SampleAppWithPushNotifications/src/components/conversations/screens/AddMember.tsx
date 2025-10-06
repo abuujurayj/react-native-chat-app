@@ -26,14 +26,14 @@ import {
 } from '@cometchat/chat-uikit-react-native';
 import {Icon} from '@cometchat/chat-uikit-react-native';
 import {useRoute, useNavigation, RouteProp} from '@react-navigation/native';
-import {ChatStackParamList} from '../../../navigation/types';
 import {styles} from './AddMemberStyles';
 import {commonVars} from '@cometchat/chat-uikit-react-native/src/shared/base/vars';
 import ArrowBack from '../../../assets/icons/ArrowBack'
+import { RootStackParamList } from '../../../navigation/types';
 const {CommonUtil} = NativeModules;
 
 const AddMember: React.FC = () => {
-  const route = useRoute<RouteProp<ChatStackParamList, 'AddMember'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'AddMember'>>();
   const navigation = useNavigation();
   const {group} = route.params;
   const theme = useTheme();
@@ -41,7 +41,7 @@ const AddMember: React.FC = () => {
   const [selectedUsers, setSelectedUsers] = useState<CometChat.User[]>([]);
   const [errorToastVisible, setErrorToastVisible] = useState(false);
   const [errorToastMessage, setErrorToastMessage] = useState('');
-  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [kbOffset, setKbOffset] = React.useState(900);
 
   useEffect(() => {

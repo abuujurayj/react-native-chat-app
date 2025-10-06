@@ -1,5 +1,6 @@
+import { StatusBar, useColorScheme } from 'react-native';
 import './gesture-handler';
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Platform,
   View,
@@ -7,6 +8,8 @@ import {
   AppState,
   AppStateStatus,
 } from 'react-native';
+import { enableScreens } from 'react-native-screens';
+enableScreens();
 import {
   CometChatIncomingCall,
   CometChatThemeProvider,
@@ -16,19 +19,25 @@ import {
   UIKitSettings,
 } from '@cometchat/chat-uikit-react-native';
 
-import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
 import RootStackNavigator from './src/navigation/RootStackNavigator';
-import {AppConstants} from './src/utils/AppConstants';
-import {
-  requestAndroidPermissions,
-} from './src/utils/helper';
+import { AppConstants } from './src/utils/AppConstants';
+import { requestAndroidPermissions } from './src/utils/helper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Listener ID for registering and removing CometChat listeners.
-const listenerId = 'app';
+function App() {
+  const isDarkMode = useColorScheme() === 'dark';
 
-const App = (): React.ReactElement => {
+  return (
+    <SafeAreaProvider>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <AppContent />
+    </SafeAreaProvider>
+  );
+}
+
+const AppContent = (): React.ReactElement => {
   const [callReceived, setCallReceived] = useState(false);
   const incomingCall = useRef<CometChat.Call | CometChat.CustomMessage | null>(
     null,
@@ -37,9 +46,11 @@ const App = (): React.ReactElement => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
+  // Listener ID for registering and removing CometChat listeners.
+  const listenerId = 'app';
 
   /**
-   * Initialize CometChat UIKit.
+   * Initialize CometChat UIKit and configure Google Sign-In.
    * Retrieves credentials from AsyncStorage and uses fallback constants if needed.
    */
   useEffect(() => {
@@ -74,7 +85,6 @@ const App = (): React.ReactElement => {
         if (loggedInUser) {
           setIsLoggedIn(true);
         }
-
       } catch (error) {
         console.log('Error during initialization', error);
       } finally {
@@ -242,28 +252,31 @@ const App = (): React.ReactElement => {
 
   // Once initialization is complete, render the main app UI.
   return (
-    <SafeAreaProvider>
-      <SafeAreaView edges={['top']} style={{flex: 1}}>
-        <CometChatThemeProvider>
-          {/* Render the incoming call UI if the user is logged in and a call is received */}
-          {isLoggedIn && callReceived && incomingCall.current ? (
-            <CometChatIncomingCall
-              call={incomingCall.current}
-              onDecline={() => {
-                // Handle call decline by clearing the incoming call state.
-                incomingCall.current = null;
-                setCallReceived(false);
-              }}
-            />
-          ) : null}
-          {/* Render the main navigation stack, passing the login status as a prop */}
-          <RootStackNavigator
-            isLoggedIn={isLoggedIn}
-            hasValidAppCredentials={hasValidAppCredentials}
+    <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+      <CometChatThemeProvider>
+        {/* Render the incoming call UI if the user is logged in and a call is received */}
+        {isLoggedIn && callReceived && incomingCall.current ? (
+          <CometChatIncomingCall
+            call={incomingCall.current}
+            onDecline={() => {
+              // Handle call decline by clearing the incoming call state.
+              incomingCall.current = null;
+              setCallReceived(false);
+            }}
+            style={{
+              containerStyle: {
+                marginTop: Platform.OS === 'android' ? 40 : 0,
+              },
+            }}
           />
-        </CometChatThemeProvider>
-      </SafeAreaView>
-    </SafeAreaProvider>
+        ) : null}
+        {/* Render the main navigation stack, passing the login status as a prop */}
+        <RootStackNavigator
+          isLoggedIn={isLoggedIn}
+          hasValidAppCredentials={hasValidAppCredentials}
+        />
+      </CometChatThemeProvider>
+    </SafeAreaView>
   );
 };
 

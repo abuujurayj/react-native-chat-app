@@ -39,6 +39,11 @@ import { DataSource } from "./DataSource";
 import { CommonUtils } from "../utils/CommonUtils";
 import { DimensionValue, ViewStyle } from "react-native";
 
+export enum MentionContext {
+  Incoming = 'incoming',
+  Outgoing = 'outgoing',
+}
+
 function isAudioMessage(message: CometChat.BaseMessage): message is CometChat.MediaMessage {
   return (
     message.getCategory() == CometChat.CATEGORY_MESSAGE &&
@@ -738,8 +743,10 @@ export class MessageDataSource implements DataSource {
 
     let linksTextFormatter = ChatConfigurator.getDataSource().getUrlsFormatter(loggedInUser!);
     let mentionsTextFormatter = ChatConfigurator.getDataSource().getMentionsFormatter(
-      loggedInUser!
+      loggedInUser!,
+      theme
     );
+    mentionsTextFormatter.setContext(isMessageSentByLoggedInUser ? MentionContext.Outgoing : MentionContext.Incoming);
     linksTextFormatter.setMessage(message);
     linksTextFormatter.setId("ccDefaultUrlsFormatterId");
     linksTextFormatter.setStyle({ linkTextColor: theme.color.receiveBubbleLink });
@@ -751,13 +758,6 @@ export class MessageDataSource implements DataSource {
       mentionsTextFormatter.setLoggedInUser(loggedInUser!);
       mentionsTextFormatter.setMessage(message);
       mentionsTextFormatter.setId("ccDefaultMentionFormatterId");
-      let isUserSentMessage = message.getSender().getUid() == loggedInUser!.getUid();
-      if (isUserSentMessage) {
-        mentionsTextFormatter.setMentionsStyle(_style?.mentionsStyle);
-      } else {
-        mentionsTextFormatter.setMentionsStyle(_style?.mentionsStyle);
-      }
-      mentionsTextFormatter.setTextStyle(_style?.textStyle);
     }
 
     let finalFormatters: CometChatTextFormatter[] = [];
@@ -775,7 +775,9 @@ export class MessageDataSource implements DataSource {
         formatter.setMessage(message);
         formatter.setTargetElement(MentionsTargetElement.textbubble);
         formatter.setLoggedInUser(CometChatUIKit.loggedInUser!);
+        formatter.setContext(isMessageSentByLoggedInUser ? "outgoing" : "incoming");
       }
+
       formatter.setMessage(message);
       finalFormatters.push(CommonUtils.clone(formatter));
       if (urlFormatterExists && mentionsFormatterExists) {
@@ -1340,7 +1342,7 @@ export class MessageDataSource implements DataSource {
     theme: CometChatTheme,
     additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
   ) => {
-    const attachmentOptions :CometChatMessageComposerAction[] = [];
+    const attachmentOptions: CometChatMessageComposerAction[] = [];
     if (!additionalAttachmentOptionsParams?.hideCameraOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.takePhoto,
@@ -1469,7 +1471,7 @@ export class MessageDataSource implements DataSource {
     theme: CometChatTheme,
     additionalAttachmentOptionsParams?: AdditionalAttachmentOptionsParams
   ) => {
-    const attachmentOptions :CometChatMessageComposerAction[] = [];
+    const attachmentOptions: CometChatMessageComposerAction[] = [];
     if (!additionalAttachmentOptionsParams?.hideCameraOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.takePhoto,
@@ -1540,7 +1542,7 @@ export class MessageDataSource implements DataSource {
                 ?.iconContainerStyle
             }
           />
-        )
+        ),
       });
     }
 
@@ -1595,7 +1597,7 @@ export class MessageDataSource implements DataSource {
 
     return attachmentOptions;
   };
-  
+
   getAttachmentOptions(
     theme: CometChatTheme,
     user?: any,
@@ -1622,15 +1624,21 @@ export class MessageDataSource implements DataSource {
     return CometChatConversationUtils.getMessagePreview(conversation.getLastMessage(), theme);
   }
 
-  getAllTextFormatters(loggedInUser?: CometChat.User): CometChatTextFormatter[] {
+  getAllTextFormatters(
+    loggedInUser?: CometChat.User,
+    theme?: CometChatTheme
+  ): CometChatTextFormatter[] {
     return [
-      ChatConfigurator.getDataSource().getMentionsFormatter(loggedInUser),
+      ChatConfigurator.getDataSource().getMentionsFormatter(loggedInUser, theme),
       ChatConfigurator.getDataSource().getUrlsFormatter(loggedInUser),
     ];
   }
 
-  getMentionsFormatter(loggedInUser?: CometChat.User): CometChatMentionsFormatter {
-    return new CometChatMentionsFormatter(loggedInUser);
+  getMentionsFormatter(
+    loggedInUser?: CometChat.User,
+    theme?: CometChatTheme
+  ): CometChatMentionsFormatter {
+    return new CometChatMentionsFormatter(theme!, loggedInUser);
   }
 
   getUrlsFormatter(loggedInUser?: CometChat.User): CometChatUrlsFormatter {

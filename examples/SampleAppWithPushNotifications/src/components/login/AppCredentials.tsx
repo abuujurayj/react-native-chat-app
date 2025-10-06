@@ -25,7 +25,6 @@ import {navigate, navigationRef} from '../../navigation/NavigationService';
 import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {useFocusEffect} from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const AppCredentials: React.FC = () => {
   const [storedAppId, setStoredAppId] = useState<string>('');
@@ -43,7 +42,6 @@ const AppCredentials: React.FC = () => {
   const theme = useTheme();
   const {width} = Dimensions.get('window');
   const mode = useColorScheme();
-  const insets = useSafeAreaInsets();
 
   // Compute if form is valid (all fields provided)
   const isFormValid =
@@ -143,7 +141,7 @@ const AppCredentials: React.FC = () => {
     navigate('BottomTabNavigator');
     navigationRef.reset({
       index: 0,
-      routes: [{name: SCREEN_CONSTANTS.SAMPLER_USER}],
+      routes: [{name: SCREEN_CONSTANTS.SAMPLE_USER}],
     });
   };
 
@@ -152,7 +150,6 @@ const AppCredentials: React.FC = () => {
       style={[styles.container, {backgroundColor: theme.color.background2}]}>
       <KeyboardAvoidingView
         style={styles.container}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 0 : undefined}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.contentContainer}>
           <ScrollView

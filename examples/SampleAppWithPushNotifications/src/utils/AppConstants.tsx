@@ -5,12 +5,17 @@ export const AppConstants = {
   appId: '',
   region: '',
   subscriptionType: 'ALL_USERS',
-  versionNumber: 'V5.0.1',
+  versionNumber: 'V5.0.2',
+  webClientId:
+    '',
+  iosClientId:
+    '',
 };
 
 export const SCREEN_CONSTANTS = {
+  LOGIN: 'Login',
   APP_CRED: 'AppCredentials',
-  SAMPLER_USER: 'SampleUser',
+  SAMPLE_USER: 'SampleUser',
   ONGOING_CALL_SCREEN: 'OngoingCallScreen',
   BOTTOM_TAB_NAVIGATOR: 'BottomTabNavigator',
   CHATS: 'Chats',
@@ -29,5 +34,4 @@ export const SCREEN_CONSTANTS = {
   VIEW_MEMBER: 'ViewMembers',
   CALL_LOGS: 'CallLogs',
   CALL_DETAILS: 'CallDetails',
-  GROUPS_SCREEN: 'GroupsScreen',
 } as const;

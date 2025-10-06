@@ -1,12 +1,12 @@
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import { CometChatUsers, useTheme } from "@cometchat/chat-uikit-react-native";
-import React, { useCallback } from "react";
-import { SafeAreaView } from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { UserStackParamList } from "../../navigation/paramLists";
+import {CometChat} from '@cometchat/chat-sdk-react-native';
+import {CometChatUsers, useTheme} from '@cometchat/chat-uikit-react-native';
+import React, {useCallback} from 'react';
+import {SafeAreaView} from 'react-native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {RootStackParamList} from '../../navigation/types';
+import {StackNavigationProp} from '@react-navigation/stack';
 
-type UserNavigationProp = StackNavigationProp<UserStackParamList, "Users">;
+type UserNavigationProp = StackNavigationProp<RootStackParamList, 'Users'>;
 
 const Users: React.FC = () => {
   const theme = useTheme();
@@ -17,20 +17,16 @@ const Users: React.FC = () => {
     useCallback(() => {
       setShouldHide(false);
       return () => {
-        //Cleanup runs when out of focus and route length 1 means tab switch and not screen change
-        //getState() always returns the latest state
-        if (navigation.getState().routes.length == 1) {
-          setShouldHide(true);
-        }
+        setShouldHide(true);
       };
-    }, [])
+    }, []),
   );
 
   return shouldHide ? null : (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.color.background1 }}>
+    <SafeAreaView style={{flex: 1, backgroundColor: theme.color.background1}}>
       <CometChatUsers
         onItemPress={(user: CometChat.User) => {
-          navigation.navigate("Messages", {
+          navigation.navigate('Messages', {
             user: user,
           });
         }}
@@ -39,9 +35,9 @@ const Users: React.FC = () => {
           .hideBlockedUsers(false)
           .setRoles([])
           .friendsOnly(false)
-          .setStatus("")
+          .setStatus('')
           .setTags([])
-          .sortBy("name")
+          .sortBy('name')
           .setUIDs([])}
       />
     </SafeAreaView>

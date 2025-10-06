@@ -1,4 +1,4 @@
-import React, {JSX, useEffect, useRef, useState } from "react";
+import React, { JSX, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   EmitterSubscription,
@@ -7,7 +7,6 @@ import {
   ImageStyle,
   NativeEventEmitter,
   NativeModules,
-  Platform,
   Pressable,
   View,
   ViewStyle,
@@ -76,7 +75,7 @@ export const CometChatVideoBubble = (props: CometChatVideoBubbleInterface) => {
     playIcon,
     playIconStyle,
     onPress,
-    playIconContainerStyle,
+    playIconContainerStyle = {},
     imageStyle,
   } = props;
 
@@ -130,27 +129,6 @@ export const CometChatVideoBubble = (props: CometChatVideoBubbleInterface) => {
     };
   }, []);
 
-  const pressTime = useRef<number | null>(0);
-
-  // const handleTouchStart = () => {
-  //   pressTime.current = Date.now();
-  // };
-
-  // const handleTouchEnd = () => {
-  //   if (pressTime.current === null && Platform.OS === "ios") return;
-  //   const endTime = Date.now();
-  //   const pressDuration = endTime - pressTime.current!;
-  //   if (pressDuration < 500) {
-  //     playVideo();
-  //   }
-  // };
-
-  // const onTouchMove = () => {
-  //   if (Platform.OS === "ios") {
-  //     pressTime.current = null;
-  //   }
-  // };
-
   return (
     <>
       <CometChatVideoPlayer
@@ -163,28 +141,27 @@ export const CometChatVideoBubble = (props: CometChatVideoBubbleInterface) => {
         onLoad={() => setIsLoading(false)}
       />
       <ImageBackground source={imageSource} resizeMode={"cover"} style={imageStyle}>
-        <Pressable
-          onPress={() => playVideo()}
-          style={{ height: "100%", width: "100%", alignItems: "center", justifyContent: "center" }}
-        >
-          <View>
-            {isLoading ? (
-              <ActivityIndicator
-                size={typeof playIconStyle?.height === "number" ? playIconStyle.height : "large"}
-                color={playIconStyle?.tintColor}
-              />
-            ) : (
-              <Icon
-                name='play-arrow-fill'
-                height={playIconStyle?.height}
-                width={playIconStyle?.width}
-                icon={playIcon}
-                imageStyle={playIconStyle}
-                color={playIconStyle?.tintColor}
-              ></Icon>
-            )}
-          </View>
-        </Pressable>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <Pressable onPress={() => playVideo()} style={playIconContainerStyle} hitSlop={12}>
+            <View>
+              {isLoading ? (
+                <ActivityIndicator
+                  size={typeof playIconStyle?.height === "number" ? playIconStyle.height : "large"}
+                  color={playIconStyle?.tintColor}
+                />
+              ) : (
+                <Icon
+                  name='play-arrow-fill'
+                  height={playIconStyle?.height}
+                  width={playIconStyle?.width}
+                  icon={playIcon}
+                  imageStyle={playIconStyle}
+                  color={playIconStyle?.tintColor}
+                ></Icon>
+              )}
+            </View>
+          </Pressable>
+        </View>
       </ImageBackground>
     </>
   );

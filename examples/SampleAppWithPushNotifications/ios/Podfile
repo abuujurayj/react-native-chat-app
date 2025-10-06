@@ -13,7 +13,8 @@ use_frameworks! :linkage => :static
 target 'SampleAppWithPushNotifications' do
   config = use_native_modules!
 
-  pod 'RNCallKeep', :path => '../../../node_modules/react-native-callkeep'
+  pod 'RNCallKeep', :path => '../node_modules/react-native-callkeep'
+  pod 'RNVoipPushNotification', :path => '../node_modules/react-native-voip-push-notification'
 
   
 

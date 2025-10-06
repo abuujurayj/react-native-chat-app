@@ -81,7 +81,7 @@ export type MessageComposerStyle = {
     active: ImageStyle;
     inactive: ImageStyle;
   };
-  mediaRecorderStyle: CometChatTheme['mediaRecorderStyle'];
+  mediaRecorderStyle: CometChatTheme["mediaRecorderStyle"];
   attachmentOptionsStyles: ActionSheetStyle;
 };
 
@@ -130,14 +130,10 @@ export const getComposerStyle = (
       textStyle: {
         ...typography.body.regular,
         color: color.textHighlight,
-        // backgroundColor: '#6852D633',
-        // paddingHorizontal: spacing.padding.p0_5
       },
       selfTextStyle: {
         ...typography.body.regular,
         color: color.warning,
-        // backgroundColor: '#FFAB0033',
-        // paddingHorizontal: spacing.padding.p0_5
       },
     },
     stickerIconStyle: {
@@ -148,6 +144,6 @@ export const getComposerStyle = (
         tintColor: color.primary,
       },
     },
-    attachmentOptionsStyles: getAttachmentOptionsStyle(color, spacing, typography)
+    attachmentOptionsStyles: getAttachmentOptionsStyle(color, spacing, typography),
   };
 };

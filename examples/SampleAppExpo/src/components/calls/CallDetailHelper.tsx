@@ -1,23 +1,22 @@
-import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
-import { CallMade, CallMissedOutgoingFill, CallReceived } from "./icons";
-import { CometChatTheme } from "@cometchat/chat-uikit-react-native/src/theme/type";
-import { JSX } from "react";
+import {CometChatTheme, CometChatUIKit} from '@cometchat/chat-uikit-react-native';
+import {CallMade, CallMissedOutgoingFill, CallReceived} from './icons';
+import {JSX} from 'react';
 
-type CallDirection = "incoming" | "outgoing";
+type CallDirection = 'incoming' | 'outgoing';
 
 export type CallStatus =
-  | "incoming"
-  | "outgoing"
-  | "incomingCallEnded"
-  | "outgoingCallEnded"
-  | "cancelledByMe"
-  | "cancelledByThem"
-  | "incomingRejected"
-  | "outgoingRejected"
-  | "incomingBusy"
-  | "outgoingBusy"
-  | "unansweredByMe"
-  | "unansweredByThem";
+  | 'incoming'
+  | 'outgoing'
+  | 'incomingCallEnded'
+  | 'outgoingCallEnded'
+  | 'cancelledByMe'
+  | 'cancelledByThem'
+  | 'incomingRejected'
+  | 'outgoingRejected'
+  | 'incomingBusy'
+  | 'outgoingBusy'
+  | 'unansweredByMe'
+  | 'unansweredByThem';
 
 export class CallDetailHelper {
   static getFormattedInitiatedAt = (call: any): string => {
@@ -26,57 +25,57 @@ export class CallDetailHelper {
 
     // Extracting parts
     const day = date.getDate();
-    const month = new Intl.DateTimeFormat("en-US", { month: "long" }).format(
-      date
+    const month = new Intl.DateTimeFormat('en-US', {month: 'long'}).format(
+      date,
     );
     const year = date.getFullYear();
-    const time = date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
+    const time = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
       hour12: true,
     });
 
     // Determine if the year should be included
     const includeYear = now.getFullYear() !== year;
 
-    return `${day} ${month}${includeYear ? `, ${year}` : ""}, ${time}`;
+    return `${day} ${month}${includeYear ? `, ${year}` : ''}, ${time}`;
   };
 
   /** Returns the UI-facing callStatus plus the direction */
   static getCallType = (
-    call: any
-  ): { type: CallDirection; callStatus: CallStatus } => {
+    call: any,
+  ): {type: CallDirection; callStatus: CallStatus} => {
     const myUid = CometChatUIKit.loggedInUser?.getUid();
     const type: CallDirection =
-      call.getInitiator().getUid() === myUid ? "outgoing" : "incoming";
+      call.getInitiator().getUid() === myUid ? 'outgoing' : 'incoming';
 
     const statusMap: Record<
       string,
-      { incoming: CallStatus; outgoing: CallStatus }
+      {incoming: CallStatus; outgoing: CallStatus}
     > = {
       ended: {
-        incoming: "incomingCallEnded",
-        outgoing: "outgoingCallEnded",
+        incoming: 'incomingCallEnded',
+        outgoing: 'outgoingCallEnded',
       },
       rejected: {
-        incoming: "incomingRejected",
-        outgoing: "outgoingRejected",
+        incoming: 'incomingRejected',
+        outgoing: 'outgoingRejected',
       },
       cancelled: {
-        incoming: "unansweredByMe",
-        outgoing: "cancelledByMe",
+        incoming: 'unansweredByMe',
+        outgoing: 'cancelledByMe',
       },
       unanswered: {
-        incoming: "unansweredByMe",
-        outgoing: "unansweredByThem",
+        incoming: 'unansweredByMe',
+        outgoing: 'unansweredByThem',
       },
       initiated: {
-        incoming: "incoming",
-        outgoing: "outgoing",
+        incoming: 'incoming',
+        outgoing: 'outgoing',
       },
       busy: {
-        incoming: "incomingBusy",
-        outgoing: "outgoingBusy",
+        incoming: 'incomingBusy',
+        outgoing: 'outgoingBusy',
       },
     };
 
@@ -84,14 +83,14 @@ export class CallDetailHelper {
       type,
       callStatus:
         statusMap[call.getStatus() as keyof typeof statusMap]?.[type] ??
-        (type === "incoming" ? "incoming" : "outgoing"),
+        (type === 'incoming' ? 'incoming' : 'outgoing'),
     };
   };
 
   /** Which SVG to render for a given callStatus */
   static getCallStatusDisplayIcon = (
     callStatus: CallStatus,
-    theme: CometChatTheme
+    theme: CometChatTheme,
   ): JSX.Element | undefined => {
     const icons: Record<CallStatus, JSX.Element> = {
       outgoing: <CallMade height={24} width={24} color={theme.color.success} />,
@@ -148,19 +147,19 @@ export class CallDetailHelper {
 
   static getCallStatusDisplayText = (callStatus: CallStatus): string => {
     const labels: Record<CallStatus, string> = {
-      outgoing: "Outgoing Call",
-      outgoingCallEnded: "Outgoing Call",
-      cancelledByMe: "Outgoing Call",
-      outgoingRejected: "Outgoing Call",
-      outgoingBusy: "Outgoing Call",
-      unansweredByThem: "Outgoing Call",
+      outgoing: 'Outgoing Call',
+      outgoingCallEnded: 'Outgoing Call',
+      cancelledByMe: 'Outgoing Call',
+      outgoingRejected: 'Outgoing Call',
+      outgoingBusy: 'Outgoing Call',
+      unansweredByThem: 'Outgoing Call',
 
-      incoming: "Incoming Call",
-      incomingCallEnded: "Incoming Call",
-      cancelledByThem: "Missed Call",
-      incomingRejected: "Incoming Call",
-      incomingBusy: "Missed Call",
-      unansweredByMe: "Missed Call",
+      incoming: 'Incoming Call',
+      incomingCallEnded: 'Incoming Call',
+      cancelledByThem: 'Missed Call',
+      incomingRejected: 'Incoming Call',
+      incomingBusy: 'Missed Call',
+      unansweredByMe: 'Missed Call',
     };
 
     return labels[callStatus];

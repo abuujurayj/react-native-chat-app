@@ -1,9 +1,9 @@
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import { CometChatUIKit } from "@cometchat/chat-uikit-react-native";
+import {CometChat} from '@cometchat/chat-sdk-react-native';
+import {CometChatUIKit} from '@cometchat/chat-uikit-react-native';
 
 export const listners = {
   addListener: {
-    groupListener: ({ groupListenerId, handleGroupListener }: any) =>
+    groupListener: ({groupListenerId, handleGroupListener}: any) =>
       CometChat.addGroupListener(
         groupListenerId,
         new CometChat.GroupListener({
@@ -11,7 +11,7 @@ export const listners = {
             message: any,
             kickedUser: any,
             kickedBy: any,
-            kickedFrom: any
+            kickedFrom: any,
           ) => {
             handleGroupListener(kickedFrom);
           },
@@ -19,7 +19,7 @@ export const listners = {
             message: any,
             bannedUser: any,
             bannedBy: any,
-            bannedFrom: any
+            bannedFrom: any,
           ) => {
             handleGroupListener(bannedFrom);
           },
@@ -27,7 +27,7 @@ export const listners = {
             message: any,
             userAdded: any,
             userAddedBy: any,
-            userAddedIn: any
+            userAddedIn: any,
           ) => {
             handleGroupListener(userAddedIn);
           },
@@ -39,22 +39,22 @@ export const listners = {
             changedUser: CometChat.User,
             newScope: any,
             oldScope: any,
-            changedGroup: CometChat.Group
+            changedGroup: CometChat.Group,
           ) => {
-            console.log("changedGroup: ", message, changedGroup);
+            console.log('changedGroup: ', message, changedGroup);
             if (changedUser.getUid() == CometChatUIKit.loggedInUser!.getUid()) {
               changedGroup.setScope(newScope);
               handleGroupListener(changedGroup);
             }
           },
-        })
+        }),
       ),
   },
   removeListner: {
-    removeUserListener: ({ userStatusListenerId }: any) =>
+    removeUserListener: ({userStatusListenerId}: any) =>
       CometChat.removeUserListener(userStatusListenerId),
 
-    removeGroupListener: ({ groupListenerId }: any) =>
+    removeGroupListener: ({groupListenerId}: any) =>
       CometChat.removeGroupListener(groupListenerId),
   },
 };

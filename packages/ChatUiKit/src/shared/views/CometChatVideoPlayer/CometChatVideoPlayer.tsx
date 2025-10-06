@@ -1,10 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ActivityIndicator,
-  Animated,
   Dimensions,
   Modal,
-  PanResponder,
   Platform,
   StyleSheet,
   TouchableWithoutFeedback,
@@ -41,47 +39,16 @@ export interface CometChatVideoPlayerProps {
 
 export const CometChatVideoPlayer = (props: CometChatVideoPlayerProps) => {
   const { videoUri, isVisible, onClose, onLoad, loadingIconColor } = props;
-
   const [isPaused, setPaused] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showCloseButton, setShowCloseButton] = useState(true);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Animated value for vertical position
-  const pan = useRef(new Animated.ValueXY()).current;
-
-  // Threshold for swipe-down to trigger close
-  const SWIPE_THRESHOLD = 150;
-
-  // PanResponder to handle swipe gestures
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only respond to vertical gestures
-        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
-      },
-      onPanResponderMove: Animated.event([null, { dy: pan.y }], { useNativeDriver: false }),
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > SWIPE_THRESHOLD) {
-          // User swiped down enough to dismiss
-          Animated.timing(pan, {
-            toValue: { x: 0, y: Dimensions.get("window").height },
-            duration: 200,
-            useNativeDriver: false,
-          }).start(() => {
-            handleClose();
-            pan.setValue({ x: 0, y: 0 }); // Reset position
-          });
-        } else {
-          // Not enough swipe, reset position
-          Animated.spring(pan, {
-            toValue: { x: 0, y: 0 },
-            useNativeDriver: false,
-          }).start();
-        }
-      },
-    })
-  ).current;
-
+  // Handle closing the video player
+  const handleClose = () => {
+    setPaused(true);
+    onClose();
+  };
   const handleLoadStart = () => {
     setIsLoading(true);
     setPaused(false);
@@ -96,13 +63,46 @@ export const CometChatVideoPlayer = (props: CometChatVideoPlayerProps) => {
     onLoad();
   };
 
-  /**
-   * Closes the video (pauses it) and calls parent onClose.
-   */
-  const handleClose = () => {
-    setPaused(true);
-    onClose();
+  const resetHideTimer = () => {
+    // Clear existing timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // Show close button and set new timer
+    setShowCloseButton(true);
+    timerRef.current = setTimeout(() => {
+      setShowCloseButton(false);
+    }, 2500);
   };
+
+  // Handle tap on video area
+  const handleVideoTap = () => {
+    resetHideTimer();
+  };
+
+  // Set up and clean up timers based on visibility
+  useEffect(() => {
+    if (isVisible) {
+      resetHideTimer();
+    } else {
+      // Clean up on close
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      // Reset to visible state for next open
+      setShowCloseButton(true);
+    }
+
+    // Clear timer when component unmounts
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [isVisible]);
 
   return (
     <Modal
@@ -113,11 +113,8 @@ export const CometChatVideoPlayer = (props: CometChatVideoPlayerProps) => {
       onRequestClose={handleClose}
     >
       <View style={styles.modalBackground}>
-        <Animated.View
-          style={[styles.overlay, { transform: [{ translateY: pan.y }] }]}
-          {...panResponder.panHandlers}
-        >
-          <View style={styles.smallPlayerContainer}>
+        <TouchableWithoutFeedback onPress={handleVideoTap}>
+          <View style={styles.playerContainer}>
             <Video
               source={{ uri: videoUri }}
               controls={true}
@@ -127,9 +124,8 @@ export const CometChatVideoPlayer = (props: CometChatVideoPlayerProps) => {
               onLoad={handleLoad}
               onError={(e) => console.warn("Video Error: ", e?.error)}
               paused={isPaused}
-              style={styles.smallVideo}
+              style={styles.video}
             />
-
             {isLoading && (
               <ActivityIndicator
                 style={styles.loadingIndicator}
@@ -138,15 +134,15 @@ export const CometChatVideoPlayer = (props: CometChatVideoPlayerProps) => {
               />
             )}
 
-            {/* Optional: Custom close button */}
-
-            <TouchableWithoutFeedback onPress={handleClose}>
-              <View style={styles.closeButton}>
-                <Icon name='close' size={18} color={"#fff"} />
-              </View>
-            </TouchableWithoutFeedback>
+            {showCloseButton && (
+              <TouchableWithoutFeedback onPress={handleClose}>
+                <View style={styles.closeButton}>
+                  <Icon name='close' size={22} color={"#fff"} />
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           </View>
-        </Animated.View>
+        </TouchableWithoutFeedback>
       </View>
     </Modal>
   );
@@ -156,24 +152,23 @@ const { width, height } = Dimensions.get("window");
 const styles = StyleSheet.create({
   modalBackground: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.8)", // Semi-transparent background
+    backgroundColor: "rgba(0,0,0,0.8)",
     justifyContent: "center",
     alignItems: "center",
   },
-  overlay: {},
-  smallPlayerContainer: {
-    width: width * 0.95, // Adjust the width of the player
-    height: height * 0.6, // Adjust the height as needed
+  playerContainer: {
+    width: width,
+    height: height * 0.96,
     backgroundColor: "black",
     borderRadius: 10,
     overflow: "hidden",
-    elevation: 5, // For Android shadow
-    shadowColor: "#000", // For iOS shadow
+    elevation: 5,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
     shadowRadius: 2,
   },
-  smallVideo: {
+  video: {
     width: "100%",
     height: "100%",
   },
@@ -184,11 +179,11 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 10,
-    right: Platform.OS === "ios" ? 8 : 10,
+    top: Platform.OS === "ios" ? 60 : 15,
+    right: 10,
     width: 30,
     height: 30,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.3)",
     borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",

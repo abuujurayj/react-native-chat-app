@@ -39,7 +39,10 @@ export const Style = StyleSheet.create({
   },
 });
 
-export type ConversationStyle = Omit<CometChatListStylesInterface, "searchStyle" | "sectionHeaderTextStyle"> & {
+export type ConversationStyle = Omit<
+  CometChatListStylesInterface,
+  "searchStyle" | "sectionHeaderTextStyle"
+> & {
   containerStyle: ViewStyle;
   statusIndicatorStyles?: StatusIndicatorStyles;
   typingIndicatorStyle: TextStyle;
@@ -78,7 +81,7 @@ export type ConversationStyle = Omit<CometChatListStylesInterface, "searchStyle"
   };
   mentionsStyles: CometChatTheme["mentionsStyle"];
   headerContainerStyle?: ViewStyle;
-  confirmDialogStyle: DeepPartial<ConfirmDialogStyle>
+  confirmDialogStyle: DeepPartial<ConfirmDialogStyle>;
 };
 
 export const getConversationStyleLight = (

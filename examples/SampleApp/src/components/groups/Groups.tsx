@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -10,7 +10,7 @@ import {
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
-import {GroupStackParamList} from '../../navigation/types';
+import {RootStackParamList} from '../../navigation/types';
 import {styles} from './styles';
 
 import {
@@ -18,11 +18,9 @@ import {
   CreateGroupBottomSheet,
   JoinGroupBottomSheet,
 } from './GroupHelper';
+import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
 
-type GroupNavigationProp = StackNavigationProp<
-  GroupStackParamList,
-  'GroupsScreen'
->;
+type GroupNavigationProp = StackNavigationProp<RootStackParamList, 'Groups'>;
 
 interface GroupsProps {
   hideHeader?: boolean;
@@ -31,6 +29,7 @@ interface GroupsProps {
 const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
   const theme = useTheme();
   const navigation = useNavigation<GroupNavigationProp>();
+  const [pendingChat, setPendingChat] = useState<CometChat.Group | null>(null);
 
   // State to handle showing/hiding bottom sheets
   const [isCreateGroupSheetVisible, setCreateGroupSheetVisible] =
@@ -43,14 +42,21 @@ const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
   // Condition to hide the entire screen if needed
   const [shouldHide, setShouldHide] = useState(false);
 
+  useEffect(() => {
+    if (!isCreateGroupSheetVisible && !isJoinGroupSheetVisible && pendingChat) {
+      const timer = setTimeout(() => {
+        navigation.navigate(SCREEN_CONSTANTS.MESSAGES, {group: pendingChat});
+        setPendingChat(null);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isCreateGroupSheetVisible, isJoinGroupSheetVisible, pendingChat]);
+
   useFocusEffect(
     useCallback(() => {
       setShouldHide(false);
       return () => {
-        // If route length == 1 => user switched tabs, so hide the screen
-        if (navigation.getState().routes.length === 1) {
-          setShouldHide(true);
-        }
+        setShouldHide(true);
       };
     }, [navigation]),
   );
@@ -59,7 +65,12 @@ const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
    * Navigates to the Messages screen after group creation or join.
    */
   const handleNavigateToMessages = (group: CometChat.Group) => {
-    navigation.navigate('Messages', {group});
+    // close any open sheet first
+    setCreateGroupSheetVisible(false);
+    setJoinGroupSheetVisible(false);
+
+    // save the group – navigation will happen in a useEffect below
+    setPendingChat(group);
   };
 
   /**
@@ -90,7 +101,7 @@ const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
         group.getType() as CometChat.GroupType,
         '',
       );
-      
+
       handleNavigateToMessages(joinedGroup);
       CometChatUIEventHandler.emitGroupEvent(
         CometChatUIEvents.ccGroupMemberJoined,

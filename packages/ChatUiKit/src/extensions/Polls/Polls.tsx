@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  InteractionManager,
   Keyboard,
   KeyboardAvoidingView,
   NativeModules,
@@ -129,7 +130,8 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
   const theme = useTheme();
   const answerRefs = useRef<(TextInput | null)[]>([]);
   const [lastRemovedIndex, setLastRemovedIndex] = useState<number | null>(null);
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [newlyAddedIndex, setNewlyAddedIndex] = useState<number | null>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   /**
    * Validates the poll question and answer inputs.
@@ -269,7 +271,7 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
       let existingAnswers = [...answers];
       existingAnswers.push("");
       setAnswers(existingAnswers);
-      setFocusedIndex(existingAnswers.length - 1);
+      setNewlyAddedIndex(existingAnswers.length - 1);
     } else {
       setError("You can only add up to 12 options.");
     }
@@ -298,6 +300,7 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
           answerRefs.current[index] = el;
         }}
         value={item}
+        autoFocus={index === newlyAddedIndex}
         onChangeText={(text) => handleAnswerTextChange(text, index)}
         placeholder={answerPlaceholderText}
         placeholderTextColor={theme.color.textTertiary}
@@ -357,15 +360,42 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
   }, [lastRemovedIndex]);
 
   useEffect(() => {
-    if (focusedIndex !== null && answerRefs.current[focusedIndex]) {
-      answerRefs.current[focusedIndex]?.focus();
-      setFocusedIndex(null);
+    if (newlyAddedIndex !== null) {
+      const timer = setTimeout(() => {
+        if (answerRefs.current[newlyAddedIndex]) {
+          answerRefs.current[newlyAddedIndex]?.focus();
+        }
+        setNewlyAddedIndex(null);
+      }, 50);
+
+      return () => clearTimeout(timer);
     }
-  }, [focusedIndex]);
+    return;
+  }, [newlyAddedIndex]);
 
   useEffect(() => {
     answerRefs.current = answers.map((_, i) => answerRefs.current[i] || null);
   }, [answers]);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (answers.length > 0 && flatListRef.current) {
+      timer = setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 50);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [answers.length]);
+
+  useEffect(() => {
+    if (answers.length) {
+      InteractionManager.runAfterInteractions(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      });
+    }
+  }, [answers.length]);
 
   useEffect(() => {
     let answerslist = new Array(defaultAnswers).fill("");
@@ -455,10 +485,15 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
             {/* Main Content: Answers list */}
             <View style={{ flex: 1 }}>
               <FlatList
+                ref={flatListRef}
                 data={answers}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={renderAnswerItem}
-                ListFooterComponent={<View style={{ paddingBottom: 20 }}><AddAnswer /></View>}
+                ListFooterComponent={
+                  <View style={{ paddingBottom: 20 }}>
+                    <AddAnswer />
+                  </View>
+                }
                 removeClippedSubviews={false}
                 keyboardShouldPersistTaps="always"
                 keyboardDismissMode="interactive"

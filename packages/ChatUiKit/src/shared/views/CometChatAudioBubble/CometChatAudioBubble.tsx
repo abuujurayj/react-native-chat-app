@@ -18,7 +18,7 @@ import { AnimatedAudioWaves } from "./AnimatedAudioWaves";
 const { SoundPlayer } = NativeModules;
 const eventEmitter = new NativeEventEmitter(SoundPlayer);
 let listener: EmitterSubscription;
-let interval: NodeJS.Timeout;
+let interval: ReturnType<typeof setTimeout>;;
 
 export interface CometChatAudioBubbleInterface {
   /**
@@ -70,22 +70,24 @@ export const CometChatAudioBubble = ({
     }
 
     return () => {
-      Platform.OS == "android" && SoundPlayer.releaseMediaPlayer();
+      SoundPlayer.releaseMediaPlayer();
     };
   }, [audioUrl]);
 
   useEffect(() => {
     listener = eventEmitter.addListener("soundPlayStatus", (data) => {
       if (audioUrl === data.url) {
-        setStatus("paused");
+        setStatus("");
+        
         clearInterval(interval);
-        setCurrentTime(duration);
+        
+        setCurrentTime(0);
       }
     });
 
     return () => {
       listener.remove();
-      clearInterval(interval);
+        clearInterval(interval);
     };
   }, [audioUrl]);
 
@@ -231,3 +233,4 @@ export const CometChatAudioBubble = ({
     </View>
   );
 };
+// CometChatAudioBubble

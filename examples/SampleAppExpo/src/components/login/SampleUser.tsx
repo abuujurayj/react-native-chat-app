@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -15,34 +15,32 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-} from "react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
+} from 'react-native';
+import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {
   CometChatAvatar,
   CometChatUIKit,
   Icon,
   useTheme,
-} from "@cometchat/chat-uikit-react-native";
-import Check from "../../assets/icons/CheckFill";
-import { sampleData } from "../../utils/helper";
-import { SCREEN_CONSTANTS } from "../../utils/AppConstants";
-import { navigate, navigationRef } from "../../navigation/NavigationService";
-import Skeleton from "./Skeleton";
-import darkLogo from "../../assets/icons/dark.png";
-import lightLogo from "../../assets/icons/light.png";
+} from '@cometchat/chat-uikit-react-native';
+import Check from '../../assets/icons/CheckFill';
+import {sampleData} from '../../utils/helper';
+import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
+import {navigate, navigationRef} from '../../navigation/NavigationService';
+import Skeleton from './Skeleton'
 
-type GridItem = CometChat.User | { dummy: true };
+type GridItem = CometChat.User | {dummy: true};
 
 const LoginScreen: React.FC = () => {
   const [users, setUsers] = useState<CometChat.User[]>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [userUID, setUserUID] = useState<string>("");
+  const [userUID, setUserUID] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingUsers, setLoadingUsers] = useState<boolean>(true);
 
   const theme = useTheme();
   const mode = useColorScheme();
-  const { width } = Dimensions.get("window");
+  const {width} = Dimensions.get('window');
 
   useEffect(() => {
     (async function loadUsers(): Promise<void> {
@@ -60,7 +58,7 @@ const LoginScreen: React.FC = () => {
 
   const handleSelectUser = (user: CometChat.User): void => {
     setSelectedUser(user.getUid());
-    setUserUID("");
+    setUserUID('');
   };
 
   const handleContinue = async () => {
@@ -68,14 +66,14 @@ const LoginScreen: React.FC = () => {
     setIsLoading(true);
     const uid: string = userUID.trim() || selectedUser!;
     try {
-      await CometChatUIKit.login({ uid });
-      navigate("BottomTabNavigator");
+      await CometChatUIKit.login({uid});
+      navigate('BottomTabNavigator');
       navigationRef.reset({
         index: 0,
-        routes: [{ name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR }],
+        routes: [{name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR}],
       });
     } catch (error: any) {
-      console.log("Login failed with exception:", error);
+      console.log('Login failed with exception:', error);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +86,7 @@ const LoginScreen: React.FC = () => {
   async function fetchUsers(): Promise<CometChat.User[]> {
     try {
       const response = await fetch(
-        "https://assets.cometchat.io/sampleapp/sampledata.json"
+        'https://assets.cometchat.io/sampleapp/sampledata.json',
       );
 
       if (response.ok) {
@@ -96,10 +94,10 @@ const LoginScreen: React.FC = () => {
         const fetchedUsers = data.users || [];
         return fetchedUsers.map((user: any) => new CometChat.User(user));
       } else {
-        throw new Error("Failed to load users");
+        throw new Error('Failed to load users');
       }
     } catch (error) {
-      console.error("Exception while fetching users:", error);
+      console.error('Exception while fetching users:', error);
       return await getDefaultUsers();
     }
   }
@@ -116,11 +114,11 @@ const LoginScreen: React.FC = () => {
    * Returns the appropriate image source object for the avatar.
    */
   const getAvatarSource = (
-    avatar: string | ImageSourcePropType
+    avatar: string | ImageSourcePropType,
   ): ImageSourcePropType => {
-    if (typeof avatar === "string") {
-      if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
-        return { uri: avatar };
+    if (typeof avatar === 'string') {
+      if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+        return {uri: avatar};
       }
     }
     return avatar as ImageSourcePropType;
@@ -137,7 +135,7 @@ const LoginScreen: React.FC = () => {
     const numberOfElementsLastRow = users.length % numColumns;
     if (numberOfElementsLastRow !== 0) {
       for (let i = 0; i < numColumns - numberOfElementsLastRow; i++) {
-        gridData.push({ dummy: true });
+        gridData.push({dummy: true});
       }
     }
   }
@@ -146,14 +144,13 @@ const LoginScreen: React.FC = () => {
     return (
       <View
         style={{
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
         <ActivityIndicator
           size="small"
           color={theme.color.staticWhite}
-          style={{ alignSelf: "center", justifyContent: "center" }}
+          style={{alignSelf: 'center', justifyContent: 'center'}}
         />
       </View>
     );
@@ -162,20 +159,22 @@ const LoginScreen: React.FC = () => {
   return (
     <KeyboardAvoidingView
       style={styles.keyboardAvoidingContainer}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <SafeAreaView
-        style={[styles.container, { backgroundColor: theme.color.background2 }]}
-      >
+        style={[styles.container, {backgroundColor: theme.color.background2}]}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {/* App Logo */}
           <View style={styles.logoContainer}>
             <Image
-              source={mode === "dark" ? darkLogo : lightLogo}
+              source={
+                mode === 'dark'
+                  ? require('../../assets/icons/Dark.png')
+                  : require('../../assets/icons/Light.png')
+              }
               style={{
                 width: width * 0.25,
                 height: width * 0.25,
-                resizeMode: "contain",
+                resizeMode: 'contain',
               }}
             />
           </View>
@@ -185,9 +184,8 @@ const LoginScreen: React.FC = () => {
             style={[
               theme.typography.heading2.bold,
               styles.logInTitle,
-              { color: theme.color.textPrimary },
-            ]}
-          >
+              {color: theme.color.textPrimary},
+            ]}>
             Log In
           </Text>
 
@@ -196,9 +194,8 @@ const LoginScreen: React.FC = () => {
             style={[
               theme.typography.body.medium,
               styles.subtitle,
-              { color: theme.color.textPrimary },
-            ]}
-          >
+              {color: theme.color.textPrimary},
+            ]}>
             Choose a Sample User
           </Text>
 
@@ -210,10 +207,8 @@ const LoginScreen: React.FC = () => {
               <View style={styles.usersContainer}>
                 {gridData.map((item, index) => {
                   // Render a blank view for dummy items
-                  if ("dummy" in item && item.dummy) {
-                    return (
-                      <View key={`dummy-${index}`} style={styles.userCard} />
-                    );
+                  if ('dummy' in item && item.dummy) {
+                    return <View key={`dummy-${index}`} style={styles.userCard} />;
                   }
 
                   // Otherwise, render a user
@@ -236,8 +231,7 @@ const LoginScreen: React.FC = () => {
                             : theme.color.background1,
                         },
                       ]}
-                      onPress={() => handleSelectUser(user)}
-                    >
+                      onPress={() => handleSelectUser(user)}>
                       {/* Show the check icon ONLY if selected */}
                       {isSelected && (
                         <View style={styles.checkIconContainer}>
@@ -261,18 +255,16 @@ const LoginScreen: React.FC = () => {
                         style={[
                           theme.typography.body.medium,
                           styles.firstNameText,
-                          { color: theme.color.textPrimary },
-                        ]}
-                      >
+                          {color: theme.color.textPrimary},
+                        ]}>
                         {firstName}
                       </Text>
                       <Text
                         style={[
                           theme.typography.caption1.regular,
                           styles.uidText,
-                          { color: theme.color.textSecondary },
-                        ]}
-                      >
+                          {color: theme.color.textSecondary},
+                        ]}>
                         {user.getUid()}
                       </Text>
                     </Pressable>
@@ -285,24 +277,17 @@ const LoginScreen: React.FC = () => {
           {/* Horizontal divider with "Or" in the middle */}
           <View style={styles.dividerRow}>
             <View
-              style={[
-                styles.divider,
-                { borderColor: theme.color.borderDefault },
-              ]}
+              style={[styles.divider, {borderColor: theme.color.borderDefault}]}
             />
             <Text
               style={[
                 theme.typography.body.medium,
-                { color: theme.color.textTertiary },
-              ]}
-            >
+                {color: theme.color.textTertiary},
+              ]}>
               Or
             </Text>
             <View
-              style={[
-                styles.divider,
-                { borderColor: theme.color.borderDefault },
-              ]}
+              style={[styles.divider, {borderColor: theme.color.borderDefault}]}
             />
           </View>
 
@@ -311,9 +296,8 @@ const LoginScreen: React.FC = () => {
             style={[
               theme.typography.caption1.medium,
               styles.uidLabel,
-              { color: theme.color.textPrimary },
-            ]}
-          >
+              {color: theme.color.textPrimary},
+            ]}>
             Enter Your UID
           </Text>
           <TextInput
@@ -345,8 +329,7 @@ const LoginScreen: React.FC = () => {
               },
             ]}
             onPress={handleContinue}
-            disabled={(!selectedUser && !userUID.trim()) || isLoading}
-          >
+            disabled={(!selectedUser && !userUID.trim()) || isLoading}>
             {isLoading ? (
               <Loading />
             ) : (
@@ -354,9 +337,8 @@ const LoginScreen: React.FC = () => {
                 style={[
                   theme.typography.button.medium,
                   styles.continueButtonText,
-                  { color: theme.color.staticWhite },
-                ]}
-              >
+                  {color: theme.color.staticWhite},
+                ]}>
                 Continue
               </Text>
             )}
@@ -366,23 +348,20 @@ const LoginScreen: React.FC = () => {
             <Text
               style={[
                 theme.typography.body.regular,
-                { color: theme.color.textSecondary },
-              ]}
-            >
+                {color: theme.color.textSecondary},
+              ]}>
               Change
             </Text>
             <TouchableOpacity
               style={styles.changeCredentialsContainer}
               onPress={() => {
                 navigationRef.navigate(SCREEN_CONSTANTS.APP_CRED);
-              }}
-            >
+              }}>
               <Text
                 style={[
                   theme.typography.body.regular,
-                  { color: theme.color.primary },
-                ]}
-              >
+                  {color: theme.color.primary},
+                ]}>
                 App Credentials
               </Text>
             </TouchableOpacity>
@@ -401,62 +380,62 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   scrollContainer: {
     flexGrow: 1,
     paddingHorizontal: 16,
   },
   logoContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 16,
   },
   logInTitle: {
     marginBottom: 16,
-    alignSelf: "center",
+    alignSelf: 'center',
   },
   subtitle: {
     marginBottom: 6,
   },
   usersContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
   },
   userCard: {
-    position: "relative",
-    width: "30%",
+    position: 'relative',
+    width: '30%',
     borderRadius: 8,
     paddingVertical: 16,
     paddingHorizontal: 8,
     marginBottom: 12,
-    alignItems: "center",
-    overflow: "hidden",
+    alignItems: 'center',
+    overflow: 'hidden',
   },
   checkIconContainer: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     right: 0,
     borderBottomLeftRadius: 10,
     borderTopRightRadius: 7,
-    width: "27%",
-    height: "22%",
-    backgroundColor: "#7367F0",
-    alignItems: "center",
-    justifyContent: "center",
+    width: '27%',
+    height: '22%',
+    backgroundColor: '#7367F0',
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 2,
   },
   firstNameText: {
     marginTop: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   uidText: {
     marginTop: 4,
-    textAlign: "center",
+    textAlign: 'center',
   },
   dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginVertical: 16,
     gap: 10,
   },
@@ -484,21 +463,21 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   continueButtonText: {
-    alignSelf: "center",
+    alignSelf: 'center',
   },
   changeCredentialsWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 5,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   changeCredentialsContainer: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   userGridWrapper: {
     minHeight: 240,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

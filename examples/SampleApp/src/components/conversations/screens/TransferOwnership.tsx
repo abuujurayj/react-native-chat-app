@@ -11,15 +11,15 @@ import {
 import {Icon} from '@cometchat/chat-uikit-react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {ChatStackParamList} from '../../../navigation/types';
+import {RootStackParamList} from '../../../navigation/types';
 import {styles} from './TransferOwnershipStyles';
 import ArrowBack from '../../../assets/icons/ArrowBack';
 import {CommonUtils} from '../../../utils/CommonUtils';
 
 type TransferOwnershipScreenProps = {
-  route: RouteProp<ChatStackParamList, 'TransferOwnershipSection'>;
+  route: RouteProp<RootStackParamList, 'TransferOwnershipSection'>;
   navigation: StackNavigationProp<
-    ChatStackParamList,
+    RootStackParamList,
     'TransferOwnershipSection'
   >;
 };

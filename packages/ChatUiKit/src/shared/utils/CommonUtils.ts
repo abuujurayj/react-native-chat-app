@@ -171,7 +171,8 @@ export class CommonUtils {
       // );
 
       // Wait for IMAGE_PREFETCH_TIMEOUT before retrying
-      await new Promise((resolve) => setTimeout(resolve, IMAGE_PREFETCH_TIMEOUT));
+      await new Promise<void>((resolve) => setTimeout(resolve, IMAGE_PREFETCH_TIMEOUT));
+
 
       // Retry with reduced attempt count
       return CommonUtils.prefetchThumbnail(url, attempts - 1);

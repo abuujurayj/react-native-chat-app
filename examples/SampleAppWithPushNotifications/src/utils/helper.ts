@@ -20,6 +20,7 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/types';
+import {SCREEN_CONSTANTS} from './AppConstants';
 
 interface Translations {
   lastSeen: string;
@@ -141,9 +142,8 @@ export async function checkInitialNotificationIOS() {
         if (data.receiverType === 'group') {
           try {
             const group = await CometChat.getGroup(data.receiver);
-            navigate('BottomTabNavigator', {
-              screen: 'Chats',
-              params: {screen: 'Messages', params: {group}},
+            navigate(SCREEN_CONSTANTS.MESSAGES, {
+              group,
             });
           } catch (error) {
             console.log('Error fetching group details:', error);
@@ -151,9 +151,8 @@ export async function checkInitialNotificationIOS() {
         } else if (data.receiverType === 'user') {
           try {
             const user = await CometChat.getUser(data.sender);
-            navigate('BottomTabNavigator', {
-              screen: 'Chats',
-              params: {screen: 'Messages', params: {user}},
+            navigate(SCREEN_CONSTANTS.MESSAGES, {
+              user,
             });
           } catch (error) {
             console.log('Error fetching user details:', error);
@@ -178,9 +177,8 @@ export async function onRemoteNotificationIOS(notification: any) {
       if (data.receiverType === 'group') {
         try {
           const group = await CometChat.getGroup(data.receiver);
-          navigate('BottomTabNavigator', {
-            screen: 'Chats',
-            params: {screen: 'Messages', params: {group}},
+          navigate(SCREEN_CONSTANTS.MESSAGES, {
+            group,
           });
         } catch (error) {
           console.log('Error fetching group details:', error);
@@ -188,9 +186,8 @@ export async function onRemoteNotificationIOS(notification: any) {
       } else if (data.receiverType === 'user') {
         try {
           const user = await CometChat.getUser(data.sender);
-          navigate('BottomTabNavigator', {
-            screen: 'Chats',
-            params: {screen: 'Messages', params: {user}},
+          navigate(SCREEN_CONSTANTS.MESSAGES, {
+            user,
           });
         } catch (error) {
           console.log('Error fetching user details:', error);
@@ -449,7 +446,7 @@ export async function navigateToConversation(
           : '';
       const group = await CometChat.getGroup(extractedId);
 
-      navigationRef.current?.dispatch(StackActions.push('Messages', {group}));
+      navigationRef.current?.dispatch(StackActions.push(SCREEN_CONSTANTS.MESSAGES, {group}));
     }
 
     // Handle user
@@ -457,7 +454,7 @@ export async function navigateToConversation(
       const ccUser = await CometChat.getUser(data.sender);
 
       navigationRef.current?.dispatch(
-        StackActions.push('Messages', {user: ccUser}),
+        StackActions.push(SCREEN_CONSTANTS.MESSAGES, {user: ccUser}),
       );
     }
   } catch (error) {

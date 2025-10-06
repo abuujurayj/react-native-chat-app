@@ -1,10 +1,7 @@
-import {
-  CometChatListItem,
-  useTheme,
-} from "@cometchat/chat-uikit-react-native";
-import React, { useCallback, useMemo } from "react";
-import { View, FlatList, Text } from "react-native";
-import { CallDetailHelper } from "./CallDetailHelper";
+import {CometChatListItem, useTheme} from '@cometchat/chat-uikit-react-native';
+import React, {useCallback, useMemo} from 'react';
+import {View, FlatList, Text} from 'react-native';
+import {CallDetailHelper} from './CallDetailHelper';
 
 export const CallParticipants = (props: {
   /**
@@ -13,16 +10,16 @@ export const CallParticipants = (props: {
   data: any[];
   call: any;
 }) => {
-  const { call, data } = props;
+  const {call, data} = props;
 
-  console.log("DATA: ", data);
+  console.log('DATA: ', data);
 
   const theme = useTheme();
 
   const getCallDetails = (item: any) => {
     return {
-      title: item["name"],
-      avatarUrl: item["avatar"],
+      title: item['name'],
+      avatarUrl: item['avatar'],
     };
   };
 
@@ -33,19 +30,19 @@ export const CallParticipants = (props: {
   const _style = useMemo(() => {
     return {
       headerContainerStyle: {
-        alignItems: "flex-start",
-        justifyContent: "center",
-        width: "100%",
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        width: '100%',
         borderRadius: 0,
         paddingHorizontal: 0,
       },
       titleSeparatorStyle: {
         borderBottomWidth: 1,
         borderBottomColor: theme.color.borderLight,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
       },
       containerStyle: {
         backgroundColor: theme.color.background1,
@@ -53,7 +50,7 @@ export const CallParticipants = (props: {
       },
       itemStyle: {
         containerStyle: {
-          flexDirection: "row" as const,
+          flexDirection: 'row' as const,
           paddingHorizontal: theme.spacing.padding.p4,
           paddingVertical: theme.spacing.padding.p2,
           gap: theme.spacing.spacing.s3,
@@ -91,8 +88,8 @@ export const CallParticipants = (props: {
     return `${minutes} min  ${seconds} sec`;
   }, []);
 
-  const _render = ({ item, index }: any) => {
-    const { title, avatarUrl } = getCallDetails(item);
+  const _render = ({item, index}: any) => {
+    const {title, avatarUrl} = getCallDetails(item);
 
     return (
       <React.Fragment key={index}>
@@ -100,22 +97,23 @@ export const CallParticipants = (props: {
           id={item.sessionId}
           avatarStyle={_style.itemStyle.avatarStyle}
           containerStyle={_style.itemStyle.containerStyle}
-          headViewContainerStyle={{ flexDirection: "row" }}
+          headViewContainerStyle={{flexDirection: 'row'}}
           titleStyle={_style.itemStyle.titleStyle}
           trailingViewContainerStyle={{
-            alignSelf: "center",
+            alignSelf: 'center',
           }}
           SubtitleView={
             <Text
               style={{
                 ...theme.typography.body.regular,
                 color: theme.color.textSecondary,
-              }}
-            >
+              }}>
               {formattedInitiatedAt}
             </Text>
           }
+          // avatarName={title}
           title={title}
+          // subtitle={'8 August, 8:14 pm'}
           avatarURL={avatarUrl}
           TrailingView={
             <Text style={_style.itemStyle.tailViewTextStyle}>
@@ -128,11 +126,11 @@ export const CallParticipants = (props: {
   };
 
   return (
-    <View style={{ backgroundColor: theme.color.background1 }}>
+    <View style={{backgroundColor: theme.color.background1}}>
       {data.length && (
         <FlatList
           data={data}
-          keyExtractor={(item, index) => item.sessionId + "_" + index}
+          keyExtractor={(item, index) => item.sessionId + '_' + index}
           renderItem={_render}
         />
       )}

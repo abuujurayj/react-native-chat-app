@@ -15,6 +15,7 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/types';
+import {SCREEN_CONSTANTS} from './AppConstants';
 
 interface Translations {
   lastSeen: string;
@@ -29,14 +30,12 @@ interface NotifeeData {
   [key: string]: any;
 }
 
-
 /**
  * Request common Android permissions (notifications, camera, etc.)
  * Only needed on Android.
  */
 export async function requestAndroidPermissions() {
   if (Platform.OS !== 'android') return;
-
   try {
     await PermissionsAndroid.requestMultiple([
       PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
@@ -233,7 +232,7 @@ export async function navigateToConversation(
           : '';
       const group = await CometChat.getGroup(extractedId);
 
-      navigationRef.current?.dispatch(StackActions.push('Messages', {group}));
+      navigationRef.current?.dispatch(StackActions.push(SCREEN_CONSTANTS.MESSAGES, {group}));
     }
 
     // Handle user
@@ -241,7 +240,7 @@ export async function navigateToConversation(
       const ccUser = await CometChat.getUser(data.sender);
 
       navigationRef.current?.dispatch(
-        StackActions.push('Messages', {user: ccUser}),
+        StackActions.push(SCREEN_CONSTANTS.MESSAGES, {user: ccUser}),
       );
     }
   } catch (error) {

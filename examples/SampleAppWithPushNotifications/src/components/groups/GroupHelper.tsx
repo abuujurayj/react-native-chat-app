@@ -33,7 +33,7 @@ export const GroupScreenAppBarOptions: React.FC<{
     <View style={{paddingRight: 10}}>
       <TouchableOpacity onPress={onPress}>
         <Icon
-          icon={<GroupAdd color={theme.color.primary} height={28} width={28}  /> }
+          icon={<GroupAdd color={theme.color.primary} height={28} width={28} />}
           size={28}
         />
       </TouchableOpacity>
@@ -65,13 +65,23 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
   const [showError, setShowError] = useState('');
   const groupTypes = ['Public', 'Private', 'Password'];
 
+  const resetFields = () => {
+    setGroupName('');
+    setGroupPassword('');
+    setSelectedOption('Public');
+    setShowPasswordField(false);
+    setShowError('');
+  };
+
+  const handleDismiss = () => {
+    resetFields(); // clear everything the user typed/selected
+    onClose(); // let the parent know the sheet closed
+  };
+
   useEffect(() => {
-    if (showError) {
-      const timer = setTimeout(() => {
-        setShowError('');
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+    if (!showError) return;
+    const timer = setTimeout(() => setShowError(''), 3000);
+    return () => clearTimeout(timer);
   }, [showError]);
 
   const handleOptionPress = (option: string) => {
@@ -115,10 +125,7 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
       onGroupCreated(createdGroup);
 
       // Reset fields after creation
-      setGroupName('');
-      setGroupPassword('');
-      setSelectedOption('Public');
-      setShowPasswordField(false);
+      resetFields();
       onClose();
     } catch (error) {
       console.log('Group creation failed with exception:', error);
@@ -128,7 +135,7 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
   return (
     <CometChatBottomSheet
       isOpen={visible}
-      onClose={onClose}
+      onClose={handleDismiss}
       doNotOccupyEntireHeight={true}
       scrollEnabled={true}
       style={{maxHeight: Dimensions.get('window').height * 0.8}}>
@@ -322,12 +329,9 @@ export const JoinGroupBottomSheet: React.FC<JoinGroupBottomSheetProps> = ({
   const [isPasswordErrorVisible, setIsPasswordErrorVisible] = useState(false);
 
   useEffect(() => {
-    if (isPasswordErrorVisible) {
-      const timer = setTimeout(() => {
-        setIsPasswordErrorVisible(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+    if (!isPasswordErrorVisible) return;
+    const timer = setTimeout(() => setIsPasswordErrorVisible(false), 3000);
+    return () => clearTimeout(timer);
   }, [isPasswordErrorVisible]);
 
   const joinPasswordGroup = async () => {
@@ -352,7 +356,6 @@ export const JoinGroupBottomSheet: React.FC<JoinGroupBottomSheetProps> = ({
     setIsPasswordErrorVisible(false);
     onClose();
   };
-
 
   return (
     <CometChatBottomSheet

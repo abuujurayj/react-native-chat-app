@@ -304,15 +304,15 @@ export class DataSourceDecorator implements DataSource {
     return this.dataSource.getAuxiliaryHeaderAppbarOptions(user, group, additionalAuxiliaryHeaderOptionsParams);
   }
 
-  getAllTextFormatters(loggedInUser?: CometChat.User): CometChatTextFormatter[] {
+  getAllTextFormatters(loggedInUser?: CometChat.User, theme?: CometChatTheme): CometChatTextFormatter[] {
     return [
-      this.dataSource.getMentionsFormatter(loggedInUser),
+      this.dataSource.getMentionsFormatter(loggedInUser, theme),
       this.dataSource.getUrlsFormatter(loggedInUser),
     ];
   }
 
-  getMentionsFormatter(loggedInUser?: CometChat.User): CometChatMentionsFormatter {
-    return this.dataSource.getMentionsFormatter(loggedInUser);
+  getMentionsFormatter(loggedInUser?: CometChat.User, theme?: CometChatTheme): CometChatMentionsFormatter {
+    return this.dataSource.getMentionsFormatter(loggedInUser, theme);
   }
 
   getUrlsFormatter(loggedInUser?: CometChat.User): CometChatUrlsFormatter {

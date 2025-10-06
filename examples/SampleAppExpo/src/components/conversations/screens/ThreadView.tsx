@@ -1,33 +1,33 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   BackHandler,
-} from "react-native";
+} from 'react-native';
 import {
   RouteProp,
   useRoute,
   useNavigation,
   useFocusEffect,
-} from "@react-navigation/native";
+} from '@react-navigation/native';
 import {
   CometChatThreadHeader,
   CometChatMessageList,
   CometChatMessageComposer,
   localize,
-} from "@cometchat/chat-uikit-react-native";
-import { Icon } from "@cometchat/chat-uikit-react-native";
-import { useTheme } from "@cometchat/chat-uikit-react-native";
-import ArrowBack from "../../../assets/icons/ArrowBack";
-import { ChatStackParamList } from "../../../navigation/paramLists";
+} from '@cometchat/chat-uikit-react-native';
+import {Icon} from '@cometchat/chat-uikit-react-native';
+import {useTheme} from '@cometchat/chat-uikit-react-native';
+import {RootStackParamList} from '../../../navigation/types';
+import ArrowBack from '../../../assets/icons/ArrowBack';
 
-type ThreadViewRouteProp = RouteProp<ChatStackParamList, "ThreadView">;
+type ThreadViewRouteProp = RouteProp<RootStackParamList, 'ThreadView'>;
 
 const ThreadView = () => {
-  const { params } = useRoute<ThreadViewRouteProp>();
-  const { goBack } = useNavigation();
+  const {params} = useRoute<ThreadViewRouteProp>();
+  const {goBack} = useNavigation();
   const theme = useTheme();
 
   useFocusEffect(
@@ -38,22 +38,22 @@ const ThreadView = () => {
       };
 
       const subscription = BackHandler.addEventListener(
-        "hardwareBackPress",
-        onBackPress
+        'hardwareBackPress',
+        onBackPress,
       );
 
       return () => subscription.remove();
-    }, [goBack])
+    }, [goBack]),
   );
 
-  const { message, user, group } = params || {};
+  const {message, user, group} = params || {};
 
   if (!message) {
     return null;
   }
 
   return (
-    <View style={{ backgroundColor: theme.color.background1, flex: 1 }}>
+    <View style={{backgroundColor: theme.color.background1, flex: 1}}>
       {/* Custom Header */}
       <View style={styles.headerStyle}>
         <TouchableOpacity style={styles.iconStyle} onPress={() => goBack()}>
@@ -71,17 +71,15 @@ const ThreadView = () => {
           <Text
             style={[
               theme.typography.heading1.bold,
-              { color: theme.color.textPrimary },
-            ]}
-          >
-            {localize("THREAD")}
+              {color: theme.color.textPrimary},
+            ]}>
+            {localize('THREAD')}
           </Text>
           <Text
             style={[
               theme.typography.caption1.regular,
-              { color: theme.color.textSecondary },
-            ]}
-          >
+              {color: theme.color.textSecondary},
+            ]}>
             {user ? user?.getName() : group?.getName()}
           </Text>
         </View>
@@ -91,7 +89,7 @@ const ThreadView = () => {
       <CometChatThreadHeader parentMessage={message} />
 
       {/* Threaded Message List */}
-      <View style={{ flex: 1 }}>
+      <View style={{flex: 1}}>
         <CometChatMessageList
           user={user}
           group={group}
@@ -104,7 +102,7 @@ const ThreadView = () => {
         user={user}
         group={group}
         parentMessageId={message.getId()}
-        onError={(error: any) => console.error("Composer Error:", error)}
+        onError={(error: any) => console.error('Composer Error:', error)}
       />
     </View>
   );
@@ -114,15 +112,15 @@ const styles = StyleSheet.create({
   headerStyle: {
     paddingVertical: 10,
     paddingLeft: 10,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   iconStyle: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   textStyle: {
     paddingLeft: 10,
-    alignItems: "flex-start",
+    alignItems: 'flex-start',
   },
 });
 

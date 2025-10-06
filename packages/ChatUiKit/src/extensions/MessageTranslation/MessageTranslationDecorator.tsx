@@ -9,10 +9,12 @@ import {
   CometChatTextFormatter,
   CometChatUIKit,
   CometChatUrlsFormatter,
-  MentionTextStyle,
 } from "../../shared";
 import { AdditionalParams, MessageBubbleAlignmentType } from "../../shared/base/Types";
-import { MentionsTargetElement, MessageOptionConstants } from "../../shared/constants/UIKitConstants";
+import {
+  MentionsTargetElement,
+  MessageOptionConstants,
+} from "../../shared/constants/UIKitConstants";
 import { CometChatUIEvents, MessageEvents } from "../../shared/events";
 import { CometChatUIEventHandler } from "../../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
 import { messageStatus } from "../../shared/utils/CometChatMessageHelper";
@@ -20,7 +22,7 @@ import { CommonUtils } from "../../shared/utils/CommonUtils";
 import { MessageTranslationBubble } from "./MessageTranslationBubble";
 import { CometChatTheme } from "../../theme/type";
 import { Icon } from "../../shared/icons/Icon";
-import { DeepPartial } from "../../shared/helper/types";
+import { MentionContext } from "../../shared/framework/MessageDataSource";
 
 /**
  * Decorator class for handling message translation in the chat application.
@@ -72,7 +74,8 @@ export class MessageTranslationExtensionDecorator extends DataSourceDecorator {
       additionalParams
     );
     // Add the translate option to the options list.
-    !additionalParams?.hideTranslateMessageOption && optionsList.push(this.getTranslateOption(messageObject, theme));
+    !additionalParams?.hideTranslateMessageOption &&
+      optionsList.push(this.getTranslateOption(messageObject, theme));
     return optionsList;
   }
 
@@ -289,31 +292,30 @@ export class MessageTranslationExtensionDecorator extends DataSourceDecorator {
 
     // Select the appropriate style based on the sender.
     const _style: Partial<CometChatTheme["textBubbleStyles"]> = isMessageSentByLoggedInUser
-      ? (theme.messageListStyles.outgoingMessageBubbleStyles.textBubbleStyles as CometChatTheme["textBubbleStyles"])
-      : (theme.messageListStyles.incomingMessageBubbleStyles.textBubbleStyles as CometChatTheme["textBubbleStyles"]);
+      ? (theme.messageListStyles.outgoingMessageBubbleStyles
+          .textBubbleStyles as CometChatTheme["textBubbleStyles"])
+      : (theme.messageListStyles.incomingMessageBubbleStyles
+          .textBubbleStyles as CometChatTheme["textBubbleStyles"]);
 
     // Create URL formatter and set properties.
     let linksTextFormatter = ChatConfigurator.getDataSource().getUrlsFormatter(loggedInUser!);
-    let mentionsTextFormatter = ChatConfigurator.getDataSource().getMentionsFormatter(loggedInUser!);
+    let mentionsTextFormatter = ChatConfigurator.getDataSource().getMentionsFormatter(
+      loggedInUser!,
+      theme
+    );
     linksTextFormatter.setMessage(message);
     linksTextFormatter.setId("ccDefaultUrlsFormatterId");
     linksTextFormatter.setStyle({ linkTextColor: theme.color.receiveBubbleLink });
     if (isMessageSentByLoggedInUser) {
       linksTextFormatter.setStyle({ linkTextColor: theme.color.sendBubbleText });
     }
+    mentionsTextFormatter.setContext(isMessageSentByLoggedInUser ? MentionContext.Outgoing : MentionContext.Incoming);
 
     // Configure mentions formatter if mentioned users are present.
     if (!additionalParams?.disableMentions && mentionedUsers && mentionedUsers.length) {
       mentionsTextFormatter.setLoggedInUser(loggedInUser!);
       mentionsTextFormatter.setMessage(message);
       mentionsTextFormatter.setId("ccDefaultMentionFormatterId");
-      let isUserSentMessage = message.getSender().getUid() == loggedInUser!.getUid();
-      if (isUserSentMessage) {
-        mentionsTextFormatter.setMentionsStyle(_style?.mentionsStyle);
-      } else {
-      mentionsTextFormatter.setMentionsStyle(_style?.mentionsStyle);
-      }
-      mentionsTextFormatter.setTextStyle(_style?.textStyle);
     }
 
     let finalFormatters: CometChatTextFormatter[] = [];
@@ -330,6 +332,7 @@ export class MessageTranslationExtensionDecorator extends DataSourceDecorator {
         formatter.setMessage(message);
         formatter.setTargetElement(MentionsTargetElement.textbubble);
         formatter.setLoggedInUser(CometChatUIKit.loggedInUser!);
+        formatter.setContext(isMessageSentByLoggedInUser ? "outgoing" : "incoming");
       }
       formatter.setMessage(message);
       finalFormatters.push(CommonUtils.clone(formatter));
@@ -358,8 +361,8 @@ export class MessageTranslationExtensionDecorator extends DataSourceDecorator {
             tempTranslatedMsg
               ? tempTranslatedMsg[message.getId()]
               : this.translatedMessage[message.getId()]
-              ? this.translatedMessage[message.getId()]
-              : ""
+                ? this.translatedMessage[message.getId()]
+                : ""
           }
           textStyle={_style?.textStyle}
           textContainerStyle={_style?.textContainerStyle}

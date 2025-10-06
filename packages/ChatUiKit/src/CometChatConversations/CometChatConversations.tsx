@@ -818,6 +818,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
 
     if (message.getMentionedUsers().length) {
       let mentionsFormatter = ChatConfigurator.getDataSource().getMentionsFormatter();
+      mentionsFormatter.setContext('conversation');
       mentionsFormatter.setLoggedInUser(CometChatUIKit.loggedInUser!);
       mentionsFormatter.setMentionsStyle(mergedStyles.mentionsStyles);
       mentionsFormatter.setTargetElement(MentionsTargetElement.conversation);
@@ -1363,24 +1364,27 @@ export const CometChatConversations = (props: ConversationInterface) => {
     CometChatUIEventHandler.addUserListener(userListenerId, {
       ccUserBlocked: ({ user }: { user: CometChat.User }) => {
         const uid = user.getUid();
-        let item: CometChat.Conversation | any =
-          (conversationListRef.current?.getListItem(
-            `${uid}_user_${loggedInUser.current?.getUid()}`
-          ) as unknown as CometChat.Conversation) ||
-          (conversationListRef.current?.getListItem(
-            `${loggedInUser.current?.getUid()}_user_${uid}`
-          ) as unknown as CometChat.Conversation);
+        const loggedInUid = loggedInUser.current?.getUid();
+        if (!loggedInUid) return;
+
+        const candidateIds = [`${uid}_user_${loggedInUid}`, `${loggedInUid}_user_${uid}`];
+
+        const item: CometChat.Conversation | undefined = candidateIds
+          .map((id) => conversationListRef.current?.getListItem(id))
+          .find(Boolean);
+
+        if (!item) return;
+
         if (
           conversationsRequestBuilder &&
           conversationsRequestBuilder.build().isIncludeBlockedUsers()
         ) {
-          if (item) {
-            let updatedConversation = CommonUtils.clone(item);
-            updatedConversation.setConversationWith(user);
-            conversationListRef.current?.updateList(updatedConversation);
-          }
+          const updatedConversation = CommonUtils.clone(item);
+          updatedConversation.setConversationWith(user);
+          conversationListRef.current?.updateList(updatedConversation);
           return;
         }
+
         conversationListRef?.current?.removeItemFromList(item.getConversationId());
         removeItemFromSelectionList(item.getConversationId());
       },

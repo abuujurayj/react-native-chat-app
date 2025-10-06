@@ -1,4 +1,3 @@
-# use_modular_headers!
 # Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
   'require.resolve(
@@ -8,12 +7,15 @@ require Pod::Executable.execute_command('node', ['-p',
 
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
-use_frameworks! :linkage => :static
+
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
 
 target 'SampleApp' do
   config = use_native_modules!
-
-  
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -29,17 +31,5 @@ target 'SampleApp' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
-
-    installer.pods_project.targets.each do |target|
-      if target.name == 'SampleApp'
-        target.build_configurations.each do |config|
-          config.build_settings['SWIFT_OBJC_BRIDGING_HEADER'] = 'SampleApp-Bridging-Header.h'
-        end
-      end
-    end
-
-    installer.pods_project.build_configurations.each do |config|
-      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
-    end
   end
 end

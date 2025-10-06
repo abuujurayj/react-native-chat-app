@@ -2,7 +2,6 @@ import React, {
   JSX,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -20,10 +19,9 @@ import {Icon} from '@cometchat/chat-uikit-react-native';
 import {CallParticipants} from './CallParticipants';
 import {CallDetailHelper, CallStatus} from './CallDetailHelper';
 import {CallRecordings} from './CallRecordings';
-import {CallStackParamList} from '../../navigation/types';
 import {StackScreenProps} from '@react-navigation/stack';
 import {ICONS} from '@cometchat/chat-uikit-react-native/src/shared/icons/icon-mapping';
-import {toggleBottomTab} from '../../navigation/helper';
+import {RootStackParamList} from '../../navigation/types';
 
 const listenerId = 'userListener_' + new Date().getTime();
 const TABS = {
@@ -33,7 +31,7 @@ const TABS = {
   HISTORY: 'History',
 };
 
-type Props = StackScreenProps<CallStackParamList, 'CallDetails'>;
+type Props = StackScreenProps<RootStackParamList, 'CallDetails'>;
 
 export const CallDetails: React.FC<Props> = ({route, navigation}) => {
   const {call} = route.params;
@@ -41,9 +39,6 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
   const theme = useTheme();
   const [group, setGroup] = useState<CometChat.Group | null>(null);
   const [user, setUser] = useState<CometChat.User | null>(null);
-  const themeRef = useRef(theme);
-  const routeRef = useRef(route);
-  const navigationRef = useRef(navigation);
   const loggedInUser = useRef<CometChat.User | any>(null);
   const [selectedTab, setSelectedTab] = useState(TABS.PARTICIPANTS);
   const [tabStyle, setTableStyle] = useState<{
@@ -56,23 +51,6 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
     selectedItemTextStyle: TextStyle;
   }>();
   const BackIcon = ICONS['arrow-back'];
-
-  useEffect(() => {
-    themeRef.current = theme;
-    navigationRef.current = navigation;
-    routeRef.current = route;
-  }, [theme, navigation, route]);
-
-  const toggleTab = useCallback(() => {
-    return toggleBottomTab(navigationRef.current, themeRef.current);
-  }, [theme, navigation, route]);
-
-  useLayoutEffect(() => {
-    const cleanup = toggleTab();
-    return () => {
-      cleanup();
-    };
-  }, [toggleTab]);
 
   useEffect(() => {
     console.log('CALL RECEIVER: ', call);

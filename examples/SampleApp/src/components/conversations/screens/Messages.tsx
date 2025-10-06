@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   TouchableOpacity,
   View,
@@ -22,28 +16,25 @@ import {
   CometChatUIEventHandler,
   CometChatUIEvents,
   localize,
+  ChatConfigurator,
 } from '@cometchat/chat-uikit-react-native';
 import {StackScreenProps} from '@react-navigation/stack';
-import {ChatStackParamList} from '../../../navigation/types';
+import {RootStackParamList} from '../../../navigation/types';
 import {Icon} from '@cometchat/chat-uikit-react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import InfoIcon from '../../../assets/icons/InfoIcon';
-import {toggleBottomTab} from '../../../navigation/helper';
 import {CommonUtils} from '../../../utils/CommonUtils';
 import Info from '../../../assets/icons/Info';
 import {useActiveChat} from '../../../utils/ActiveChatContext';
 
-type Props = StackScreenProps<ChatStackParamList, 'Messages'>;
+type Props = StackScreenProps<RootStackParamList, 'Messages'>;
 
 const Messages: React.FC<Props> = ({route, navigation}) => {
-  const {user, group} = route.params;
+  const {user, group, fromMention = false} = route.params;
   const loggedInUser = useRef<CometChat.User>(
     CometChatUIKit.loggedInUser!,
   ).current;
   const theme = useTheme();
-  const themeRef = useRef(theme);
-  const navigationRef = useRef(navigation);
-  const routeRef = useRef(route);
   const userListenerId = 'app_messages' + new Date().getTime();
   const openmessageListenerId = 'message_' + new Date().getTime();
   const [localUser, setLocalUser] = useState<CometChat.User | undefined>(user);
@@ -64,25 +55,12 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
   }, [user, group, setActiveChat]);
 
   useEffect(() => {
-    themeRef.current = theme;
-    navigationRef.current = navigation;
-    routeRef.current = route;
-  }, [theme, navigation, route]);
-
-  const toggleTab = useCallback(() => {
-    return toggleBottomTab(navigationRef.current, themeRef.current);
-  }, [theme, navigation, route]);
-
-  useLayoutEffect(() => {
-    const cleanup = toggleTab();
-    return () => {
-      cleanup();
-    };
-  }, [toggleTab]);
-
-  useEffect(() => {
     const backAction = () => {
-      navigation.popToTop();
+      if (fromMention) {
+        navigation.goBack();
+      } else {
+        navigation.popToTop();
+      }
       return true;
     };
     // Add event listener for hardware back press
@@ -202,19 +180,53 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
     }
   };
 
+  const getMentionsTap = useCallback(() => {
+    const mentionsFormatter =
+      ChatConfigurator.getDataSource().getMentionsFormatter(
+        loggedInUser,
+        theme,
+      );
+    if (user) mentionsFormatter.setUser(user);
+    if (group) mentionsFormatter.setGroup(group);
+
+    mentionsFormatter.setOnMentionClick(
+      (_message: CometChat.BaseMessage, uid: string) => {
+        if (uid !== loggedInUser.getUid()) {
+          // Get the user by UID and navigate to Messages
+          CometChat.getUser(uid)
+            .then((mentionedUser: CometChat.User) => {
+              navigation.push('Messages', {
+                user: mentionedUser,
+                fromMention: true,
+              });
+            })
+            .catch((error: any) => {
+              console.error('Error fetching mentioned user:', error);
+            });
+        }
+      },
+    );
+    return mentionsFormatter;
+  }, [user, group, loggedInUser, navigation, theme]);
+
   return (
     <View style={styles.flexOne}>
       <CometChatMessageHeader
         user={localUser}
         group={group}
         onBack={() => {
-          navigation.popToTop();
+          if (fromMention) {
+            navigation.goBack();
+          } else {
+            navigation.popToTop();
+          }
         }}
         TrailingView={getTrailingView}
         showBackButton={true}
       />
       <View style={styles.flexOne}>
         <CometChatMessageList
+          textFormatters={[getMentionsTap()]}
           user={user}
           group={group}
           onThreadRepliesPress={(msg: CometChat.BaseMessage, view: any) => {

@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import {StyleSheet} from 'react-native';
 
 export const styles = StyleSheet.create({
   flexOne: {
@@ -7,12 +7,12 @@ export const styles = StyleSheet.create({
   headerContainer: {
     paddingTop: 15,
     paddingLeft: 10,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
-  ellipseTail: { paddingHorizontal: 10, width: "80%" },
+  ellipseTail: {paddingHorizontal: 10, width: '80%'},
   iconContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   pL5: {
     paddingLeft: 5,
@@ -24,8 +24,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   infoTitleContainer: {
-    alignSelf: "center",
-    alignItems: "center",
+    alignSelf: 'center',
+    alignItems: 'center',
     marginTop: 20,
   },
   avatarContainer: {
@@ -37,22 +37,23 @@ export const styles = StyleSheet.create({
     lineHeight: 55,
   },
   avatarImage: {
-    height: "100%",
-    width: "100%",
+    height: '100%',
+    width: '100%',
   },
   titleName: {
     marginTop: 10,
-    alignSelf: "center",
+    // width:'20%',
+    alignSelf: 'center',
   },
   boxLabel: {
     marginTop: 5,
-    textAlign: "center",
-    alignSelf: "center",
+    textAlign: 'center',
+    alignSelf: 'center',
   },
   boxContainerRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 20,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
     marginVertical: 20,
   },
   buttonContainer: {
@@ -60,8 +61,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
     borderWidth: 1,
     borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginHorizontal: 5,
   },
   buttonIcon: {
@@ -72,11 +73,11 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   actionButtons: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 8,
     paddingLeft: 20,
-    width: "100%",
+    width: '100%',
   },
   mL5: {
     marginLeft: 5,

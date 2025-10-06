@@ -1,6 +1,5 @@
-import {CometChatUIKit} from '@cometchat/chat-uikit-react-native';
+import {CometChatTheme, CometChatUIKit} from '@cometchat/chat-uikit-react-native';
 import {CallMade, CallMissedOutgoingFill, CallReceived} from './icons';
-import {CometChatTheme} from '@cometchat/chat-uikit-react-native/src/theme/type';
 import {JSX} from 'react';
 
 type CallDirection = 'incoming' | 'outgoing';

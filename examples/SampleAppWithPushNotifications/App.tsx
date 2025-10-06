@@ -58,7 +58,6 @@ const App = (): React.ReactElement => {
   const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
 
   /**
-   * Initialize CometChat UIKit.
    * Retrieves credentials from AsyncStorage and uses fallback constants if needed.
    */
   useEffect(() => {
@@ -509,7 +508,7 @@ const App = (): React.ReactElement => {
   // Once initialization is complete, render the main app UI.
   return (
     <SafeAreaProvider>
-      <SafeAreaView edges={['top']} style={{flex: 1}}>
+      <SafeAreaView edges={['top', 'bottom']} style={{flex: 1}}>
         <CometChatThemeProvider>
           {/* Render the incoming call UI if the user is logged in and a call is received */}
           {isLoggedIn && callReceived && incomingCall.current ? (
@@ -520,6 +519,11 @@ const App = (): React.ReactElement => {
                 incomingCall.current = null;
                 setCallReceived(false);
               }}
+              style={{
+              containerStyle: {
+                marginTop: Platform.OS === 'android' ? 40 : 0,
+              },
+            }}
             />
           ) : null}
           {/* Render the main navigation stack, passing the login status as a prop */}

@@ -1,25 +1,18 @@
-import { CometChat } from "@cometchat/chat-sdk-react-native";
+import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {
   CallingPackage,
   CometChatListItem,
   useTheme,
-} from "@cometchat/chat-uikit-react-native";
-import React, {
-  JSX,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { FlatList, Text, View } from "react-native";
-import { CallDetailHelper } from "./CallDetailHelper";
-import { Icon } from "@cometchat/chat-uikit-react-native";
+} from '@cometchat/chat-uikit-react-native';
+import React, {JSX, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FlatList, Text, View} from 'react-native';
+import {CallDetailHelper} from './CallDetailHelper';
+import {Icon} from '@cometchat/chat-uikit-react-native';
 
 const CometChatCalls = CallingPackage.CometChatCalls;
 
-export const CallHistory = (props: { user?: any; group?: any }) => {
-  const { user, group } = props;
+export const CallHistory = (props: {user?: any; group?: any}) => {
+  const {user, group} = props;
 
   const theme = useTheme();
 
@@ -32,8 +25,8 @@ export const CallHistory = (props: { user?: any; group?: any }) => {
     callRequestBuilderRef.current;
     let builder = new CometChatCalls.CallLogRequestBuilder()
       .setLimit(30)
-      .setAuthToken(loggedInUser.current?.getAuthToken() || "")
-      .setCallCategory("call");
+      .setAuthToken(loggedInUser.current?.getAuthToken() || '')
+      .setCallCategory('call');
     if (user) {
       builder = builder.setUid(user?.getUid());
     } else if (group) {
@@ -52,7 +45,7 @@ export const CallHistory = (props: { user?: any; group?: any }) => {
         }
       })
       .catch((err: any) => {
-        console.log("Error fetching call log history:", err);
+        //onError && onError(err);
       });
   };
 
@@ -64,26 +57,26 @@ export const CallHistory = (props: { user?: any; group?: any }) => {
         fetchCallLogHistory();
       })
       .catch((e: any) => {
-        console.log("Error getting logged in user:", e);
+        //onError && onError(e);
       });
   }, []);
 
   const _style = useMemo(() => {
     return {
       headerContainerStyle: {
-        alignItems: "flex-start",
-        justifyContent: "center",
-        width: "100%",
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        width: '100%',
         borderRadius: 0,
         paddingHorizontal: 0,
       },
       titleSeparatorStyle: {
         borderBottomWidth: 1,
         borderBottomColor: theme.color.borderLight,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
       },
       containerStyle: {
         backgroundColor: theme.color.background1,
@@ -91,7 +84,7 @@ export const CallHistory = (props: { user?: any; group?: any }) => {
       },
       itemStyle: {
         containerStyle: {
-          flexDirection: "row" as const,
+          flexDirection: 'row' as const,
           marginHorizontal: theme.spacing.margin.m4,
           paddingVertical: theme.spacing.padding.p2,
           gap: theme.spacing.spacing.s3,
@@ -133,7 +126,7 @@ export const CallHistory = (props: { user?: any; group?: any }) => {
   const getCallStatusIcon = useCallback((item: any): JSX.Element => {
     const CallStatusIcon = CallDetailHelper.getCallStatusDisplayIcon(
       getCallType(item).callStatus,
-      theme
+      theme,
     );
     return CallStatusIcon || <View />;
   }, []);
@@ -146,38 +139,35 @@ export const CallHistory = (props: { user?: any; group?: any }) => {
     return `${minutes} min  ${seconds} sec`;
   }, []);
 
-  const _render = ({ item, index }: any) => {
+  const _render = ({item, index}: any) => {
     return (
       <React.Fragment key={index}>
         <View
           style={{
-            flexDirection: "row",
-            width: "100%",
-            alignItems: "center",
-          }}
-        >
+            flexDirection: 'row',
+            width: '100%',
+            alignItems: 'center',
+          }}>
           <Icon
             icon={getCallStatusIcon(item)}
-            containerStyle={{ marginLeft: theme.spacing.margin.m4 }}
-          ></Icon>
+            containerStyle={{marginLeft: theme.spacing.margin.m4}}></Icon>
           <CometChatListItem
             id={item.sessionId}
             containerStyle={_style.itemStyle.containerStyle}
-            headViewContainerStyle={{ flexDirection: "row" }}
+            headViewContainerStyle={{flexDirection: 'row'}}
             trailingViewContainerStyle={{
-              alignSelf: "center",
+              alignSelf: 'center',
             }}
             titleStyle={_style.itemStyle.titleStyle}
             title={CallDetailHelper.getCallStatusDisplayText(
-              getCallType(item).callStatus
+              getCallType(item).callStatus,
             )}
             SubtitleView={
               <Text
                 style={{
                   ...theme.typography.body.regular,
                   color: theme.color.textSecondary,
-                }}
-              >
+                }}>
                 {getFormattedInitiatedAt(item)}
               </Text>
             }
@@ -195,7 +185,7 @@ export const CallHistory = (props: { user?: any; group?: any }) => {
   return (
     <FlatList
       data={list}
-      keyExtractor={(item, index) => item.sessionId + "_" + index}
+      keyExtractor={(item, index) => item.sessionId + '_' + index}
       renderItem={_render}
       onEndReached={fetchCallLogHistory}
     />

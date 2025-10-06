@@ -240,9 +240,7 @@ export interface CometChatTheme {
   dateSeparatorStyles: DateSeparatorStyle;
   mentionsStyle?: {
     textStyle: TextStyle;
-    //textContainerStyle: ViewStyle; //alignment issue in bubble
     selfTextStyle: TextStyle;
-    //selfTextContainerStyle: ViewStyle;
   };
   imageBubbleStyles?: {
     containerStyle: ViewStyle;

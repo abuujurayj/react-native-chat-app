@@ -480,30 +480,48 @@ public class FileManager extends ReactContextBaseJavaModule {
     private Activity activity;
 
     @ReactMethod
-    public boolean startRecording(Callback callback) {
-        if (checkPermissions()) {
-            fileName = getCurrentActivity().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-            fileName += "/audio-recording-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".m4a";
-            Log.e("AudioRecorder", "permission granted for audio recording " + fileName);
-            audioRecorder = new MediaRecorder();
-            audioRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            audioRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-            audioRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-            audioRecorder.setOutputFile(fileName);
-            Log.e("AudioRecorder", "lower version permission granted for audio recording " + fileName);
-            try {
-                audioRecorder.prepare();
-            } catch (IOException e) {
-                Log.e("TAG", "prepare() failed");
-            }
-            audioRecorder.start();
-            callback.invoke("{\"success\": true, \"file\": \"" + String.valueOf(FileProvider.getUriForFile(getCurrentActivity(), getCurrentActivity().getApplicationContext().getPackageName() + ".fileprovider", new File(fileName))) + "\"}");
-            return true;
-        } else {
-            requestPermissions();
-            Log.e("AudioRecorder", "permission not granted for audio recording or write to external storage so request permission");
-            return false;
+    public void startRecording(final Callback callback) {
+    Activity activity = getCurrentActivity();
+    if (activity == null) {
+        callback.invoke("{\"success\": false, \"error\": \"E_NO_ACTIVITY\"}");
+        return;
+    }
+
+    // You already check permission in JS for Android. Still be safe:
+    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO)
+        != PackageManager.PERMISSION_GRANTED) {
+        callback.invoke("{\"granted\": false}");
+        return;
+    }
+
+    try {
+        // App-scoped external dir (no WRITE permission needed)
+        File dir = activity.getExternalFilesDir(Environment.DIRECTORY_MUSIC);
+        if (dir == null) {
+        callback.invoke("{\"success\": false, \"error\": \"E_NO_DIR\"}");
+        return;
         }
+        String ts = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        fileName = new File(dir, "audio-recording-" + ts + ".m4a").getAbsolutePath();
+
+        audioRecorder = new MediaRecorder();
+        audioRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        audioRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        audioRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        audioRecorder.setAudioEncodingBitRate(128000);
+        audioRecorder.setAudioSamplingRate(44100);
+        audioRecorder.setOutputFile(fileName);
+
+        audioRecorder.prepare();
+        audioRecorder.start();
+
+        // Your JS just needs a callback to move to "recording"
+        callback.invoke("{\"success\": true}");
+    } catch (Exception e) {
+        try { if (audioRecorder != null) audioRecorder.release(); } catch (Exception ignore) {}
+        audioRecorder = null;
+        callback.invoke("{\"success\": false, \"error\": \"" + e.getMessage() + "\"}");
+    }
     }
 
     private void requestPermissions() {
@@ -571,17 +589,6 @@ public class FileManager extends ReactContextBaseJavaModule {
         }
     }
 
-
-    @ReactMethod
-    public String stopRecording() {
-        if(audioRecorder != null) {
-            audioRecorder.stop();
-            audioRecorder.release();
-        }
-        audioRecorder = null;
-        return fileName;
-    }
-
     @ReactMethod
     public void pausePlaying(Callback callback) {
         if (audioPlayer != null && audioPlayer.isPlaying()) {
@@ -603,14 +610,53 @@ public class FileManager extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void releaseMediaResources(Callback callback) {
-        if (audioRecorder != null) {
-            stopRecording();
-            callback.invoke("{\"success\": true, \"file\": \"" + String.valueOf(FileProvider.getUriForFile(getCurrentActivity(), getCurrentActivity().getApplicationContext().getPackageName() + ".fileprovider", new File(fileName))) + "\"}");
+    public void releaseMediaResources(final Callback callback) {
+    // Stop active recording
+    if (audioRecorder != null) {
+        try {
+        audioRecorder.stop();
+        } catch (Exception ignored) {
+        // ignore IllegalStateException if already stopped
         }
-        if (audioPlayer != null && audioPlayer.isPlaying()) {
-            stopPlaying(callback);
+        try { audioRecorder.release(); } catch (Exception ignore) {}
+        audioRecorder = null;
+    }
+
+    // Stop any playback
+    if (audioPlayer != null) {
+        try {
+        if (audioPlayer.isPlaying()) audioPlayer.stop();
+        } catch (Exception ignore) {}
+        try { audioPlayer.release(); } catch (Exception ignore) {}
+        audioPlayer = null;
+    }
+
+    // Build result JSON your JS expects: it parses .file (Android) and .duration (iOS use-case)
+    try {
+        Activity activity = getCurrentActivity();
+        JSONObject res = new JSONObject();
+
+        if (fileName != null) {
+        res.put("path", fileName);
+        if (activity != null) {
+            Uri contentUri = FileProvider.getUriForFile(
+            activity, activity.getPackageName() + ".fileprovider", new File(fileName));
+            res.put("file", contentUri.toString()); // your JS uses this
+        } else {
+            res.put("file", "file://" + fileName);
         }
+        } else {
+        res.put("file", JSONObject.NULL);
+        res.put("path", JSONObject.NULL);
+        }
+
+        // Android side: your JS ignores duration (it computes via timer)
+        res.put("duration", 0);
+
+        callback.invoke(res.toString());
+    } catch (Exception e) {
+        callback.invoke("{\"success\": false, \"error\": \"" + e.getMessage() + "\"}");
+    }
     }
 
     @ReactMethod

@@ -36,12 +36,11 @@ Sign up for a [CometChat](https://app.cometchat.com/) account to obtain your app
    git clone https://github.com/cometchat/cometchat-uikit-react-native.git
    ```
 
-1. Run `npm install` to install the dependencies in the root folder.
-
 1. Change into the specific app's directory (e.g., SampleApp).
    ```sh
      cd examples/SampleAppExpo
    ```
+1. Run `npm install` to install the dependencies in the root folder.
 
 1. `[Optional]` Configure CometChat credentials:
     - Open the `AppConstants.tsx` file located at `examples/SampleAppExpo/src/utils/AppConstants.tsx` and enter your CometChat _`appId`_, _`region`_, and _`authKey`_:
@@ -64,7 +63,6 @@ Sign up for a [CometChat](https://app.cometchat.com/) account to obtain your app
     npx expo run:android
     npx expo run:ios
    ```
-
 
 
 > **⚠️ Compatibility:**  

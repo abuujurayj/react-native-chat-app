@@ -11,14 +11,7 @@ import {
   BottomTabBarButtonProps,
 } from '@react-navigation/bottom-tabs';
 import {useTheme, Icon} from '@cometchat/chat-uikit-react-native';
-
-import ChatStackNavigator from './stacks/ChatStackNavigator';
-import CallsStackNavigator from './stacks/CallsStackNavigator';
-import GroupStackNavigator from './stacks/GroupStackNavigator';
-import UserStackNavigator from './stacks/UserStackNavigator';
-import {BottomTabParamList} from './types';
 import {SCREEN_CONSTANTS} from '../utils/AppConstants';
-
 import ChatFill from '../assets/icons/Chatfill';
 import Chat from '../assets/icons/Chat';
 import PersonFill from '../assets/icons/PersonFill';
@@ -27,6 +20,11 @@ import GroupFill from '../assets/icons/GroupFill';
 import CallFill from '../assets/icons/CallFill';
 import Call from '../assets/icons/Call';
 import Group from '../assets/icons/Group';
+import Conversations from '../components/conversations/screens/Conversations';
+import Calls from '../components/calls/Calls';
+import Users from '../components/users/Users';
+import Groups from '../components/groups/Groups';
+import {BottomTabParamList} from './types';
 
 // Create the tab navigator.
 const Tab = createBottomTabNavigator<BottomTabParamList>();
@@ -100,30 +98,18 @@ const BottomTabNavigator = () => {
           <View style={{backgroundColor: theme.color.background1, flex: 1}} />
         ),
       })}>
-      <Tab.Screen
-        name={SCREEN_CONSTANTS.CHATS}
-        component={ChatStackNavigator}
-      />
-      <Tab.Screen
-        name={SCREEN_CONSTANTS.CALLS}
-        component={CallsStackNavigator}
-      />
-      <Tab.Screen
-        name={SCREEN_CONSTANTS.USERS}
-        component={UserStackNavigator}
-      />
-      <Tab.Screen
-        name={SCREEN_CONSTANTS.GROUPS}
-        component={GroupStackNavigator}
-      />
+      <Tab.Screen name={SCREEN_CONSTANTS.CHATS} component={Conversations} />
+      <Tab.Screen name={SCREEN_CONSTANTS.CALLS} component={Calls} />
+      <Tab.Screen name={SCREEN_CONSTANTS.USERS} component={Users} />
+      <Tab.Screen name={SCREEN_CONSTANTS.GROUPS} component={Groups} />
     </Tab.Navigator>
   );
 };
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: Platform.OS === 'ios' ? 80 : 70,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+    height: Platform.OS === 'ios' ? 60 : 70,
+    paddingBottom: Platform.OS === 'ios' ? 0 : 10,
     paddingTop: 15,
     borderTopWidth: 0,
     elevation: 5,
@@ -131,7 +117,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    marginBottom: Platform.OS === 'ios' ? 8 : 0,
   },
   tabLabel: {
     fontSize: 12,

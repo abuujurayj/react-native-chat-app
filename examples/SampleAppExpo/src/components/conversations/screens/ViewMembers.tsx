@@ -1,20 +1,20 @@
-import React from "react";
-import { View } from "react-native";
+import React from 'react';
+import {View} from 'react-native';
 import {
   CometChatGroupMembers,
   useTheme,
-} from "@cometchat/chat-uikit-react-native";
-import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
-import { ChatStackParamList } from "../../../navigation/paramLists";
+} from '@cometchat/chat-uikit-react-native';
+import {useRoute, useNavigation, RouteProp} from '@react-navigation/native';
+import {RootStackParamList} from '../../../navigation/types';
 
 const ViewMembers: React.FC = () => {
-  const route = useRoute<RouteProp<ChatStackParamList, "ViewMembers">>();
+  const route = useRoute<RouteProp<RootStackParamList, 'ViewMembers'>>();
   const navigation = useNavigation();
-  const { group } = route.params;
+  const {group} = route.params;
   const theme = useTheme();
 
   return (
-    <View style={[{ flex: 1, backgroundColor: theme.color.background1 }]}>
+    <View style={[{flex: 1, backgroundColor: theme.color.background1}]}>
       <CometChatGroupMembers
         group={group}
         onBack={() => {

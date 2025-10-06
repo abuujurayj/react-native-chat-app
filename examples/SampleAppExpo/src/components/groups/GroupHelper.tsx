@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from 'react';
 import {
   Dimensions,
   View,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   TouchableWithoutFeedback,
-} from "react-native";
+} from 'react-native';
 import {
   CometChatAvatar,
   CometChatBottomSheet,
@@ -14,11 +14,11 @@ import {
   Icon,
   localize,
   useTheme,
-} from "@cometchat/chat-uikit-react-native";
-import { styles } from "./styles";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import GroupAdd from "../../assets/icons/GroupAdd";
-import Group from "../../assets/icons/Group";
+} from '@cometchat/chat-uikit-react-native';
+import {styles} from './styles';
+import {CometChat} from '@cometchat/chat-sdk-react-native';
+import GroupAdd from '../../assets/icons/GroupAdd';
+import Group from '../../assets/icons/Group';
 
 /**
  * Subcomponent for the default AppBar Options
@@ -26,11 +26,11 @@ import Group from "../../assets/icons/Group";
  */
 export const GroupScreenAppBarOptions: React.FC<{
   onPress: () => void;
-}> = ({ onPress }) => {
+}> = ({onPress}) => {
   const theme = useTheme();
 
   return (
-    <View style={{ paddingRight: 10 }}>
+    <View style={{paddingRight: 10}}>
       <TouchableOpacity onPress={onPress}>
         <Icon
           icon={<GroupAdd color={theme.color.primary} height={28} width={28} />}
@@ -58,41 +58,51 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
   const theme = useTheme();
 
   // Group state
-  const [groupName, setGroupName] = useState("");
-  const [groupPassword, setGroupPassword] = useState("");
-  const [selectedOption, setSelectedOption] = useState("Public");
+  const [groupName, setGroupName] = useState('');
+  const [groupPassword, setGroupPassword] = useState('');
+  const [selectedOption, setSelectedOption] = useState('Public');
   const [showPasswordField, setShowPasswordField] = useState(false);
-  const [showError, setShowError] = useState("");
-  const groupTypes = ["Public", "Private", "Password"];
+  const [showError, setShowError] = useState('');
+  const groupTypes = ['Public', 'Private', 'Password'];
+
+  const resetFields = () => {
+    setGroupName('');
+    setGroupPassword('');
+    setSelectedOption('Public');
+    setShowPasswordField(false);
+    setShowError('');
+  };
+
+  const handleDismiss = () => {
+    resetFields(); // clear everything the user typed/selected
+    onClose(); // let the parent know the sheet closed
+  };
 
   useEffect(() => {
-    if (showError) {
-      const timer = setTimeout(() => {
-        setShowError("");
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+    if (!showError) return;
+    const timer = setTimeout(() => setShowError(''), 3000);
+    return () => clearTimeout(timer);
   }, [showError]);
 
   const handleOptionPress = (option: string) => {
     setSelectedOption(option);
-    setShowPasswordField(option === "Password");
+    setShowPasswordField(option === 'Password');
   };
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
-      setShowError("Group name cannot be empty");
+      setShowError('Group name cannot be empty');
       return;
     }
-    const GUID = "group_" + Date.now();
+    const GUID = 'group_' + Date.now();
     let groupType = CometChat.GROUP_TYPE.PUBLIC;
-    let password = "";
+    let password = '';
 
     switch (selectedOption) {
-      case "Private":
+      case 'Private':
         groupType = CometChat.GROUP_TYPE.PRIVATE;
         break;
-      case "Password":
+      case 'Password':
         groupType = CometChat.GROUP_TYPE.PASSWORD;
         break;
       default:
@@ -101,7 +111,7 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
 
     if (groupType === CometChat.GROUP_TYPE.PASSWORD) {
       if (!groupPassword.trim()) {
-        setShowError("Password is mandatory for password-protected groups");
+        setShowError('Password is mandatory for password-protected groups');
         return;
       }
       password = groupPassword;
@@ -115,33 +125,28 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
       onGroupCreated(createdGroup);
 
       // Reset fields after creation
-      setGroupName("");
-      setGroupPassword("");
-      setSelectedOption("Public");
-      setShowPasswordField(false);
+      resetFields();
       onClose();
     } catch (error) {
-      console.log("Group creation failed with exception:", error);
+      console.log('Group creation failed with exception:', error);
     }
   };
 
   return (
     <CometChatBottomSheet
       isOpen={visible}
-      onClose={onClose}
+      onClose={handleDismiss}
       doNotOccupyEntireHeight={true}
       scrollEnabled={true}
-      style={{ maxHeight: Dimensions.get("window").height * 0.8 }}
-    >
+      style={{maxHeight: Dimensions.get('window').height * 0.8}}>
       <View style={styles.bottomSheetContainer}>
         {/* Header / Icon */}
-        <View style={{ alignItems: "center" }}>
+        <View style={{alignItems: 'center'}}>
           <View
             style={[
               styles.avatarIconContainer,
-              { backgroundColor: theme.color.background3 },
-            ]}
-          >
+              {backgroundColor: theme.color.background3},
+            ]}>
             <Icon
               icon={
                 <Group color={theme.color.primary} height={44} width={44} />
@@ -151,23 +156,21 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
           </View>
           <Text
             style={[
-              { color: theme.color.textPrimary, marginTop: 15 },
+              {color: theme.color.textPrimary, marginTop: 15},
               theme.typography.heading2.regular,
-            ]}
-          >
-            {localize("NEW__GROUP")}
+            ]}>
+            {localize('NEW__GROUP')}
           </Text>
         </View>
 
         {/* Group Type Tabs */}
-        <View style={{ marginVertical: 20 }}>
+        <View style={{marginVertical: 20}}>
           <Text
             style={[
               theme.typography.caption1.medium,
-              { marginBottom: 10, color: theme.color.textPrimary },
-            ]}
-          >
-            {localize("TYPE")}
+              {marginBottom: 10, color: theme.color.textPrimary},
+            ]}>
+            {localize('TYPE')}
           </Text>
           <View
             style={[
@@ -176,9 +179,8 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
                 borderColor: theme.color.borderLight,
                 backgroundColor: theme.color.background3,
               },
-            ]}
-          >
-            {groupTypes.map((option) => {
+            ]}>
+            {groupTypes.map(option => {
               const isSelected = selectedOption === option;
               return (
                 <TouchableOpacity
@@ -186,14 +188,13 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
                   onPress={() => handleOptionPress(option)}
                   style={{
                     flex: 1,
-                    alignItems: "center",
+                    alignItems: 'center',
                     paddingVertical: 8,
                     borderRadius: 12,
                     backgroundColor: isSelected
                       ? theme.color.background1
-                      : "transparent",
-                  }}
-                >
+                      : 'transparent',
+                  }}>
                   <Text
                     style={[
                       theme.typography.body.medium,
@@ -201,10 +202,9 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
                         color: isSelected
                           ? theme.color.textHighlight
                           : theme.color.textSecondary,
-                        fontWeight: isSelected ? "bold" : "normal",
+                        fontWeight: isSelected ? 'bold' : 'normal',
                       },
-                    ]}
-                  >
+                    ]}>
                     {option}
                   </Text>
                 </TouchableOpacity>
@@ -218,10 +218,9 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
           <Text
             style={[
               theme.typography.caption1.medium,
-              { marginBottom: 10, color: theme.color.textPrimary },
-            ]}
-          >
-            {localize("NAME")}
+              {marginBottom: 10, color: theme.color.textPrimary},
+            ]}>
+            {localize('NAME')}
           </Text>
           <View
             style={[
@@ -230,8 +229,7 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
                 borderColor: theme.color.borderLight,
                 backgroundColor: theme.color.background3,
               },
-            ]}
-          >
+            ]}>
             <TextInput
               value={groupName}
               onChangeText={setGroupName}
@@ -254,10 +252,9 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
             <Text
               style={[
                 theme.typography.caption1.medium,
-                { marginBottom: 10, color: theme.color.textPrimary },
-              ]}
-            >
-              {localize("PASSWORD")}
+                {marginBottom: 10, color: theme.color.textPrimary},
+              ]}>
+              {localize('PASSWORD')}
             </Text>
             <View
               style={[
@@ -266,14 +263,13 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
                   borderColor: theme.color.borderLight,
                   backgroundColor: theme.color.background3,
                 },
-              ]}
-            >
+              ]}>
               <TextInput
                 value={groupPassword}
                 onChangeText={setGroupPassword}
                 style={[
                   theme.typography.body.regular,
-                  { flex: 1, color: theme.color.textPrimary },
+                  {flex: 1, color: theme.color.textPrimary},
                 ]}
                 placeholder="Enter the password"
                 placeholderTextColor={theme.color.textTertiary}
@@ -283,9 +279,9 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
           </View>
         )}
 
-        {showError !== "" && (
+        {showError !== '' && (
           <View style={styles.toastContainer}>
-            <Text style={[styles.toastMessage, { color: theme.color.error }]}>
+            <Text style={[styles.toastMessage, {color: theme.color.error}]}>
               {showError}
             </Text>
           </View>
@@ -296,16 +292,14 @@ export const CreateGroupBottomSheet: React.FC<CreateGroupBottomSheetProps> = ({
           <View
             style={[
               styles.createButton,
-              { backgroundColor: theme.color.primaryButtonBackground },
-            ]}
-          >
+              {backgroundColor: theme.color.primaryButtonBackground},
+            ]}>
             <Text
               style={[
                 theme.typography.button.medium,
-                { color: theme.color.primaryButtonText },
-              ]}
-            >
-              {localize("CREATE_GROUP")}
+                {color: theme.color.primaryButtonText},
+              ]}>
+              {localize('CREATE_GROUP')}
             </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -331,16 +325,13 @@ export const JoinGroupBottomSheet: React.FC<JoinGroupBottomSheetProps> = ({
   onJoinSuccess,
 }) => {
   const theme = useTheme();
-  const [enteredPassword, setEnteredPassword] = useState("");
+  const [enteredPassword, setEnteredPassword] = useState('');
   const [isPasswordErrorVisible, setIsPasswordErrorVisible] = useState(false);
 
   useEffect(() => {
-    if (isPasswordErrorVisible) {
-      const timer = setTimeout(() => {
-        setIsPasswordErrorVisible(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+    if (!isPasswordErrorVisible) return;
+    const timer = setTimeout(() => setIsPasswordErrorVisible(false), 3000);
+    return () => clearTimeout(timer);
   }, [isPasswordErrorVisible]);
 
   const joinPasswordGroup = async () => {
@@ -350,18 +341,18 @@ export const JoinGroupBottomSheet: React.FC<JoinGroupBottomSheetProps> = ({
       const joinedGroup = await CometChat.joinGroup(
         groupToJoin.getGuid(),
         groupToJoin.getType() as CometChat.GroupType,
-        enteredPassword
+        enteredPassword,
       );
       onJoinSuccess(joinedGroup);
       handleClose();
     } catch (error) {
       setIsPasswordErrorVisible(true);
-      console.log("Error joining password group:", error);
+      console.log('Error joining password group:', error);
     }
   };
 
   const handleClose = () => {
-    setEnteredPassword("");
+    setEnteredPassword('');
     setIsPasswordErrorVisible(false);
     onClose();
   };
@@ -371,8 +362,7 @@ export const JoinGroupBottomSheet: React.FC<JoinGroupBottomSheetProps> = ({
       isOpen={visible}
       onClose={handleClose}
       scrollEnabled={true}
-      doNotOccupyEntireHeight={true}
-    >
+      doNotOccupyEntireHeight={true}>
       {groupToJoin && (
         <View style={styles.joiningGroup}>
           {/* Header */}
@@ -381,35 +371,32 @@ export const JoinGroupBottomSheet: React.FC<JoinGroupBottomSheetProps> = ({
               theme.typography.heading3.bold,
               {
                 marginBottom: 20,
-                textAlign: "center",
+                textAlign: 'center',
                 color: theme.color.textPrimary,
               },
-            ]}
-          >
-            {localize("JOIN_GROUP")}
+            ]}>
+            {localize('JOIN_GROUP')}
           </Text>
 
           {/* Group Info */}
-          <View style={{ alignItems: "center", marginBottom: 20 }}>
+          <View style={{alignItems: 'center', marginBottom: 20}}>
             <CometChatAvatar
               name={groupToJoin.getName()}
-              image={{ uri: groupToJoin.getIcon() }}
+              image={{uri: groupToJoin.getIcon()}}
             />
             <Text
               style={[
                 theme.typography.body.medium,
-                { marginTop: 10, color: theme.color.textPrimary },
-              ]}
-            >
+                {marginTop: 10, color: theme.color.textPrimary},
+              ]}>
               {groupToJoin.getName()}
             </Text>
             <Text
               style={[
                 theme.typography.caption1.medium,
-                { marginTop: 5, color: theme.color.textSecondary },
-              ]}
-            >
-              {groupToJoin.getMembersCount()} {localize("MEMBERS")}
+                {marginTop: 5, color: theme.color.textSecondary},
+              ]}>
+              {groupToJoin.getMembersCount()} {localize('MEMBERS')}
             </Text>
           </View>
 
@@ -418,10 +405,9 @@ export const JoinGroupBottomSheet: React.FC<JoinGroupBottomSheetProps> = ({
             <Text
               style={[
                 theme.typography.caption1.medium,
-                { marginBottom: 10, color: theme.color.textPrimary },
-              ]}
-            >
-              {localize("ENTER_PASSWORD")}
+                {marginBottom: 10, color: theme.color.textPrimary},
+              ]}>
+              {localize('ENTER_PASSWORD')}
             </Text>
             <View
               style={[
@@ -430,14 +416,13 @@ export const JoinGroupBottomSheet: React.FC<JoinGroupBottomSheetProps> = ({
                   borderColor: theme.color.borderLight,
                   backgroundColor: theme.color.background3,
                 },
-              ]}
-            >
+              ]}>
               <TextInput
                 value={enteredPassword}
                 onChangeText={setEnteredPassword}
                 style={[
                   theme.typography.body.regular,
-                  { flex: 1, color: theme.color.textPrimary },
+                  {flex: 1, color: theme.color.textPrimary},
                 ]}
                 placeholder="Enter the password"
                 placeholderTextColor={theme.color.textTertiary}
@@ -449,8 +434,8 @@ export const JoinGroupBottomSheet: React.FC<JoinGroupBottomSheetProps> = ({
           {/* Incorrect Password Toast */}
           {isPasswordErrorVisible && (
             <View style={styles.toastContainer}>
-              <Text style={[styles.toastMessage, { color: theme.color.error }]}>
-                {localize("PASSWORD_INCORRECT_GROUP")}
+              <Text style={[styles.toastMessage, {color: theme.color.error}]}>
+                {localize('PASSWORD_INCORRECT_GROUP')}
               </Text>
             </View>
           )}
@@ -460,16 +445,14 @@ export const JoinGroupBottomSheet: React.FC<JoinGroupBottomSheetProps> = ({
             <View
               style={[
                 styles.joinGroupButton,
-                { backgroundColor: theme.color.primaryButtonBackground },
-              ]}
-            >
+                {backgroundColor: theme.color.primaryButtonBackground},
+              ]}>
               <Text
                 style={[
                   theme.typography.button.medium,
-                  { color: theme.color.primaryButtonText },
-                ]}
-              >
-                {localize("JOIN_GROUP")}
+                  {color: theme.color.primaryButtonText},
+                ]}>
+                {localize('JOIN_GROUP')}
               </Text>
             </View>
           </TouchableWithoutFeedback>

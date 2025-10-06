@@ -24,7 +24,7 @@ import {
 } from '@cometchat/chat-uikit-react-native';
 import {ErrorEmptyView} from '@cometchat/chat-uikit-react-native/src/shared/views/ErrorEmptyView/ErrorEmptyView';
 import {RouteProp} from '@react-navigation/native';
-import {ChatStackParamList} from '../../../navigation/types';
+import {RootStackParamList} from '../../../navigation/types';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {
   getBannedMemberStyleLight,
@@ -36,8 +36,8 @@ import Close from '../../../assets/icons/Close';
 import Block from '../../../assets/icons/Block';
 
 type BannedMembersRouteProp = {
-  route: RouteProp<ChatStackParamList, 'BannedMember'>;
-  navigation: StackNavigationProp<ChatStackParamList, 'BannedMember'>;
+  route: RouteProp<RootStackParamList, 'BannedMember'>;
+  navigation: StackNavigationProp<RootStackParamList, 'BannedMember'>;
 };
 
 const BannedMember: React.FC<BannedMembersRouteProp> = ({

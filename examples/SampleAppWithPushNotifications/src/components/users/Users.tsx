@@ -3,10 +3,10 @@ import {CometChatUsers, useTheme} from '@cometchat/chat-uikit-react-native';
 import React, {useCallback} from 'react';
 import {SafeAreaView} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {UserStackParamList} from '../../navigation/types';
+import {RootStackParamList} from '../../navigation/types';
 import {StackNavigationProp} from '@react-navigation/stack';
 
-type UserNavigationProp = StackNavigationProp<UserStackParamList, 'Users'>;
+type UserNavigationProp = StackNavigationProp<RootStackParamList, 'Users'>;
 
 const Users: React.FC = () => {
   const theme = useTheme();
@@ -17,11 +17,7 @@ const Users: React.FC = () => {
     useCallback(() => {
       setShouldHide(false);
       return () => {
-        //Cleanup runs when out of focus and route length 1 means tab switch and not screen change
-        //getState() always returns the latest state
-        if (navigation.getState().routes.length == 1) {
-          setShouldHide(true);
-        }
+        setShouldHide(true);
       };
     }, []),
   );

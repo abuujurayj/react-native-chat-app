@@ -6,8 +6,6 @@ import {
   FlatList,
   Text,
   Pressable,
-  Linking,
-  Alert,
   NativeEventEmitter,
   NativeModules,
   Platform,

@@ -33,8 +33,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "SampleAppTests.xctest"
-               BlueprintName = "SampleAppTests"
+               BuildableName = "SampleAppWithPushNotificationsTests.xctest"
+               BlueprintName = "SampleAppWithPushNotificationsTests"
                ReferencedContainer = "container:SampleAppWithPushNotifications.xcodeproj">
             </BuildableReference>
          </TestableReference>

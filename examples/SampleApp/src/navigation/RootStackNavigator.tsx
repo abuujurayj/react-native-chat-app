@@ -1,15 +1,30 @@
 import React from 'react';
-import {createStackNavigator} from '@react-navigation/stack';
-import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import BottomTabNavigator from './BottomTabNavigator';
 import OngoingCallScreen from '../components/conversations/screens/OngoingCallScreen';
-import {SCREEN_CONSTANTS} from '../utils/AppConstants';
-import {useTheme} from '@cometchat/chat-uikit-react-native';
-import {RootStackParamList} from './types';
-import {navigationRef, processPendingNavigation} from './NavigationService';
+import { SCREEN_CONSTANTS } from '../utils/AppConstants';
+import { useTheme } from '@cometchat/chat-uikit-react-native';
+import { RootStackParamList } from './types';
+import { navigationRef, processPendingNavigation } from './NavigationService';
 import SampleUser from '../components/login/SampleUser';
 import AppCredentials from '../components/login/AppCredentials';
-import {StatusBar, useColorScheme} from 'react-native';
+import { Platform, StatusBar, useColorScheme } from 'react-native';
+import { navigateToConversation } from '../utils/helper';
+import Conversations from '../components/conversations/screens/Conversations';
+import CreateConversation from '../components/conversations/screens/CreateConversation';
+import Messages from '../components/conversations/screens/Messages';
+import ThreadView from '../components/conversations/screens/ThreadView';
+import UserInfo from '../components/conversations/screens/UserInfo';
+import AddMember from '../components/conversations/screens/AddMember';
+import BannedMember from '../components/conversations/screens/BannedMember';
+import ViewMembers from '../components/conversations/screens/ViewMembers';
+import GroupInfo from '../components/conversations/screens/GroupInfo';
+import TransferOwnership from '../components/conversations/screens/TransferOwnership';
+import Calls from '../components/calls/Calls';
+import { CallDetails } from '../components/calls/CallDetails';
+import Users from '../components/users/Users';
+import Groups from '../components/groups/Groups';
 
 type Props = {
   isLoggedIn: boolean;
@@ -18,7 +33,7 @@ type Props = {
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials}: Props) => {
+const RootStackNavigator = ({ isLoggedIn, hasValidAppCredentials }: Props) => {
   const theme = useTheme();
   const NavigationTheme = {
     ...DefaultTheme,
@@ -44,36 +59,91 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials}: Props) => {
         onReady={() => {
           processPendingNavigation();
         }}
-        theme={NavigationTheme}>
+        theme={NavigationTheme}
+      >
         <Stack.Navigator
           initialRouteName={
             isLoggedIn
               ? SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR
               : hasValidAppCredentials
-                ? SCREEN_CONSTANTS.SAMPLER_USER
-                : SCREEN_CONSTANTS.APP_CRED
+              ? SCREEN_CONSTANTS.SAMPLE_USER
+              : SCREEN_CONSTANTS.APP_CRED
           }
           screenOptions={{
             gestureEnabled: true,
             gestureDirection: 'horizontal',
             headerShown: false,
             animation: 'slide_from_right',
-          }}>
-          <Stack.Screen
-            name={SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR}
-            component={BottomTabNavigator}
-          />
-          <Stack.Screen
-            name={SCREEN_CONSTANTS.ONGOING_CALL_SCREEN}
-            component={OngoingCallScreen}
-          />
+          }}
+        >
+          {/* Auth Screens */}
           <Stack.Screen
             name={SCREEN_CONSTANTS.APP_CRED}
             component={AppCredentials}
           />
           <Stack.Screen
-            name={SCREEN_CONSTANTS.SAMPLER_USER}
+            name={SCREEN_CONSTANTS.SAMPLE_USER}
             component={SampleUser}
+          />
+
+          {/* Tab Screens */}
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR}
+            component={BottomTabNavigator}
+          />
+          <Stack.Screen name={SCREEN_CONSTANTS.USERS} component={Users} />
+          <Stack.Screen name={SCREEN_CONSTANTS.GROUPS} component={Groups} />
+
+          {/* Chat Screens */}
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.CONVERSATION}
+            component={Conversations}
+          />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.CREATE_CONVERSATION}
+            component={CreateConversation}
+          />
+          <Stack.Screen name={SCREEN_CONSTANTS.MESSAGES} component={Messages} />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.THREAD_VIEW}
+            component={ThreadView}
+          />
+
+          {/* Info Screens */}
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.USER_INFO}
+            component={UserInfo}
+          />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.GROUP_INFO}
+            component={GroupInfo}
+          />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.ADD_MEMBER}
+            component={AddMember}
+          />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.TRANSFER_OWNERSHIP}
+            component={TransferOwnership}
+          />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.BANNED_MEMBER}
+            component={BannedMember}
+          />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.VIEW_MEMBER}
+            component={ViewMembers}
+          />
+
+          {/* Call Screens */}
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.ONGOING_CALL_SCREEN}
+            component={OngoingCallScreen}
+          />
+          <Stack.Screen name={SCREEN_CONSTANTS.CALL_LOGS} component={Calls} />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.CALL_DETAILS}
+            component={CallDetails}
           />
         </Stack.Navigator>
       </NavigationContainer>

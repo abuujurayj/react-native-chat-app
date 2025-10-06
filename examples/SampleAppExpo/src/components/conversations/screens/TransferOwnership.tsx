@@ -1,26 +1,26 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { RouteProp } from "@react-navigation/native";
+import React, {useState} from 'react';
+import {View, Text, TouchableOpacity} from 'react-native';
+import {RouteProp} from '@react-navigation/native';
 import {
   CometChatGroupMembers,
   CometChatUIEventHandler,
   CometChatUIEvents,
   localize,
   useTheme,
-} from "@cometchat/chat-uikit-react-native";
-import { Icon } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { styles } from "./TransferOwnershipStyles";
-import ArrowBack from "../../../assets/icons/ArrowBack";
-import { CommonUtils } from "../../../utils/CommonUtils";
-import { ChatStackParamList } from "../../../navigation/paramLists";
+} from '@cometchat/chat-uikit-react-native';
+import {Icon} from '@cometchat/chat-uikit-react-native';
+import {CometChat} from '@cometchat/chat-sdk-react-native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../../../navigation/types';
+import {styles} from './TransferOwnershipStyles';
+import ArrowBack from '../../../assets/icons/ArrowBack';
+import {CommonUtils} from '../../../utils/CommonUtils';
 
 type TransferOwnershipScreenProps = {
-  route: RouteProp<ChatStackParamList, "TransferOwnershipSection">;
+  route: RouteProp<RootStackParamList, 'TransferOwnershipSection'>;
   navigation: StackNavigationProp<
-    ChatStackParamList,
-    "TransferOwnershipSection"
+    RootStackParamList,
+    'TransferOwnershipSection'
   >;
 };
 
@@ -28,7 +28,7 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
   route,
   navigation,
 }) => {
-  const { group } = route.params;
+  const {group} = route.params;
   const theme = useTheme();
   const [selectedOwnershipMember, setSelectedOwnershipMember] =
     useState<CometChat.User | null>(null);
@@ -46,8 +46,8 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
         });
         navigation.pop(3);
       })
-      .catch((error) => {
-        console.log("Group leaving failed with exception:", error);
+      .catch(error => {
+        console.log('Group leaving failed with exception:', error);
       });
   };
 
@@ -56,22 +56,21 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
     try {
       await CometChat.transferGroupOwnership(
         group.getGuid(),
-        selectedOwnershipMember.getUid()
+        selectedOwnershipMember.getUid(),
       );
       leaveGroup(group);
     } catch (error) {
-      console.error("Ownership transfer failed:", error);
+      console.error('Ownership transfer failed:', error);
     }
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.color.background1 }}>
+    <View style={{flex: 1, backgroundColor: theme.color.background1}}>
       {/* Header */}
       <View style={styles.headerSection}>
         <TouchableOpacity
           style={styles.backButtonContainer}
-          onPress={handleBack}
-        >
+          onPress={handleBack}>
           <Icon
             icon={
               <ArrowBack
@@ -86,10 +85,9 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
           style={[
             theme.typography.heading1.bold,
             styles.leftPaddingSmall,
-            { color: theme.color.textPrimary },
-          ]}
-        >
-          {localize("TRANSFER_OWNERSHIP")}
+            {color: theme.color.textPrimary},
+          ]}>
+          {localize('TRANSFER_OWNERSHIP')}
         </Text>
       </View>
 
@@ -101,9 +99,9 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
           onBack={handleBack}
           hideHeader={true}
           selectionMode="single"
-          onSelection={(members) => {
+          onSelection={members => {
             setSelectedOwnershipMember(
-              members && members.length > 0 ? members[0] : null
+              members && members.length > 0 ? members[0] : null,
             );
           }}
         />
@@ -112,22 +110,19 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
       {/* Transfer Ownership Button */}
       <TouchableOpacity
         onPress={handleTransferOwnership}
-        style={styles.transferButtonWrapper}
-      >
+        style={styles.transferButtonWrapper}>
         <View
           style={[
             styles.transferButtonContent,
-            { backgroundColor: theme.color.primaryButtonBackground },
-          ]}
-        >
+            {backgroundColor: theme.color.primaryButtonBackground},
+          ]}>
           <Text
             style={[
               theme.typography.heading4.medium,
               styles.centerAligned,
-              { color: theme.color.primaryButtonText },
-            ]}
-          >
-            {localize("TRANSFER_OWNERSHIP")}
+              {color: theme.color.primaryButtonText},
+            ]}>
+            {localize('TRANSFER_OWNERSHIP')}
           </Text>
         </View>
       </TouchableOpacity>

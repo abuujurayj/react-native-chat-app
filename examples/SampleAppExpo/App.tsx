@@ -1,56 +1,80 @@
-import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, View, ViewStyle } from "react-native";
+import { StatusBar, useColorScheme } from "react-native";
+import "./gesture-handler";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  CometChatUIKit,
-  UIKitSettings,
+  Platform,
+  View,
+  PlatformColor,
+  AppState,
+  AppStateStatus,
+} from "react-native";
+import { enableScreens } from "react-native-screens";
+enableScreens();
+import {
+  CometChatIncomingCall,
   CometChatThemeProvider,
   CometChatUIEventHandler,
   CometChatUIEvents,
-  CometChatIncomingCall,
+  CometChatUIKit,
+  UIKitSettings,
 } from "@cometchat/chat-uikit-react-native";
-import { CometChat } from "@cometchat/chat-sdk-react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AppConstants } from "./src/utils/AppConstants";
-import RootStackNavigator from "./src/navigation/RootStackNavigator";
+
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { Camera } from "expo-camera";
-import { Audio } from "expo-av";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
+import RootStackNavigator from "./src/navigation/RootStackNavigator";
+import { AppConstants } from "./src/utils/AppConstants";
+import { requestAndroidPermissions } from "./src/utils/helper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ActiveChatProvider } from './src/utils/ActiveChatContext';
 
-const listenerId = "app";
+function App() {
+  const isDarkMode = useColorScheme() === "dark";
 
-const App = (): React.ReactElement => {
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
+  return (
+    <SafeAreaProvider>
+      <ActiveChatProvider>
+        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+        <AppContent />
+      </ActiveChatProvider>
+    </SafeAreaProvider>
+  );
+}
+
+const AppContent = (): React.ReactElement => {
   const [callReceived, setCallReceived] = useState(false);
   const incomingCall = useRef<CometChat.Call | CometChat.CustomMessage | null>(
     null
   );
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
+  // Listener ID for registering and removing CometChat listeners.
+  const listenerId = "app";
 
+  /**
+   * Initialize CometChat UIKit and configure Google Sign-In.
+   * Retrieves credentials from AsyncStorage and uses fallback constants if needed.
+   */
   useEffect(() => {
-    const initCometChat = async () => {
+    async function init() {
       try {
-        // Retrieve stored credentials
-        const storedCredentials = JSON.parse(
-          (await AsyncStorage.getItem("appCredentials")) || "{}"
-        );
+        // Retrieve stored app credentials or default to an empty object.
+        const AppData = (await AsyncStorage.getItem("appCredentials")) || "{}";
+        const storedCredentials = JSON.parse(AppData);
 
-        // Determine final credentials
+        // Determine the final credentials (from AsyncStorage or AppConstants).
         const finalAppId = storedCredentials.appId || AppConstants.appId;
         const finalAuthKey = storedCredentials.authKey || AppConstants.authKey;
         const finalRegion = storedCredentials.region || AppConstants.region;
 
-        // Validate credentials
-        const credentialsValid =
-          !!finalAppId && !!finalAuthKey && !!finalRegion;
-        setHasValidAppCredentials(credentialsValid);
-
-        if (!credentialsValid) {
-          setIsInitializing(false);
-          return;
+        // Set hasValidAppCredentials based on whether all values are available.
+        if (finalAppId && finalAuthKey && finalRegion) {
+          setHasValidAppCredentials(true);
+        } else {
+          setHasValidAppCredentials(false);
         }
 
-        // Initialize CometChat
         await CometChatUIKit.init({
           appId: finalAppId,
           authKey: finalAuthKey,
@@ -59,19 +83,46 @@ const App = (): React.ReactElement => {
             .SUBSCRIPTION_TYPE_ALL_USERS as UIKitSettings["subscriptionType"],
         });
 
-        // Check if user is already logged in
-        const loggedInUser = await CometChat.getLoggedinUser();
+        // If a user is already logged in, update the state.
+        const loggedInUser = CometChatUIKit.loggedInUser;
         if (loggedInUser) {
           setIsLoggedIn(true);
         }
       } catch (error) {
-        console.log("Initialization error", error);
+        console.log("Error during initialization", error);
       } finally {
+        // Mark initialization as complete.
         setIsInitializing(false);
       }
-    };
+    }
+    init();
+  }, []);
 
-    initCometChat();
+  /**
+   * Monitor app state changes to verify the logged-in status and clear notifications.
+   * When the app becomes active, it cancels Android notifications and checks the login status.
+   */
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      // Request required Android permissions for notifications.
+      requestAndroidPermissions();
+    }
+    const handleAppStateChange = async (nextState: AppStateStatus) => {
+      if (nextState === "active") {
+        try {
+          // Verify if there is a valid logged-in user.
+          const chatUser = await CometChat.getLoggedinUser();
+          setIsLoggedIn(!!chatUser);
+        } catch (error) {
+          console.log("Error verifying CometChat user on resume:", error);
+        }
+      }
+    };
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+    return () => subscription.remove();
   }, []);
 
   /**
@@ -83,13 +134,13 @@ const App = (): React.ReactElement => {
       listenerId,
       new CometChat.LoginListener({
         loginSuccess: () => {
-          setIsLoggedIn(true);
+          setUserLoggedIn(true);
         },
         loginFailure: (e: CometChat.CometChatException) => {
           console.log("LoginListener :: loginFailure", e.message);
         },
         logoutSuccess: () => {
-          setIsLoggedIn(false);
+          setUserLoggedIn(false);
         },
         logoutFailure: (e: CometChat.CometChatException) => {
           console.log("LoginListener :: logoutFailure", e.message);
@@ -175,8 +226,6 @@ const App = (): React.ReactElement => {
     // Additional listener to handle call end events.
     CometChatUIEventHandler.addCallListener(listenerId, {
       ccCallEnded: () => {
-        // Clear the incoming call state when a call ends.
-        console.log("Call ended, clearing incoming call state");
         incomingCall.current = null;
         setCallReceived(false);
       },
@@ -187,38 +236,28 @@ const App = (): React.ReactElement => {
       CometChatUIEventHandler.removeCallListener(listenerId);
       CometChat.removeCallListener(listenerId);
     };
-  }, [isLoggedIn]);
+  }, [userLoggedIn]);
 
-  useEffect(() => {
-    const requestPermissions = async () => {
-      try {
-        const { status: cameraStatus } =
-          await Camera.requestCameraPermissionsAsync();
-        const { status: micStatus } = await Audio.requestPermissionsAsync();
-
-        if (cameraStatus !== "granted" || micStatus !== "granted") {
-          console.warn("Camera or microphone permission not granted.");
-        }
-      } catch (error) {
-        console.error("Permission request error:", error);
-      }
-    };
-
-    requestPermissions();
-  }, []);
-
+  // Show a blank/splash screen while the app is initializing.
   if (isInitializing) {
     return (
-      <View style={[styles.fullScreen, styles.centerContent]}>
-        <ActivityIndicator size="large" />
-      </View>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: Platform.select({
+            ios: PlatformColor("systemBackgroundColor"),
+            android: PlatformColor("?android:attr/colorBackground"),
+          }),
+        }}
+      />
     );
   }
 
+  // Once initialization is complete, render the main app UI.
   return (
-    <SafeAreaProvider>
-      <SafeAreaView edges={['top','bottom']} style={{flex: 1}}>
+    <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1 }}>
       <CometChatThemeProvider>
+        {/* Render the incoming call UI if the user is logged in and a call is received */}
         {isLoggedIn && callReceived && incomingCall.current ? (
           <CometChatIncomingCall
             call={incomingCall.current}
@@ -227,24 +266,21 @@ const App = (): React.ReactElement => {
               incomingCall.current = null;
               setCallReceived(false);
             }}
+            style={{
+              containerStyle: {
+                marginTop: Platform.OS === "android" ? 40 : 0,
+              },
+            }}
           />
         ) : null}
+        {/* Render the main navigation stack, passing the login status as a prop */}
         <RootStackNavigator
           isLoggedIn={isLoggedIn}
           hasValidAppCredentials={hasValidAppCredentials}
         />
       </CometChatThemeProvider>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    </SafeAreaView>
   );
-};
-
-const styles: { fullScreen: ViewStyle; centerContent: ViewStyle } = {
-  fullScreen: { flex: 1 },
-  centerContent: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
 };
 
 export default App;
