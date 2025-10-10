@@ -86,8 +86,7 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials}: Props) => {
           initialRouteName={
             isLoggedIn
               ? SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR
-              : 
-              // SCREEN_CONSTANTS.LOGIN
+              :
             hasValidAppCredentials
             ? SCREEN_CONSTANTS.SAMPLE_USER
             : SCREEN_CONSTANTS.APP_CRED

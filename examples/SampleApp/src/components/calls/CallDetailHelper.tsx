@@ -1,6 +1,8 @@
 import {CometChatTheme, CometChatUIKit} from '@cometchat/chat-uikit-react-native';
 import {CallMade, CallMissedOutgoingFill, CallReceived} from './icons';
 import {JSX} from 'react';
+import { getCometChatTranslation } from '@cometchat/chat-uikit-react-native';
+const t = getCometChatTranslation();
 
 type CallDirection = 'incoming' | 'outgoing';
 
@@ -147,19 +149,19 @@ export class CallDetailHelper {
 
   static getCallStatusDisplayText = (callStatus: CallStatus): string => {
     const labels: Record<CallStatus, string> = {
-      outgoing: 'Outgoing Call',
-      outgoingCallEnded: 'Outgoing Call',
-      cancelledByMe: 'Outgoing Call',
-      outgoingRejected: 'Outgoing Call',
-      outgoingBusy: 'Outgoing Call',
-      unansweredByThem: 'Outgoing Call',
+      outgoing: t('OUTGOING_CALL'),
+      outgoingCallEnded: t('OUTGOING_CALL'),
+      cancelledByMe: t('OUTGOING_CALL'),
+      outgoingRejected: t('OUTGOING_CALL'),
+      outgoingBusy: t('OUTGOING_CALL'),
+      unansweredByThem: t('OUTGOING_CALL'),
 
-      incoming: 'Incoming Call',
-      incomingCallEnded: 'Incoming Call',
-      cancelledByThem: 'Missed Call',
-      incomingRejected: 'Incoming Call',
-      incomingBusy: 'Missed Call',
-      unansweredByMe: 'Missed Call',
+      incoming: t('INCOMING_CALL'),
+      incomingCallEnded: t('INCOMING_CALL'),
+      cancelledByThem: t('MISSED_CALL'),
+      incomingRejected: t('INCOMING_CALL'),
+      incomingBusy: t('MISSED_CALL'),
+      unansweredByMe: t('MISSED_CALL'),
     };
 
     return labels[callStatus];

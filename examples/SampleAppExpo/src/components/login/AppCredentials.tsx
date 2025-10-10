@@ -17,8 +17,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   CometChatUIKit,
-  localize,
   UIKitSettings,
+  useCometChatTranslation,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
 import {navigate, navigationRef} from '../../navigation/NavigationService';
@@ -40,6 +40,7 @@ const AppCredentials: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const theme = useTheme();
+  const {t}=useCometChatTranslation()
   const {width} = Dimensions.get('window');
   const mode = useColorScheme();
 
@@ -181,7 +182,7 @@ const AppCredentials: React.FC = () => {
                   alignSelf: 'center',
                 },
               ]}>
-              {localize('APP_CREDENTIALS')}
+              {t('APP_CREDENTIALS')}
             </Text>
 
             {/* Region Selector */}
@@ -191,7 +192,7 @@ const AppCredentials: React.FC = () => {
                   theme.typography.caption1.medium,
                   {color: theme.color.textPrimary, marginBottom: 10},
                 ]}>
-                {localize('REGION')}
+                {t('REGION')}
               </Text>
               <View style={styles.regionRow}>
                 {/* US */}
@@ -355,7 +356,7 @@ const AppCredentials: React.FC = () => {
                 theme.typography.button.medium,
                 {textAlign: 'center', color: theme.color.staticWhite},
               ]}>
-              {localize('CONTINUE')}
+              {t('CONTINUE')}
             </Text>
           </TouchableOpacity>
         </View>

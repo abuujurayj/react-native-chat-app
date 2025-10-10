@@ -5,7 +5,7 @@ import {
   CometChatGroupMembers,
   CometChatUIEventHandler,
   CometChatUIEvents,
-  localize,
+  useCometChatTranslation,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
 import {Icon} from '@cometchat/chat-uikit-react-native';
@@ -30,6 +30,7 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
 }) => {
   const {group} = route.params;
   const theme = useTheme();
+  const {t}= useCometChatTranslation()
   const [selectedOwnershipMember, setSelectedOwnershipMember] =
     useState<CometChat.User | null>(null);
 
@@ -87,7 +88,7 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
             styles.leftPaddingSmall,
             {color: theme.color.textPrimary},
           ]}>
-          {localize('TRANSFER_OWNERSHIP')}
+          {t('TRANSFER_OWNERSHIP')}
         </Text>
       </View>
 
@@ -122,7 +123,7 @@ const TransferOwnership: React.FC<TransferOwnershipScreenProps> = ({
               styles.centerAligned,
               {color: theme.color.primaryButtonText},
             ]}>
-            {localize('TRANSFER_OWNERSHIP')}
+            {t('TRANSFER_OWNERSHIP')}
           </Text>
         </View>
       </TouchableOpacity>

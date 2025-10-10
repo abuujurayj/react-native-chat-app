@@ -14,7 +14,6 @@ import {
   CommonActions,
 } from '@react-navigation/native';
 import {TooltipMenu} from '../../../utils/TooltipMenu';
-import Bug from '../../../assets/icons/bug.png';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../navigation/types';
 import {unregisterPushToken} from '../../../utils/PushNotification';

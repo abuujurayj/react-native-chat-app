@@ -1,6 +1,6 @@
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import React, {useCallback, useContext, useRef, useState} from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View, Platform} from 'react-native';
 import {
   CometChatAvatar,
   CometChatConversations,
@@ -100,7 +100,6 @@ const Conversations: React.FC<{}> = ({}) => {
       setIsLoggingOut(false);
       return; // Exit if CometChat logout fails
     }
-
 
     // If all operations succeed, navigate to the LoginScreen
     setIsLoggingOut(false);

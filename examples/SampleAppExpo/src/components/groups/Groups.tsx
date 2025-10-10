@@ -1,7 +1,7 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {SafeAreaView} from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
+import React, { useCallback, useEffect, useState } from 'react';
+import { SafeAreaView } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import {
   CometChatGroups,
   CometChatUIEventHandler,
@@ -9,16 +9,16 @@ import {
   CometChatUIKit,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
-import {RootStackParamList} from '../../navigation/types';
-import {styles} from './styles';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
+import { RootStackParamList } from '../../navigation/types';
+import { styles } from './styles';
 
 import {
   GroupScreenAppBarOptions,
   CreateGroupBottomSheet,
   JoinGroupBottomSheet,
 } from './GroupHelper';
-import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
+import { SCREEN_CONSTANTS } from '../../utils/AppConstants';
 
 type GroupNavigationProp = StackNavigationProp<RootStackParamList, 'Groups'>;
 
@@ -26,7 +26,7 @@ interface GroupsProps {
   hideHeader?: boolean;
 }
 
-const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
+const Groups: React.FC<GroupsProps> = ({ hideHeader = false }) => {
   const theme = useTheme();
   const navigation = useNavigation<GroupNavigationProp>();
   const [pendingChat, setPendingChat] = useState<CometChat.Group | null>(null);
@@ -45,7 +45,7 @@ const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
   useEffect(() => {
     if (!isCreateGroupSheetVisible && !isJoinGroupSheetVisible && pendingChat) {
       const timer = setTimeout(() => {
-        navigation.navigate(SCREEN_CONSTANTS.MESSAGES, {group: pendingChat});
+        navigation.navigate(SCREEN_CONSTANTS.MESSAGES, { group: pendingChat });
         setPendingChat(null);
       }, 300);
       return () => clearTimeout(timer);
@@ -121,8 +121,9 @@ const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
     <SafeAreaView
       style={[
         styles.safeAreaContainer,
-        {backgroundColor: theme.color.background1},
-      ]}>
+        { backgroundColor: theme.color.background1 },
+      ]}
+    >
       {/* CometChatGroups list component */}
       <CometChatGroups
         AppBarOptions={() => (

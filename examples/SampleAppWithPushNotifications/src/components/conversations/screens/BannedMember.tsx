@@ -10,10 +10,9 @@ import {
   CometChatConfirmDialog,
   CometChatList,
   CometChatListActionsInterface,
-  localize,
 } from '@cometchat/chat-uikit-react-native/src/shared';
 import {Skeleton} from '@cometchat/chat-uikit-react-native/src/CometChatUsers/Skeleton';
-import {Icon} from '@cometchat/chat-uikit-react-native';
+import {Icon, useCometChatTranslation} from '@cometchat/chat-uikit-react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {
   CometChatGroupsEvents,
@@ -46,6 +45,7 @@ const BannedMember: React.FC<BannedMembersRouteProp> = ({
 }) => {
   const {group} = route.params;
   const theme = useTheme();
+  const {t}= useCometChatTranslation()
   const bannedListRef = useRef<CometChatListActionsInterface>(null);
 
   const [isModalVisible, setModalVisible] = useState(false);
@@ -87,7 +87,7 @@ const BannedMember: React.FC<BannedMembersRouteProp> = ({
       actionMessage.setActionBy(CometChatUIKit.loggedInUser!);
       actionMessage.setSender(CometChatUIKit.loggedInUser!);
       actionMessage.setMessage(
-        `${CometChatUIKit.loggedInUser?.getName()} ${localize(
+        `${CometChatUIKit.loggedInUser?.getName()} ${t(
           'UNBANNED',
         )} ${selectedUser.getName()}`,
       );
@@ -119,7 +119,7 @@ const BannedMember: React.FC<BannedMembersRouteProp> = ({
     return (
       <View style={styles.flexContainer}>
         <ErrorEmptyView
-          title={'No Banned Members'}
+          title={t("NO_BANNED_MEMBERS_FOUND")}
           Icon={
             <Icon
               icon={
@@ -136,7 +136,7 @@ const BannedMember: React.FC<BannedMembersRouteProp> = ({
           containerStyle={styles.emptyViewContainer}
           titleStyle={[
             theme.userStyles.emptyStateStyle.titleStyle,
-            {color: theme.color.textPrimary},
+            { color: theme.color.textPrimary },
           ]}
         />
       </View>
@@ -158,11 +158,11 @@ const BannedMember: React.FC<BannedMembersRouteProp> = ({
 
     return (
       <CometChatConfirmDialog
-        titleText={`${localize('UNBAN')} ${selectedUser.getName()}`}
+        titleText={`${t('UNBAN')} ${selectedUser.getName()}`}
         icon={<Block color={theme.color.error} height={40} width={40} />}
-        cancelButtonText={localize('CANCEL')}
-        confirmButtonText={localize('UNBAN')}
-        messageText={localize('UNBAN_SURE') + ' ' + selectedUser.getName()}
+        cancelButtonText={t('CANCEL')}
+        confirmButtonText={t('UNBAN')}
+        messageText={t('UNBAN_SURE') + ' ' + selectedUser.getName()}
         isOpen={true}
         onCancel={closeUnbanModal}
         onConfirm={handleUnbanUser}
@@ -181,7 +181,7 @@ const BannedMember: React.FC<BannedMembersRouteProp> = ({
           {backgroundColor: theme.color.background1},
         ]}>
         <CometChatList
-          title={localize('BANNED_MEMBERS')}
+          title={t('BANNED_MEMBERS')}
           hideStickyHeader={true}
           ref={bannedListRef}
           onBack={() => navigation.goBack()}

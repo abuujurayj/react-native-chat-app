@@ -11,6 +11,7 @@ import {
 import { enableScreens } from "react-native-screens";
 enableScreens();
 import {
+  CometChatI18nProvider,
   CometChatIncomingCall,
   CometChatThemeProvider,
   CometChatUIEventHandler,
@@ -255,31 +256,35 @@ const AppContent = (): React.ReactElement => {
 
   // Once initialization is complete, render the main app UI.
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1 }}>
-      <CometChatThemeProvider>
-        {/* Render the incoming call UI if the user is logged in and a call is received */}
-        {isLoggedIn && callReceived && incomingCall.current ? (
-          <CometChatIncomingCall
-            call={incomingCall.current}
-            onDecline={() => {
-              // Handle call decline by clearing the incoming call state.
-              incomingCall.current = null;
-              setCallReceived(false);
-            }}
-            style={{
-              containerStyle: {
-                marginTop: Platform.OS === "android" ? 40 : 0,
-              },
-            }}
-          />
-        ) : null}
-        {/* Render the main navigation stack, passing the login status as a prop */}
-        <RootStackNavigator
-          isLoggedIn={isLoggedIn}
-          hasValidAppCredentials={hasValidAppCredentials}
-        />
-      </CometChatThemeProvider>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView edges={['top', 'bottom']} style={{flex: 1}}>
+        <CometChatThemeProvider>
+          <CometChatI18nProvider>
+            {/* Render the incoming call UI if the user is logged in and a call is received */}
+            {isLoggedIn && callReceived && incomingCall.current ? (
+              <CometChatIncomingCall
+                call={incomingCall.current}
+                onDecline={() => {
+                  // Handle call decline by clearing the incoming call state.
+                  incomingCall.current = null;
+                  setCallReceived(false);
+                }}
+                style={{
+                  containerStyle: {
+                    marginTop: Platform.OS === 'android' ? 40 : 0,
+                  },
+                }}
+              />
+            ) : null}
+            {/* Render the main navigation stack, passing the login status as a prop */}
+            <RootStackNavigator
+              isLoggedIn={isLoggedIn}
+              hasValidAppCredentials={hasValidAppCredentials}
+            />
+          </CometChatI18nProvider>
+        </CometChatThemeProvider>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 

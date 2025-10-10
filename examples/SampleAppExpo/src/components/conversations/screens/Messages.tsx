@@ -15,8 +15,8 @@ import {
   useTheme,
   CometChatUIEventHandler,
   CometChatUIEvents,
-  localize,
   ChatConfigurator,
+  useCometChatTranslation,
 } from '@cometchat/chat-uikit-react-native';
 import {StackScreenProps} from '@react-navigation/stack';
 import {RootStackParamList} from '../../../navigation/types';
@@ -35,6 +35,10 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
     CometChatUIKit.loggedInUser!,
   ).current;
   const theme = useTheme();
+  const { t } = useCometChatTranslation()
+  const themeRef = useRef(theme);
+  const navigationRef = useRef(navigation);
+  const routeRef = useRef(route);
   const userListenerId = 'app_messages' + new Date().getTime();
   const openmessageListenerId = 'message_' + new Date().getTime();
   const [localUser, setLocalUser] = useState<CometChat.User | undefined>(user);
@@ -253,7 +257,7 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
                 paddingBottom: 10,
               },
             ]}>
-            {localize('BLOCKED_USER_DESC')}
+            {t('BLOCKED_USER_DESC')}
           </Text>
           <TouchableOpacity
             onPress={() => unblock(localUser)}
@@ -266,7 +270,7 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
                   color: theme.color.textPrimary,
                 },
               ]}>
-              {localize('UNBLOCK')}
+              {t('UNBLOCK')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -278,8 +282,8 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
             ...(Platform.OS === 'android'
               ? {}
               : {
-                  behavior: 'padding',
-                }),
+                behavior: 'padding',
+              }),
           }}
         />
       )}

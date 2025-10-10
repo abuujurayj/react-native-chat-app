@@ -10,8 +10,10 @@ import {View, TouchableOpacity, Text, TextStyle, ViewStyle} from 'react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {
   CometChatListItem,
-  localize,
+  useCometChatTranslation,
   useTheme,
+  useLocalizedDate,
+  LocalizedDateHelper
 } from '@cometchat/chat-uikit-react-native';
 import {CallHistory} from './CallHistory';
 import {CallLogDetailHeader} from './CallLogDetailHeader';
@@ -22,6 +24,7 @@ import {CallRecordings} from './CallRecordings';
 import {StackScreenProps} from '@react-navigation/stack';
 import {ICONS} from '@cometchat/chat-uikit-react-native/src/shared/icons/icon-mapping';
 import {RootStackParamList} from '../../navigation/types';
+
 
 const listenerId = 'userListener_' + new Date().getTime();
 const TABS = {
@@ -37,6 +40,8 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
   const {call} = route.params;
 
   const theme = useTheme();
+  const {t, language} = useCometChatTranslation()
+  const {formatDate}= useLocalizedDate()
   const [group, setGroup] = useState<CometChat.Group | null>(null);
   const [user, setUser] = useState<CometChat.User | null>(null);
   const loggedInUser = useRef<CometChat.User | any>(null);
@@ -167,14 +172,7 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
     call?.getInitiator();
   }, [call]);
 
-  const convertMinutesToTime = useCallback((decimalMinutes: number) => {
-    const totalSeconds = Math.round(decimalMinutes * 60); // Convert to seconds
-    const minutes = Math.floor(totalSeconds / 60); // Get whole minutes
-    const seconds = totalSeconds % 60; // Get remaining seconds
-
-    return `${minutes} min  ${seconds} sec`;
-  }, []);
-
+ 
   const callTypeAndStatus = useMemo(
     (): {
       type: 'incoming' | 'outgoing';
@@ -237,9 +235,21 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
     };
   }, [theme]);
 
-  const getFormattedInitiatedAt = useCallback(() => {
-    return CallDetailHelper.getFormattedInitiatedAt(call);
+  const convertMinutesToTime = useCallback((decimalMinutes: number) => {
+    const totalSeconds = Math.round(decimalMinutes * 60); // Convert to seconds
+    const minutes = Math.floor(totalSeconds / 60); // Get whole minutes
+    const seconds = totalSeconds % 60; // Get remaining seconds
+    return `${minutes} min  ${seconds} sec`;
   }, []);
+
+  const getFormattedInitiatedAt = useCallback(() => {
+    if (!call || !call.getInitiatedAt()) return '';
+
+    return formatDate(
+      call.getInitiatedAt() * 1000,
+      LocalizedDateHelper.patterns.dayDateTimeFormat
+    );
+  }, [call]);
 
   const callStatusDisplayString = useMemo(() => {
     return CallDetailHelper.getCallStatusDisplayText(
@@ -289,7 +299,7 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
               color: theme.color.textPrimary,
               ...theme.typography.heading1.bold,
             }}>
-            {localize('CALL_DETAILS')}
+            {t('CALL_DETAILS')}
           </Text>
         </View>
 
@@ -341,27 +351,29 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
                 justifyContent: 'space-evenly',
                 paddingHorizontal: 0,
               }}>
-              {['Participants', 'Recordings', 'History'].map(
-                (tabTitle, index) => (
-                  <TouchableOpacity
-                    key={index}
+              {[
+                { key: TABS.PARTICIPANTS, title: t('PARTICIPANT') },
+                { key: TABS.RECORDINGS, title: t('RECORDING') },
+                { key: TABS.HISTORY, title: t('HISTORY') }
+              ].map((tab) => (
+                <TouchableOpacity
+                  key={tab.key}
+                  style={
+                    selectedTab === tab.key
+                      ? tabStyle!.selectedItemStyle
+                      : tabStyle!.itemStyle
+                  }
+                  onPress={() => setSelectedTab(tab.key)}>
+                  <Text
                     style={
-                      selectedTab === tabTitle
-                        ? tabStyle!.selectedItemStyle
-                        : tabStyle!.itemStyle
-                    }
-                    onPress={() => setSelectedTab(tabTitle)}>
-                    <Text
-                      style={
-                        selectedTab === tabTitle
-                          ? tabStyle!.selectedItemTextStyle
-                          : tabStyle!.itemTextStyle
-                      }>
-                      {tabTitle}
-                    </Text>
-                  </TouchableOpacity>
-                ),
-              )}
+                      selectedTab === tab.key
+                        ? tabStyle!.selectedItemTextStyle
+                        : tabStyle!.itemTextStyle
+                    }>
+                    {tab.title}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
             {selectedTab === TABS.PARTICIPANTS && (
               <CallParticipants

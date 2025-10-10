@@ -1,20 +1,26 @@
-import {CometChat} from '@cometchat/chat-sdk-react-native';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
 import {
   CallingPackage,
   CometChatListItem,
   useTheme,
+  useCometChatTranslation,
+  useLocalizedDate,
+  localizedDateHelperInstance,
+  LocalizedDateHelper
 } from '@cometchat/chat-uikit-react-native';
-import React, {JSX, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, Text, View} from 'react-native';
-import {CallDetailHelper} from './CallDetailHelper';
-import {Icon} from '@cometchat/chat-uikit-react-native';
+import React, { JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FlatList, Text, View } from 'react-native';
+import { CallDetailHelper } from './CallDetailHelper';
+import { Icon } from '@cometchat/chat-uikit-react-native';
 
 const CometChatCalls = CallingPackage.CometChatCalls;
 
-export const CallHistory = (props: {user?: any; group?: any}) => {
-  const {user, group} = props;
+export const CallHistory = (props: { user?: any; group?: any }) => {
+  const { user, group } = props;
 
   const theme = useTheme();
+  const { language, t } = useCometChatTranslation();
+  const { formatDate } = useLocalizedDate();
 
   const [list, setList] = useState<any[]>([]);
 
@@ -115,9 +121,16 @@ export const CallHistory = (props: {user?: any; group?: any}) => {
     };
   }, [theme]);
 
+  // Updated to use proper localization
   const getFormattedInitiatedAt = useCallback((call: any) => {
-    return CallDetailHelper.getFormattedInitiatedAt(call);
-  }, []);
+    if (!call || !call.getInitiatedAt()) return '';
+
+    // Use localizedDateHelper to format the date with proper localization
+    return formatDate(
+      call.getInitiatedAt() * 1000,
+      LocalizedDateHelper.patterns.dayDateTimeFormat
+    );
+  }, [formatDate]);
 
   const getCallType = useCallback((call: any) => {
     return CallDetailHelper.getCallType(call);
@@ -135,11 +148,34 @@ export const CallHistory = (props: {user?: any; group?: any}) => {
     const totalSeconds = Math.round(decimalMinutes * 60); // Convert to seconds
     const minutes = Math.floor(totalSeconds / 60); // Get whole minutes
     const seconds = totalSeconds % 60; // Get remaining seconds
-
     return `${minutes} min  ${seconds} sec`;
   }, []);
 
-  const _render = ({item, index}: any) => {
+  
+
+  // Added to get localized call status text
+  const getCallStatusText = useCallback((callStatus: any) => {
+    // Get translation key for this status
+    const translationKeys: Record<string, string> = {
+      outgoing: 'OUTGOING_CALL',
+      outgoingCallEnded: 'OUTGOING_CALL',
+      cancelledByMe: 'OUTGOING_CALL',
+      outgoingRejected: 'OUTGOING_CALL',
+      outgoingBusy: 'OUTGOING_CALL',
+      unansweredByThem: 'OUTGOING_CALL',
+      incoming: 'INCOMING_CALL',
+      incomingCallEnded: 'INCOMING_CALL',
+      cancelledByThem: 'MISSED_CALL',
+      incomingRejected: 'INCOMING_CALL',
+      incomingBusy: 'MISSED_CALL',
+      unansweredByMe: 'MISSED_CALL',
+    };
+
+    const key = translationKeys[callStatus] || 'UNKNOWN_CALL';
+    return t(key);
+  }, [t]);
+
+  const _render = ({ item, index }: any) => {
     return (
       <React.Fragment key={index}>
         <View
@@ -150,16 +186,16 @@ export const CallHistory = (props: {user?: any; group?: any}) => {
           }}>
           <Icon
             icon={getCallStatusIcon(item)}
-            containerStyle={{marginLeft: theme.spacing.margin.m4}}></Icon>
+            containerStyle={{ marginLeft: theme.spacing.margin.m4 }}></Icon>
           <CometChatListItem
             id={item.sessionId}
             containerStyle={_style.itemStyle.containerStyle}
-            headViewContainerStyle={{flexDirection: 'row'}}
+            headViewContainerStyle={{ flexDirection: 'row' }}
             trailingViewContainerStyle={{
               alignSelf: 'center',
             }}
             titleStyle={_style.itemStyle.titleStyle}
-            title={CallDetailHelper.getCallStatusDisplayText(
+           title={CallDetailHelper.getCallStatusDisplayText(
               getCallType(item).callStatus,
             )}
             SubtitleView={
@@ -173,7 +209,7 @@ export const CallHistory = (props: {user?: any; group?: any}) => {
             }
             TrailingView={
               <Text style={_style.itemStyle.tailViewTextStyle}>
-                {convertMinutesToTime(item.getTotalDurationInMinutes())}
+              {convertMinutesToTime(item.getTotalDurationInMinutes())}
               </Text>
             }
           />

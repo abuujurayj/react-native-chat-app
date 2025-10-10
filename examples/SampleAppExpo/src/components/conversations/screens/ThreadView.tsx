@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,19 +16,30 @@ import {
   CometChatThreadHeader,
   CometChatMessageList,
   CometChatMessageComposer,
-  localize,
+  useCometChatTranslation,
+  CometChatUIKit,
+  ChatConfigurator,
 } from '@cometchat/chat-uikit-react-native';
 import {Icon} from '@cometchat/chat-uikit-react-native';
 import {useTheme} from '@cometchat/chat-uikit-react-native';
 import {RootStackParamList} from '../../../navigation/types';
 import ArrowBack from '../../../assets/icons/ArrowBack';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
 
 type ThreadViewRouteProp = RouteProp<RootStackParamList, 'ThreadView'>;
+type ThreadViewNavProp = StackNavigationProp<RootStackParamList>;
 
 const ThreadView = () => {
-  const {params} = useRoute<ThreadViewRouteProp>();
-  const {goBack} = useNavigation();
+  const { params } = useRoute<ThreadViewRouteProp>();
+  const navigation = useNavigation<ThreadViewNavProp>(); // <-- added navigation
+  const { goBack } = navigation;
   const theme = useTheme();
+  const {t}= useCometChatTranslation()
+
+  const loggedInUser = useRef<CometChat.User>(
+    CometChatUIKit.loggedInUser!,
+  ).current;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -52,6 +63,34 @@ const ThreadView = () => {
     return null;
   }
 
+  const getMentionsTap = useCallback(() => {
+    const mentionsFormatter =
+      ChatConfigurator.getDataSource().getMentionsFormatter(
+        loggedInUser,
+        theme,
+      );
+    if (user) mentionsFormatter.setUser(user);
+    if (group) mentionsFormatter.setGroup(group);
+
+    mentionsFormatter.setOnMentionClick(
+      (_message: CometChat.BaseMessage, uid: string) => {
+        if (uid !== loggedInUser.getUid()) {
+          CometChat.getUser(uid)
+            .then((mentionedUser: CometChat.User) => {
+              navigation.push('Messages', {
+                user: mentionedUser,
+                fromMention: true,
+              });
+            })
+            .catch((error: any) => {
+              console.error('Error fetching mentioned user:', error);
+            });
+        }
+      },
+    );
+    return mentionsFormatter;
+  }, [user, group, loggedInUser, navigation, theme]);
+
   return (
     <View style={{backgroundColor: theme.color.background1, flex: 1}}>
       {/* Custom Header */}
@@ -73,7 +112,7 @@ const ThreadView = () => {
               theme.typography.heading1.bold,
               {color: theme.color.textPrimary},
             ]}>
-            {localize('THREAD')}
+            {t('THREAD')}
           </Text>
           <Text
             style={[
@@ -94,6 +133,7 @@ const ThreadView = () => {
           user={user}
           group={group}
           parentMessageId={message.getId().toString()}
+          textFormatters={[getMentionsTap()]}
         />
       </View>
 

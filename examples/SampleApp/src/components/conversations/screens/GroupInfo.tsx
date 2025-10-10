@@ -7,10 +7,10 @@ import {
   CometChatGroupsEvents,
   CometChatUIEventHandler,
   CometChatConfirmDialog,
-  localize,
   useTheme,
   CometChatConversationEvents,
   CometChatUIEvents,
+  useCometChatTranslation,
 } from '@cometchat/chat-uikit-react-native';
 import {Icon} from '@cometchat/chat-uikit-react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
@@ -38,6 +38,7 @@ type GroupInfoProps = {
 const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
   const {group} = route.params;
   const theme = useTheme();
+  const {t}= useCometChatTranslation()
   const groupListenerId = useRef('groupListener' + new Date().getTime());
 
   const [data, setData] = useState({groupDetails: group});
@@ -106,7 +107,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
   }, [group, userScope]);
 
   const getLabel = (key: string) => {
-    const label = localize(key);
+    const label = t(key);
     // Split into two words if device is small
     if (isSmallDevice && label.split(' ').length === 2) {
       return label.split(' ').join('\n');
@@ -205,7 +206,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
             styles.pL5,
             {color: theme.color.textPrimary},
           ]}>
-          {localize('GROUP_INFO')}
+          {t('GROUP_INFO')}
         </Text>
       </View>
 
@@ -249,7 +250,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
             ]}>
             {data.groupDetails?.getMembersCount() +
               ' ' +
-              localize(
+              t(
                 data.groupDetails?.getMembersCount() === 1
                   ? 'MEMBER'
                   : 'MEMBERS',
@@ -286,7 +287,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                 style={[
                   theme.typography.caption1.regular,
                   styles.boxLabel,
-                  {color: theme.color.textSecondary},
+                  { color: theme.color.textSecondary },
                 ]}>
                 {getLabel('ADD_MEMBERS')}
               </Text>
@@ -312,7 +313,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
               style={[
                 theme.typography.caption1.regular,
                 styles.boxLabel,
-                {color: theme.color.textSecondary},
+                { color: theme.color.textSecondary },
               ]}>
               {getLabel('VIEW_MEMBERS')}
             </Text>
@@ -345,7 +346,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                 style={[
                   theme.typography.caption1.regular,
                   styles.boxLabel,
-                  {color: theme.color.textSecondary},
+                  { color: theme.color.textSecondary },
                 ]}>
                 {getLabel('BANNED_MEMBERS')}
               </Text>
@@ -367,9 +368,9 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
               style={[
                 theme.typography.heading4.regular,
                 styles.mL5,
-                {color: theme.color.error},
+                { color: theme.color.error },
               ]}>
-              {localize('DELETE_CHAT_TEXT')}
+              {t('DELETE_CHAT_TEXT')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -400,7 +401,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                   styles.mL5,
                   {color: theme.color.error},
                 ]}>
-                {localize('LEAVE')}
+                {t('LEAVE')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -424,9 +425,9 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                 style={[
                   theme.typography.heading4.regular,
                   styles.mL5,
-                  {color: theme.color.error},
+                  { color: theme.color.error },
                 ]}>
-                {localize('DELETE_AND_EXIT')}
+                {t('DELETE_AND_EXIT')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -438,10 +439,10 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
         isOpen={isLeaveModalOpen}
         onCancel={() => setIsLeaveModalOpen(false)}
         onConfirm={handleLeaveConfirm}
-        titleText={localize('LEAVE_GROUP_TEXT')}
-        messageText={localize('LEAVE_SURE')}
-        cancelButtonText={localize('CANCEL')}
-        confirmButtonText={localize('LEAVE')}
+        titleText={t('LEAVE_GROUP_TEXT')}
+        messageText={t('LEAVE_SURE')}
+        cancelButtonText={t('CANCEL')}
+        confirmButtonText={t('LEAVE')}
         icon={<Block color={theme.color.error} height={45} width={45} />}
       />
 
@@ -450,10 +451,10 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
         isOpen={isOwnerLeaveModalOpen}
         onCancel={() => setIsOwnerLeaveModalOpen(false)}
         onConfirm={handleOwnerLeaveConfirm}
-        titleText={localize('TRANSFER_OWNERSHIP')}
-        messageText={localize('TRANSFER_SURE')}
-        cancelButtonText={localize('CANCEL')}
-        confirmButtonText={localize('TRANSFER')}
+        titleText={t('TRANSFER_OWNERSHIP')}
+        messageText={t('TRANSFER_SURE')}
+        cancelButtonText={t('CANCEL')}
+        confirmButtonText={t('TRANSFER')}
         icon={<Block color={theme.color.error} height={45} width={45} />}
       />
 
@@ -462,10 +463,10 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
         isOpen={isDeleteExitModalOpen}
         onCancel={() => setIsDeleteExitModalOpen(false)}
         onConfirm={handleDeleteExitConfirm}
-        titleText={`${localize('DELETE_AND_EXIT')}?`}
-        messageText={localize('DELETE_AND_EXIT_SURE')}
-        cancelButtonText={localize('CANCEL')}
-        confirmButtonText={localize('DELETE_AND_EXIT')}
+        titleText={`${t('DELETE_AND_EXIT')}?`}
+        messageText={t('DELETE_AND_EXIT_SURE')}
+        cancelButtonText={t('CANCEL')}
+        confirmButtonText={t('DELETE_AND_EXIT')}
         icon={<Delete color={theme.color.error} height={45} width={45} />}
       />
 
@@ -475,10 +476,10 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
         onCancel={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteConversationConfirm}
         onDismiss={() => console.log('Delete Modal dismissed')}
-        titleText={localize('DELETE_CHAT')}
-        messageText={localize('SURE_TO_DELETE_CHAT')}
-        cancelButtonText={localize('CANCEL')}
-        confirmButtonText={localize('DELETE')}
+        titleText={t('DELETE_CHAT')}
+        messageText={t('SURE_TO_DELETE_CHAT')}
+        cancelButtonText={t('CANCEL')}
+        confirmButtonText={t('DELETE')}
         icon={<Delete color={theme.color.error} height={45} width={45} />}
       />
     </View>

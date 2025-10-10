@@ -11,9 +11,9 @@ import {
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RouteProp} from '@react-navigation/native';
 import {
-  localize,
   useTheme,
   CometChatUsers,
+  useCometChatTranslation,
 } from '@cometchat/chat-uikit-react-native';
 import {RootStackParamList} from '../../../navigation/types';
 import Groups from '../../groups/Groups';
@@ -29,6 +29,7 @@ type Props = {
 
 const CreateConversation: React.FC<Props> = ({route, navigation}) => {
   const theme = useTheme();
+  const {t} = useCometChatTranslation()
 
   const {
     background1,
@@ -51,7 +52,7 @@ const CreateConversation: React.FC<Props> = ({route, navigation}) => {
           />
         </TouchableOpacity>
         <Text style={[heading1.bold, styles.headerText, {color: textPrimary}]}>
-          {localize('NEW_CHAT')}
+          {t('NEW_CHAT')}
         </Text>
       </View>
 
@@ -71,7 +72,7 @@ const CreateConversation: React.FC<Props> = ({route, navigation}) => {
                 styles.tabText,
                 {color: selectedTab === tab ? primary : textSecondary},
               ]}>
-              {localize(tab.toUpperCase())}
+              {t(tab.toUpperCase())}
             </Text>
           </TouchableOpacity>
         ))}

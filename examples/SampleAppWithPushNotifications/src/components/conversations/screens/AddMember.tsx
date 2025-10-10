@@ -21,7 +21,7 @@ import {
   CometChatUiKitConstants,
   CometChatUsers,
   CometChatUsersActionsInterface,
-  localize,
+  useCometChatTranslation,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
 import {Icon} from '@cometchat/chat-uikit-react-native';
@@ -37,6 +37,7 @@ const AddMember: React.FC = () => {
   const navigation = useNavigation();
   const {group} = route.params;
   const theme = useTheme();
+  const {t}= useCometChatTranslation()
   const userRef = useRef<CometChatUsersActionsInterface>(null);
   const [selectedUsers, setSelectedUsers] = useState<CometChat.User[]>([]);
   const [errorToastVisible, setErrorToastVisible] = useState(false);
@@ -106,29 +107,33 @@ const AddMember: React.FC = () => {
           }, 3000);
         }
 
-        // If all succeeded, emit group event
+        // If all succeeded, emit individual events for each member
         if (addedMembers.length > 0) {
-          const action: CometChat.Action = new CometChat.Action(
-            guid,
-            CometChatUiKitConstants.MessageTypeConstants.groupMember,
-            CometChat.RECEIVER_TYPE.GROUP,
-            CometChat.CATEGORY_ACTION as CometChat.MessageCategory,
-          );
-          action.setConversationId(guid);
-          action.setActionBy(CometChatUIKit.loggedInUser!);
-          action.setActionFor(group);
-          action.setSender(CometChatUIKit.loggedInUser!);
-
           group.setMembersCount(group.getMembersCount() + addedMembers.length);
-          CometChatUIEventHandler.emitGroupEvent(
-            CometChatGroupsEvents.ccGroupMemberAdded,
-            {
-              addedBy: CometChatUIKit.loggedInUser,
-              message: action,
-              usersAdded: addedMembers,
-              userAddedIn: group,
-            },
-          );
+          // Create separate action for each added member
+          addedMembers.forEach((member) => {
+            const action: CometChat.Action = new CometChat.Action(
+              guid,
+              CometChatUiKitConstants.MessageTypeConstants.groupMember,
+              CometChat.RECEIVER_TYPE.GROUP,
+              CometChat.CATEGORY_ACTION as CometChat.MessageCategory,
+            );
+            action.setConversationId(guid);
+            action.setActionBy(CometChatUIKit.loggedInUser!);
+            action.setActionFor(group);
+            action.setSender(CometChatUIKit.loggedInUser!);
+
+            // Emit individual event for each member added
+            CometChatUIEventHandler.emitGroupEvent(
+              CometChatGroupsEvents.ccGroupMemberAdded,
+              {
+                addedBy: CometChatUIKit.loggedInUser,
+                message: action,
+                usersAdded: [member],
+                userAddedIn: group,
+              },
+            );
+          });
         }
       } catch (error) {
         console.error('Something went wrong', error);
@@ -175,7 +180,7 @@ const AddMember: React.FC = () => {
               styles.addMemberText,
               {color: theme.color.textPrimary},
             ]}>
-            {localize('ADD_MEMBERS')}
+            {t('ADD_MEMBERS')}
           </Text>
         </View>
 
@@ -212,7 +217,7 @@ const AddMember: React.FC = () => {
                 theme.typography.heading4.medium,
                 {color: theme.color.primaryButtonText, alignSelf: 'center'},
               ]}>
-              {localize('ADD_MEMBERS')}
+              {t('ADD_MEMBERS')}
             </Text>
           </View>
         </TouchableOpacity>

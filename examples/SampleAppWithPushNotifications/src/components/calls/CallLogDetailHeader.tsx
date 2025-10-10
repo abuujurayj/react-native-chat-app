@@ -2,8 +2,8 @@ import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {
   useTheme,
   CometChatAvatar,
-  localize,
   CometChatCallButtons,
+  useCometChatTranslation,
 } from '@cometchat/chat-uikit-react-native';
 import {
   GroupTypeConstants,
@@ -25,7 +25,7 @@ export type CallLogDetailHeaderInterface = {
 
 export const CallLogDetailHeader = (props: CallLogDetailHeaderInterface) => {
   const theme = useTheme();
-
+  const {t}= useCometChatTranslation()
   const {user, group} = props;
 
   const [groupObj, setGroupObj] = useState(group);
@@ -97,12 +97,12 @@ export const CallLogDetailHeader = (props: CallLogDetailHeaderInterface) => {
     const statusTytle =
       receiverTypeRef.current === CometChat.RECEIVER_TYPE.GROUP &&
       (groupObj?.['membersCount'] || groupObj?.['membersCount'] === 0)
-        ? `${groupObj['membersCount']} ${localize('MEMBERS')}`
+        ? `${groupObj['membersCount']} ${t('MEMBERS')}`
         : receiverTypeRef.current === CometChat.RECEIVER_TYPE.USER
           ? userStatus === UserStatusConstants.online
-            ? localize('ONLINE')
+            ? t('ONLINE')
             : userStatus === UserStatusConstants.offline
-              ? localize('OFFLINE')
+              ? t('OFFLINE')
               : ''
           : '';
 

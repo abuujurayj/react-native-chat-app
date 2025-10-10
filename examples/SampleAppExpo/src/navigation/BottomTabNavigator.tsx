@@ -10,7 +10,7 @@ import {
   createBottomTabNavigator,
   BottomTabBarButtonProps,
 } from '@react-navigation/bottom-tabs';
-import {useTheme, Icon} from '@cometchat/chat-uikit-react-native';
+import {useTheme, Icon, useCometChatTranslation } from '@cometchat/chat-uikit-react-native';
 import {SCREEN_CONSTANTS} from '../utils/AppConstants';
 import ChatFill from '../assets/icons/Chatfill';
 import Chat from '../assets/icons/Chat';
@@ -55,6 +55,7 @@ const CustomTabBarButton = ({children, onPress}: BottomTabBarButtonProps) => (
 
 const BottomTabNavigator = () => {
   const theme = useTheme();
+  const { t } = useCometChatTranslation();
 
   return (
     <Tab.Navigator
@@ -86,14 +87,15 @@ const BottomTabNavigator = () => {
           );
         },
         tabBarShowLabel: true,
-        tabBarLabel: ({focused}) =>
+        tabBarLabel: ({focused}) => 
           focused ? (
             <View>
               <Text style={[styles.tabLabel, {color: theme.color.primary}]}>
-                {route.name}
+                {/* Used t() for fixing Bottom Tabs Localization */}
+                {t(route.name.toUpperCase())}
               </Text>
             </View>
-          ) : null,
+       ) : null,
         tabBarButton: props => <CustomTabBarButton {...props} />,
         tabBarBackground: () => (
           <View style={{backgroundColor: theme.color.background1, flex: 1}} />

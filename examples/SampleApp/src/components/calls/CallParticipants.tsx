@@ -1,7 +1,7 @@
-import {CometChatListItem, useTheme} from '@cometchat/chat-uikit-react-native';
-import React, {useCallback, useMemo} from 'react';
-import {View, FlatList, Text} from 'react-native';
-import {CallDetailHelper} from './CallDetailHelper';
+import { CometChatListItem, useTheme, useCometChatTranslation, localizedDateHelperInstance, useLocalizedDate, LocalizedDateHelper } from '@cometchat/chat-uikit-react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View, FlatList, Text } from 'react-native';
+import { CallDetailHelper } from './CallDetailHelper';
 
 export const CallParticipants = (props: {
   /**
@@ -10,11 +10,11 @@ export const CallParticipants = (props: {
   data: any[];
   call: any;
 }) => {
-  const {call, data} = props;
-
-  console.log('DATA: ', data);
+  const { call, data } = props;
 
   const theme = useTheme();
+  const { language, t } = useCometChatTranslation();
+  const { formatDate } = useLocalizedDate();
 
   const getCallDetails = (item: any) => {
     return {
@@ -23,9 +23,16 @@ export const CallParticipants = (props: {
     };
   };
 
+  // Updated to use proper localization
   const formattedInitiatedAt = useMemo(() => {
-    return CallDetailHelper.getFormattedInitiatedAt(call);
-  }, [call]);
+    if (!call || !call.getInitiatedAt()) return '';
+
+    // Use formatDate for proper localization of date/time
+    return formatDate(
+      call.getInitiatedAt() * 1000,
+      LocalizedDateHelper.patterns.dayDateTimeFormat
+    );
+  }, [call, formatDate]);
 
   const _style = useMemo(() => {
     return {
@@ -79,7 +86,7 @@ export const CallParticipants = (props: {
       },
     };
   }, [theme]);
-
+  
   const convertMinutesToTime = useCallback((decimalMinutes: number) => {
     const totalSeconds = Math.round(decimalMinutes * 60); // Convert to seconds
     const minutes = Math.floor(totalSeconds / 60); // Get whole minutes
@@ -88,8 +95,10 @@ export const CallParticipants = (props: {
     return `${minutes} min  ${seconds} sec`;
   }, []);
 
-  const _render = ({item, index}: any) => {
-    const {title, avatarUrl} = getCallDetails(item);
+ 
+
+  const _render = ({ item, index }: any) => {
+    const { title, avatarUrl } = getCallDetails(item);
 
     return (
       <React.Fragment key={index}>
@@ -97,7 +106,7 @@ export const CallParticipants = (props: {
           id={item.sessionId}
           avatarStyle={_style.itemStyle.avatarStyle}
           containerStyle={_style.itemStyle.containerStyle}
-          headViewContainerStyle={{flexDirection: 'row'}}
+          headViewContainerStyle={{ flexDirection: 'row' }}
           titleStyle={_style.itemStyle.titleStyle}
           trailingViewContainerStyle={{
             alignSelf: 'center',
@@ -126,7 +135,7 @@ export const CallParticipants = (props: {
   };
 
   return (
-    <View style={{backgroundColor: theme.color.background1}}>
+    <View style={{ backgroundColor: theme.color.background1 }}>
       {data.length && (
         <FlatList
           data={data}

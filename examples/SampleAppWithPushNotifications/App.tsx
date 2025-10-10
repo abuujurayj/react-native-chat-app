@@ -8,6 +8,7 @@ import {
   AppStateStatus,
 } from 'react-native';
 import {
+  CometChatI18nProvider,
   CometChatIncomingCall,
   CometChatThemeProvider,
   CometChatUIEventHandler,
@@ -58,6 +59,7 @@ const App = (): React.ReactElement => {
   const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
 
   /**
+   * Initialize CometChat UIKit with app credentials.
    * Retrieves credentials from AsyncStorage and uses fallback constants if needed.
    */
   useEffect(() => {
@@ -86,6 +88,7 @@ const App = (): React.ReactElement => {
           subscriptionType: CometChat.AppSettings
             .SUBSCRIPTION_TYPE_ALL_USERS as UIKitSettings['subscriptionType'],
         });
+
 
         // If a user is already logged in, update the state.
         const loggedInUser = CometChatUIKit.loggedInUser;
@@ -490,6 +493,7 @@ const App = (): React.ReactElement => {
     }
   }, [userLoggedIn, currentToken, isTokenRegistered]);
 
+
   // Show a blank/splash screen while the app is initializing.
   if (isInitializing) {
     return (
@@ -510,27 +514,29 @@ const App = (): React.ReactElement => {
     <SafeAreaProvider>
       <SafeAreaView edges={['top', 'bottom']} style={{flex: 1}}>
         <CometChatThemeProvider>
-          {/* Render the incoming call UI if the user is logged in and a call is received */}
-          {isLoggedIn && callReceived && incomingCall.current ? (
-            <CometChatIncomingCall
-              call={incomingCall.current}
-              onDecline={() => {
-                // Handle call decline by clearing the incoming call state.
-                incomingCall.current = null;
-                setCallReceived(false);
-              }}
-              style={{
-              containerStyle: {
-                marginTop: Platform.OS === 'android' ? 40 : 0,
-              },
-            }}
+          <CometChatI18nProvider>
+            {/* Render the incoming call UI if the user is logged in and a call is received */}
+            {isLoggedIn && callReceived && incomingCall.current ? (
+              <CometChatIncomingCall
+                call={incomingCall.current}
+                onDecline={() => {
+                  // Handle call decline by clearing the incoming call state.
+                  incomingCall.current = null;
+                  setCallReceived(false);
+                }}
+                style={{
+                  containerStyle: {
+                    marginTop: Platform.OS === 'android' ? 40 : 0,
+                  },
+                }}
+              />
+            ) : null}
+            {/* Render the main navigation stack, passing the login status as a prop */}
+            <RootStackNavigator
+              isLoggedIn={isLoggedIn}
+              hasValidAppCredentials={hasValidAppCredentials}
             />
-          ) : null}
-          {/* Render the main navigation stack, passing the login status as a prop */}
-          <RootStackNavigator
-            isLoggedIn={isLoggedIn}
-            hasValidAppCredentials={hasValidAppCredentials}
-          />
+          </CometChatI18nProvider>
         </CometChatThemeProvider>
       </SafeAreaView>
     </SafeAreaProvider>

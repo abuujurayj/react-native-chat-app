@@ -5,16 +5,17 @@ import {
   useTheme,
   CometChatUIEventHandler,
   CallUIEvents,
-  localize,
   CometChatConversationEvents,
   CometChatConfirmDialog,
   CometChatOutgoingCall,
+  useCometChatTranslation,
+  getLastSeenTime,
 } from '@cometchat/chat-uikit-react-native';
 import {Icon} from '@cometchat/chat-uikit-react-native';
 import {CometChat} from '@cometchat/chat-sdk-react-native';
 import {permissionUtil} from '@cometchat/chat-uikit-react-native/src/shared/utils/PermissionUtil';
 import {CallTypeConstants} from '@cometchat/chat-uikit-react-native/src/shared/constants/UIKitConstants';
-import {blockUser, getLastSeenTime, unblock} from '../../../utils/helper';
+import { blockUser, unblock } from '../../../utils/helper';
 import {styles} from './UserInfoStyles';
 import ArrowBack from '../../../assets/icons/ArrowBack';
 import Block from '../../../assets/icons/Block';
@@ -27,6 +28,7 @@ import {
 } from '../../../navigation/types';
 import {useFocusEffect} from '@react-navigation/native';
 
+
 type ScreenProps = StackScreenProps<RootStackParamList, 'UserInfo'>;
 type NavigationProps = StackNavigationProp<RootStackParamList, 'UserInfo'>;
 type Props = ScreenProps & {navigation: NavigationProps};
@@ -34,6 +36,7 @@ type Props = ScreenProps & {navigation: NavigationProps};
 const UserInfo: FC<Props> = ({route, navigation}) => {
   const {user} = route.params;
   const theme = useTheme();
+  const {t}= useCometChatTranslation()
   const [userObj, setUserObj] = useState<CometChat.User>(user);
   /** STATES **/
   const [disableButton, setDisableButton] = useState<boolean>(false);
@@ -198,6 +201,7 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
     }
   };
 
+
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
@@ -238,7 +242,7 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
             styles.smallPaddingLeft,
             {color: theme.color.textPrimary},
           ]}>
-          {localize('USER_INFO')}
+          {t('USER_INFO')}
         </Text>
       </View>
 
@@ -275,7 +279,7 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
               !(userObj.getBlockedByMe() || userObj.getHasBlockedMe()) &&
               (userStatus === 'online'
                 ? 'Online'
-                : getLastSeenTime(userObj.getLastActiveAt(), translations))}
+                : getLastSeenTime(userObj.getLastActiveAt()))}
           </Text>
         </View>
 
@@ -294,9 +298,9 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
               style={[
                 theme.typography.caption1.regular,
                 styles.mt5Centered,
-                {color: theme.color.textSecondary},
+                { color: theme.color.textSecondary },
               ]}>
-              {localize('VOICE')}
+              {t('AUDIO_CALL')}
             </Text>
           </TouchableOpacity>
 
@@ -315,9 +319,9 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
               style={[
                 theme.typography.caption1.regular,
                 styles.mt5Centered,
-                {color: theme.color.textSecondary},
+                { color: theme.color.textSecondary },
               ]}>
-              {localize('MESSAGE_VIDEO')}
+              {t('VIDEO_CALL')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -338,7 +342,7 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
                 styles.ml5,
                 {color: theme.color.error},
               ]}>
-              {blocked ? localize('UNBLOCK') : localize('BLOCK')}
+              {blocked ? t('UNBLOCK') : t('BLOCK')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -355,9 +359,9 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
               style={[
                 theme.typography.heading4.regular,
                 styles.ml5,
-                {color: theme.color.error},
+                { color: theme.color.error },
               ]}>
-              {localize('DELETE_CHAT_TEXT')}
+              {t('DELETE_CHAT_TEXT')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -370,13 +374,13 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
         onConfirm={handleBlockUnblockConfirm}
         onDismiss={() => console.log('Block/Unblock Modal dismissed')}
         titleText={
-          blocked ? localize('UNBLOCK_CONTACT') : localize('BLOCK_USER')
+          blocked ? t('UNBLOCK_CONTACT') : t('BLOCK_USER')
         }
         messageText={
-          blocked ? localize('UNBLOCK_SURE') : localize('BLOCK_SURE')
+          blocked ? t('UNBLOCK_SURE') : t('BLOCK_SURE')
         }
-        cancelButtonText={localize('CANCEL')}
-        confirmButtonText={blocked ? localize('UNBLOCK') : localize('BLOCK')}
+        cancelButtonText={t('CANCEL')}
+        confirmButtonText={blocked ? t('UNBLOCK') : t('BLOCK')}
         icon={<Block color={theme.color.error} height={45} width={45} />}
       />
 
@@ -386,10 +390,10 @@ const UserInfo: FC<Props> = ({route, navigation}) => {
         onCancel={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteConversationConfirm}
         onDismiss={() => console.log('Delete Modal dismissed')}
-        titleText={localize('DELETE_CHAT')}
-        messageText={localize('SURE_TO_DELETE_CHAT')}
-        cancelButtonText={localize('CANCEL')}
-        confirmButtonText={localize('DELETE')}
+        titleText={t('DELETE_CHAT')}
+        messageText={t('SURE_TO_DELETE_CHAT')}
+        cancelButtonText={t('CANCEL')}
+        confirmButtonText={t('DELETE')}
         icon={<Delete color={theme.color.error} height={45} width={45} />}
       />
 
