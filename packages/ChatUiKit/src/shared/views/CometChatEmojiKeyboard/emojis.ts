@@ -1,8 +1,11 @@
+import { getCometChatTranslation } from "../../resources/CometChatLocalizeNew/LocalizationManager";
+const t = getCometChatTranslation();
+
 export const Emojis = [
   {
     people: {
       id: "people",
-      name: "Smiley & People",
+      name: t("SMILEY_PEOPLE"),
       symbol: "Smileys",
       emojis: {
         grinning: {
@@ -1701,7 +1704,7 @@ export const Emojis = [
   {
     animals: {
       id: "animals_and_nature",
-      name: "Animals & Nature",
+      name: t("ANIMALES_NATURE"),
       symbol: "Animals",
       emojis: {
         dog: {
@@ -2464,7 +2467,7 @@ export const Emojis = [
   {
     food: {
       id: "food_and_drink",
-      name: "Food & Drink",
+      name: t("FOOD_DRINK"),
       symbol: "Food",
       emojis: {
         green_apple: {
@@ -2947,7 +2950,7 @@ export const Emojis = [
   {
     activity: {
       id: "activity",
-      name: "Activity",
+      name: t("ACTIVITY"),
       symbol: "Activity",
       emojis: {
         soccer: {
@@ -3377,7 +3380,7 @@ export const Emojis = [
   {
     travel: {
       id: "travel_and_places",
-      name: "Travel & Places",
+      name: t("TRAVEL_PLACES"),
       symbol: "Travel",
       emojis: {
         red_car: {
@@ -3873,7 +3876,7 @@ export const Emojis = [
   {
     objects: {
       id: "objects",
-      name: "Objects",
+      name: t("OBJECTS"),
       symbol: "Objects",
       emojis: {
         watch: {
@@ -4768,7 +4771,7 @@ export const Emojis = [
   {
     symbols: {
       id: "symbols",
-      name: "Symbols",
+      name: t("SYMBOLS"),
       symbol: "Symbols",
       emojis: {
         heart: {
@@ -5928,7 +5931,7 @@ export const Emojis = [
   {
     flags: {
       id: "flags",
-      name: "Flags",
+      name: t("FLAGS"),
       symbol: "Flags",
       emojis: {
         afghanistan: {

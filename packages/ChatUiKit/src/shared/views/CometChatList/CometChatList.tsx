@@ -13,7 +13,6 @@ import {
   ViewStyle,
 } from "react-native";
 import { LOADING, NO_DATA_FOUND, SOMETHING_WRONG } from "../../constants/UIKitConstants";
-import { localize } from "../../resources/CometChatLocalize";
 
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { useTheme } from "../../../theme";
@@ -28,6 +27,7 @@ import {
 } from "../CometChatStatusIndicator";
 import Header from "./Header";
 import styles from "./styles";
+import { useCometChatTranslation } from "../../resources/CometChatLocalizeNew";
 
 export interface CometChatListActionsInterface {
   updateList: (prop: any) => void;
@@ -152,6 +152,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
   (props, ref) => {
     const connectionListenerId = "connectionListener_" + new Date().getTime();
     const theme = useTheme();
+    const { t } = useCometChatTranslation();
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [hasMoreData, setHasMoreData] = useState(true);
 
@@ -171,8 +172,8 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
       hideSearch = false,
       title = "Title",
       EmptyView,
-      emptyStateText = localize("NO_USERS_FOUND"),
-      errorStateText = localize("SOMETHING_WRONG"),
+      emptyStateText = t("NO_USERS_FOUND"),
+      errorStateText = t("SOMETHING_WRONG"),
       ErrorView,
       LoadingView,
       requestBuilder,
@@ -249,17 +250,36 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
     const searchHandler = (searchText: string) => {
       setSearchInput(searchText);
       setHasMoreData(true);
-      let _searchRequestBuilder = searchRequestBuilder || requestBuilder;
-      if (searchRequestBuilder && searchText) {
-        _searchRequestBuilder = searchRequestBuilder.setSearchKeyword(searchText).build();
-      } else if (requestBuilder) {
-        _searchRequestBuilder = requestBuilder.setSearchKeyword(searchText).build();
+
+      // Decide which builder to use (searchRequestBuilder preferred)
+      let builder = searchRequestBuilder || requestBuilder;
+
+      if (!builder) {
+        // no builder available, nothing to do
+        return;
       }
-      getSearch(_searchRequestBuilder);
+
+      // If a separate searchRequestBuilder exists and searchText present,
+      // set the search keyword on it; otherwise use the main requestBuilder.
+      let builtRequest;
+      if (searchRequestBuilder && searchText) {
+        builtRequest = searchRequestBuilder.setSearchKeyword(searchText).build();
+      } else if (requestBuilder) {
+        builtRequest = requestBuilder.setSearchKeyword(searchText).build();
+      } else {
+        // fallback: if there's no search keyword, build base builder
+        builtRequest = builder.build();
+      }
+
+      // important: store the built request so fetchNext uses the same instance
+      listHandlerRef.current = builtRequest;
+
+      // Then call getList with the built request
+      getSearch(builtRequest);
     };
 
-    const getSearch = (builder: any) => {
-      getList(builder)
+    const getSearch = (builtReq: any) => {
+      getList(builtReq)
         .then((newlist: any) => {
           setDataLoadingStatus(NO_DATA_FOUND);
           setList(newlist);
@@ -411,6 +431,24 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
       if (isLoadingMore || (!throughKeyword && !hasMoreData)) return;
       setIsLoadingMore(true);
 
+      // If we're resetting due to a new keyword, create a fresh builder instance
+      if (throughKeyword) {
+        // prefer searchRequestBuilder if provided
+        const baseBuilder = searchRequestBuilder || requestBuilder;
+        if (baseBuilder) {
+          const keyword = searchInputRef.current ?? "";
+          if (searchRequestBuilder && keyword) {
+            listHandlerRef.current = searchRequestBuilder.setSearchKeyword(keyword).build();
+          } else if (requestBuilder) {
+            listHandlerRef.current = requestBuilder.setSearchKeyword(keyword).build();
+          } else {
+            listHandlerRef.current = baseBuilder.build();
+          }
+        }
+        // reset pagination flags
+        setHasMoreData(true);
+      }
+
       getList(listHandlerRef.current)
         .then((newlist: any[] = []) => {
           let finalList: any[] = [];
@@ -560,7 +598,7 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
               item.value.uid &&
               item.value.uid === CometChatUIKit.loggedInUser!.getUid() &&
               item.value.name === CometChatUIKit.loggedInUser!.getName()
-                ? localize("YOU")
+                ? t("YOU")
                 : item.value.name
             }
             containerStyle={[listStyle?.itemStyle?.containerStyle]}

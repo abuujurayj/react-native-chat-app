@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
-  SafeAreaView,
+  Platform,
   StyleProp,
   Text,
   TextStyle,
@@ -12,6 +12,7 @@ import { useTheme } from "../../../theme";
 import { Icon } from "../../icons/Icon";
 import { Emojis } from "./emojis";
 import Styles from "./style";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Type definitions for the emoji items and categories.
@@ -149,6 +150,7 @@ const CometChatEmojiKeyboard: React.FC<CometChatEmojiKeyboardProps> = ({
 }) => {
   const theme = useTheme();
   const styles = Styles(theme);
+  const insets = useSafeAreaInsets();
 
   /**
    * ITEM_HEIGHT is assumed to be the height of one row or the uniform height per row.
@@ -284,6 +286,7 @@ const CometChatEmojiKeyboard: React.FC<CometChatEmojiKeyboardProps> = ({
 
   return (
     <SafeAreaView
+      edges={["top"]}
       style={[
         styles.emojiKeyboardContainer,
         {
@@ -315,6 +318,7 @@ const CometChatEmojiKeyboard: React.FC<CometChatEmojiKeyboardProps> = ({
           styles.categoryContainer,
           {
             backgroundColor: categoryBackground || theme.color.background1,
+            paddingBottom: Platform.OS === "ios" ? insets.bottom : 0,
           },
         ]}
       >

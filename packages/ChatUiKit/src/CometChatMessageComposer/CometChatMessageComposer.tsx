@@ -26,7 +26,6 @@ import {
   CometChatTextFormatter,
   CometChatUIKit,
   CometChatUrlsFormatter,
-  localize,
   SuggestionItem,
 } from "../shared";
 import { Style } from "./styles";
@@ -59,6 +58,7 @@ import { ICONS } from "./resources";
 import { CometChatTheme } from "../theme/type";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import { JSX } from "react";
+import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
 
 type MentionOverlap = {
   key: string;
@@ -74,9 +74,10 @@ const uiEventListenerHide = "uiEvent_hide_" + new Date().getTime();
 
 const MessagePreviewTray = (props: any) => {
   const { shouldShow = false, text = "", onClose = () => {} } = props;
+  const {t}= useCometChatTranslation()
   return shouldShow ? (
     <CometChatMessagePreview
-      messagePreviewTitle={localize("EDIT_MESSAGE")}
+      messagePreviewTitle={t("EDIT_MESSAGE")}
       messagePreviewSubtitle={text}
       closeIconURL={ICONS.CLOSE}
       onCloseClick={onClose}
@@ -438,6 +439,7 @@ export const CometChatMessageComposer = React.forwardRef(
     const UiEventListenerID = "UiEventListener_" + new Date().getTime();
 
     const theme = useTheme();
+    const {t} = useCometChatTranslation()
     const {
       id,
       user,
@@ -1854,9 +1856,9 @@ export const CometChatMessageComposer = React.forwardRef(
       setWarningMessage(
         targetedFormatter?.getErrorString
           ? targetedFormatter?.getErrorString()
-          : `${localize("MENTION_UPTO")} ${limit} ${
-              limit === 1 ? localize("TIME") : localize("TIMES")
-            } ${localize("AT_A_TIME")}.`
+          : `${t("MENTION_UPTO")} ${limit} ${
+              limit === 1 ? t("TIME") : t("TIMES")
+            } ${t("AT_A_TIME")}.`
       );
       return true;
     };
@@ -1962,7 +1964,7 @@ export const CometChatMessageComposer = React.forwardRef(
             <CometChatMessageInput
               messageInputRef={messageInputRef}
               text={inputMessage as string}
-              placeHolderText={localize("ENTER_YOUR_MESSAGE_HERE")}
+              placeHolderText={t("ENTER_YOUR_MESSAGE_HERE")}
               style={mergedComposerStyle.messageInputStyles}
               onSelectionChange={({ nativeEvent: { selection } }) => {
                 setSelectionPosition(selection);

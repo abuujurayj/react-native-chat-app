@@ -1,24 +1,16 @@
-import React, {
-  useState,
-} from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  SafeAreaView,
-  StyleSheet,
-} from 'react-native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RouteProp} from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
 import {
   useTheme,
   CometChatUsers,
   useCometChatTranslation,
 } from '@cometchat/chat-uikit-react-native';
-import {RootStackParamList} from '../../../navigation/types';
+import { RootStackParamList } from '../../../navigation/types';
 import Groups from '../../groups/Groups';
-import {Icon} from '@cometchat/chat-uikit-react-native';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
+import { Icon } from '@cometchat/chat-uikit-react-native';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
 import ArrowBack from '../../../assets/icons/ArrowBack';
 
 // Define prop types for the component using React Navigation's types
@@ -27,9 +19,9 @@ type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'CreateConversation'>;
 };
 
-const CreateConversation: React.FC<Props> = ({route, navigation}) => {
+const CreateConversation: React.FC<Props> = ({ route, navigation }) => {
   const theme = useTheme();
-  const {t} = useCometChatTranslation()
+  const { t } = useCometChatTranslation();
 
   const {
     background1,
@@ -39,11 +31,11 @@ const CreateConversation: React.FC<Props> = ({route, navigation}) => {
     textSecondary,
     primary,
   } = theme.color;
-  const {heading1} = theme.typography;
+  const { heading1 } = theme.typography;
   const [selectedTab, setSelectedTab] = useState<'Users' | 'Groups'>('Users');
 
   return (
-    <SafeAreaView style={[styles.container, {backgroundColor: background1}]}>
+    <View style={[styles.container, { backgroundColor: background1 }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.rowCenter} onPress={navigation.goBack}>
@@ -51,27 +43,31 @@ const CreateConversation: React.FC<Props> = ({route, navigation}) => {
             icon={<ArrowBack color={iconPrimary} height={24} width={24} />}
           />
         </TouchableOpacity>
-        <Text style={[heading1.bold, styles.headerText, {color: textPrimary}]}>
+        <Text
+          style={[heading1.bold, styles.headerText, { color: textPrimary }]}
+        >
           {t('NEW_CHAT')}
         </Text>
       </View>
 
       {/* Tab Bar */}
-      <View style={[styles.tabContainer, {backgroundColor: background3}]}>
+      <View style={[styles.tabContainer, { backgroundColor: background3 }]}>
         {['Users', 'Groups'].map(tab => (
           <TouchableOpacity
             key={tab}
             style={[
               styles.tabButton,
               selectedTab === tab && styles.activeTab,
-              selectedTab === tab && {backgroundColor: background1},
+              selectedTab === tab && { backgroundColor: background1 },
             ]}
-            onPress={() => setSelectedTab(tab as 'Users' | 'Groups')}>
+            onPress={() => setSelectedTab(tab as 'Users' | 'Groups')}
+          >
             <Text
               style={[
                 styles.tabText,
-                {color: selectedTab === tab ? primary : textSecondary},
-              ]}>
+                { color: selectedTab === tab ? primary : textSecondary },
+              ]}
+            >
               {t(tab.toUpperCase())}
             </Text>
           </TouchableOpacity>
@@ -93,14 +89,14 @@ const CreateConversation: React.FC<Props> = ({route, navigation}) => {
               .setUIDs([])}
             hideHeader
             onItemPress={(user: CometChat.User) =>
-              navigation.navigate('Messages', {user})
+              navigation.navigate('Messages', { user })
             }
           />
         ) : (
           <Groups hideHeader />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -8,9 +8,9 @@ import {
   CALL_REJECTED,
   CALL_UNANSWERED,
 } from "../shared/constants/UIKitConstants";
-import { localize } from "../shared/resources/CometChatLocalize";
+import { getCometChatTranslation } from "../shared/resources/CometChatLocalizeNew/LocalizationManager";
 import { IconName } from "../shared/icons/Icon";
-
+const t = getCometChatTranslation()
 export class CallUtils {
   /**
    * Checks if the given initiator is the same as the logged in user.
@@ -47,54 +47,54 @@ export class CallUtils {
       switch (call.getStatus()) {
         case CALL_INITIATED:
           if (this.isInitiator(initiator, loggedInUser)) {
-            callMessageText = `${localize(`OUTGOING_CALL`)}`;
+            callMessageText = `${t(`OUTGOING_CALL`)}`;
             selectedIcon = call["type"] === "audio" ? "outgoing-audio" : "outgoing-video";
           } else {
-            callMessageText = `${localize(`INCOMING_CALL`)}`;
+            callMessageText = `${t(`INCOMING_CALL`)}`;
             selectedIcon = call["type"] === "audio" ? "incoming-audio" : "incoming-video";
           }
           break;
         case CALL_ONGOING:
-          callMessageText = `${localize(`CALL_ACCEPTED`)}`;
+          callMessageText = `${t(`CALL_ACCEPTED`)}`;
           selectedIcon = call["type"] === "audio" ? "call" : "video-call";
           break;
         case CALL_ENDED:
-          callMessageText = `${localize(`CALL_ENDED`)}`;
+          callMessageText = `${t(`CALL_ENDED`)}`;
           selectedIcon = call["type"] === "audio" ? "call" : "video-call";
           break;
         case CALL_UNANSWERED:
           if (this.isInitiator(initiator, loggedInUser)) {
-            callMessageText = `${localize("UNANSWERED_CALL")}`;
+            callMessageText = `${t("UNANSWERED_CALL")}`;
             selectedIcon = call["type"] === "audio" ? "call" : "video-call";
           } else {
-            callMessageText = `${localize("MISSED_CALL")}`;
+            callMessageText = `${t("MISSED_CALL")}`;
             selectedIcon = call["type"] === "audio" ? "phone-missed" : "missed-video-call";
           }
           break;
         case CALL_CANCELLED:
           if (this.isInitiator(initiator, loggedInUser)) {
-            callMessageText = `${localize("CANCELLED_CALL")}`;
+            callMessageText = `${t("CANCELLED_CALL")}`;
             selectedIcon = call["type"] === "audio" ? "call" : "video-call";
           } else {
-            callMessageText = `${localize("MISSED_CALL")}`;
+            callMessageText = `${t("MISSED_CALL")}`;
             selectedIcon = call["type"] === "audio" ? "phone-missed" : "missed-video-call";
           }
           break;
         case CALL_REJECTED:
           if (this.isInitiator(initiator, loggedInUser)) {
-            callMessageText = `${localize("CALL_REJECTED")}`;
+            callMessageText = `${t("CALL_REJECTED")}`;
             selectedIcon = call["type"] === "audio" ? "call" : "video-call";
           } else {
-            callMessageText = `${localize("INCOMING_CALL")}`;
+            callMessageText = `${t("INCOMING_CALL")}`;
             selectedIcon = call["type"] === "audio" ? "incoming-audio" : "incoming-video";
           }
           break;
         case CALL_BUSY:
           if (this.isInitiator(initiator, loggedInUser)) {
-            callMessageText = `${localize("CALL_BUSY")}`;
+            callMessageText = `${t("CALL_BUSY")}`;
             selectedIcon = call["type"] === "audio" ? "call" : "video-call";
           } else {
-            callMessageText = `${localize("MISSED_CALL")}`;
+            callMessageText = `${t("MISSED_CALL")}`;
             selectedIcon = call["type"] === "audio" ? "phone-missed" : "missed-video-call";
           }
           break;

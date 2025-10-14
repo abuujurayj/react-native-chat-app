@@ -139,6 +139,7 @@ export const CometChatImageLoader = (props: CometChatImageLoaderPropType) => {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onTouchMove={onTouchMove}
+        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
         style={{
           position: "relative",
           justifyContent: "center",

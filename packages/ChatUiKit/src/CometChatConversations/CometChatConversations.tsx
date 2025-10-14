@@ -25,7 +25,6 @@ import {
   CometChatUIKit,
   CometChatUiKitConstants,
   CometChatUrlsFormatter,
-  localize,
 } from "../shared";
 import { SelectionMode } from "../shared/base/Types";
 import {
@@ -56,6 +55,7 @@ import { DeepPartial } from "../shared/helper/types";
 import { CometChatTheme } from "../theme/type";
 import { MenuItemInterface } from "../shared/views/CometChatTooltipMenu/CometChatTooltipMenu";
 import { JSX } from "react";
+import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
 
 // Unique listener IDs for conversation, user, group, message and call events.
 const conversationListenerId = "chatlist_" + new Date().getTime();
@@ -291,6 +291,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
 
   // Merge theme styles with provided style overrides.
   const theme = useTheme();
+  const {t}=useCometChatTranslation()
   const mergedStyles = useMemo(() => {
     return deepMerge(theme.conversationStyles, style ?? {});
   }, [theme.conversationStyles, style]);
@@ -301,9 +302,9 @@ export const CometChatConversations = (props: ConversationInterface) => {
   const ErrorStateView = useCallback(() => {
     return (
       <ErrorEmptyView
-        title={localize("OOPS")}
-        subTitle={localize("SOMETHING_WENT_WRONG")}
-        tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
+        title={t("OOPS")}
+        subTitle={t("SOMETHING_WENT_WRONG")}
+        tertiaryTitle={t("WRONG_TEXT_TRY_AGAIN")}
         Icon={
           <Icon
             name='error-state'
@@ -329,8 +330,8 @@ export const CometChatConversations = (props: ConversationInterface) => {
   const EmptyStateView = useCallback(() => {
     return (
       <ErrorEmptyView
-        title='No Conversations Yet'
-        subTitle='Start a new chat or invite others to join the conversation.'
+        title={t("NO_CONVERSATIONS")}
+        subTitle={t("CONVERSATIONS_EMPTY_MESSAGE")}
         Icon={
           <Icon
             name='empty-state'
@@ -408,8 +409,8 @@ export const CometChatConversations = (props: ConversationInterface) => {
       if (isTyping && !newConversation?.["lastMessage"]?.["typing"]) {
         newConversation["lastMessage"]["typing"] =
           args[0]?.receiverType === "group"
-            ? `${args[0].sender.name} ${localize("IS_TYPING")}`
-            : localize("IS_TYPING");
+            ? `${args[0].sender.name} ${t("IS_TYPING")}`
+            : t("IS_TYPING");
       } else {
         delete newConversation["lastMessage"]["typing"];
       }
@@ -764,7 +765,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
           .substr(0, 50)
           .match(/http[s]{0,1}:\/\//)
       ) {
-        messageText = getMessagePreviewInternal("link-fill", localize("LINK"), { theme });
+        messageText = getMessagePreviewInternal("link-fill", t("LINK"), { theme });
       } else {
         // Ensure ellipsis is applied if the text is too long.
         messageText = (
@@ -783,7 +784,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
     if (!(lastMessage instanceof CometChat.Action)) {
       if (lastMessage.getReceiverType() == ReceiverTypeConstants.group) {
         if (lastMessage.getSender().getUid() == loggedInUserId) {
-          groupText = localize("YOU") + ": ";
+          groupText = t("YOU") + ": ";
         } else {
           groupText = lastMessage.getSender().getName() + ": ";
         }
@@ -872,7 +873,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
           numberOfLines={1}
           ellipsizeMode={"tail"}
         >
-          {localize("TAP_TO_START_CONVERSATION")}
+          {t("TAP_TO_START_CONVERSATION")}
         </Text>
       );
     let readReceipt;
@@ -952,7 +953,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
           <CometChatDate
             timeStamp={timestamp * 1000}
             customDateString={customPattern && customPattern()}
-            pattern={"dayWeekDayDateTimeFormat"}
+            pattern={"conversationDate"}
             style={mergedStyles?.itemStyle?.dateStyle}
           />
           <CometChatBadge
@@ -1579,11 +1580,11 @@ export const CometChatConversations = (props: ConversationInterface) => {
         }
       />
       <CometChatConfirmDialog
-        titleText={localize("DELETE_THIS_CONVERSATION")}
+        titleText={t("DELETE_THIS_CONVERSATION")}
         icon={<Icon name='delete' size={theme.spacing.spacing.s12} color={theme.color.error} />}
-        cancelButtonText={localize("CANCEL")}
-        confirmButtonText={localize("DELETE")}
-        messageText={localize("SURE_TO_DELETE_CHAT")}
+        cancelButtonText={t("CANCEL")}
+        confirmButtonText={t("DELETE")}
+        messageText={t("SURE_TO_DELETE_CHAT")}
         isOpen={confirmDelete != undefined}
         onCancel={() => setConfirmDelete(undefined)}
         onConfirm={() => {
@@ -1604,7 +1605,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
           conversationsRequestBuilder || new CometChat.ConversationsRequestBuilder().setLimit(30)
         }
         hideStickyHeader={true}
-        title={localize("CHATS")}
+        title={t("CHATS")}
         listStyle={mergedStyles}
         hideSearch={true}
         hideSubmitButton={hideSubmitButton}

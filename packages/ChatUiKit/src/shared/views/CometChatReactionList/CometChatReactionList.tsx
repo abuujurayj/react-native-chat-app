@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { localize } from "../../resources";
 import { CommonUtils } from "../../utils/CommonUtils";
 import { CometChatListItem } from "../CometChatListItem";
 import { useTheme } from "../../../theme";
@@ -18,6 +17,7 @@ import { ErrorEmptyView } from "../ErrorEmptyView/ErrorEmptyView";
 import { Icon } from "../../icons/Icon";
 import { CometChatUIEventHandler, MessageEvents } from "../../events";
 import { messageStatus } from "../../utils/CometChatMessageHelper";
+import { useCometChatTranslation } from "../../resources/CometChatLocalizeNew";
 
 /**
  * Props for the CometChatReactionList component.
@@ -76,6 +76,7 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
     onListEmpty,
   } = props;
   const theme = useTheme();
+  const {t} =useCometChatTranslation()
   const reactionListStyleFromTheme = theme.reactionListStyles.reactionListItemStyle;
   const tabStyleFromTheme = theme.reactionListStyles.tabStyle;
 
@@ -333,14 +334,14 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
   const subtitleView = useCallback((item: any) => {
     let reactedByMe = loggedInUser.current!.getUid() === item?.reactedBy?.uid;
     return reactedByMe ? (
-      <Text style={reactionListStyleFromTheme.subtitleStyle}>{localize("TAP_TO_REMOVE")}</Text>
+      <Text style={reactionListStyleFromTheme.subtitleStyle}>{t("TAP_TO_REMOVE")}</Text>
     ) : null;
   }, []);
 
   const _render = ({ item, index }: { item: any; index: number }) => {
     function getName() {
       let reactedByMe = loggedInUser.current!.getUid() === item?.reactedBy?.uid;
-      return reactedByMe ? localize("YOU") : item?.reactedBy?.name;
+      return reactedByMe ? t("YOU") : item?.reactedBy?.name;
     }
 
     return (
@@ -377,8 +378,8 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
     return (
       <ErrorEmptyView
         title={errorStateText ?? "Oops!"}
-        subTitle={localize("SOMETHING_WENT_WRONG")}
-        tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
+        subTitle={t("SOMETHING_WENT_WRONG")}
+        tertiaryTitle={t("WRONG_TEXT_TRY_AGAIN")}
         Icon={
           <Icon
             name='error-state'
@@ -444,7 +445,7 @@ export const CometChatReactionList = (props: CometChatReactionListInterface) => 
                       }
                     >
                       {reactionObject?.getReaction() === "All"
-                        ? localize("ALL")
+                        ? t("ALL")
                         : reactionObject?.getReaction()}
                     </Text>
                     <Text

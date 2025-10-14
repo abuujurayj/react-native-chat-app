@@ -114,7 +114,6 @@ const Conversations: React.FC<{}> = ({}) => {
     // If all operations succeed, navigate to the LoginScreen
     setIsLoggingOut(false);
     setLogout(false);
-    // navigate('Login');
     navigationRef.dispatch(
       CommonActions.reset({
         index: 0,

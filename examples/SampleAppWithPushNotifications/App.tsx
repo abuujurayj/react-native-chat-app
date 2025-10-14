@@ -59,7 +59,6 @@ const App = (): React.ReactElement => {
   const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
 
   /**
-   * Initialize CometChat UIKit with app credentials.
    * Retrieves credentials from AsyncStorage and uses fallback constants if needed.
    */
   useEffect(() => {
@@ -523,11 +522,6 @@ const App = (): React.ReactElement => {
                   // Handle call decline by clearing the incoming call state.
                   incomingCall.current = null;
                   setCallReceived(false);
-                }}
-                style={{
-                  containerStyle: {
-                    marginTop: Platform.OS === 'android' ? 40 : 0,
-                  },
                 }}
               />
             ) : null}

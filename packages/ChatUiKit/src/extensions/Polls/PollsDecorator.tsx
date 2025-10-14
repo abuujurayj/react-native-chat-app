@@ -4,7 +4,6 @@ import { MessageCategoryConstants, MetadataConstants } from "../../shared/consta
 import { ChatConfigurator } from "../../shared/framework";
 import { CometChatMessageComposerAction } from "../../shared/helper/types";
 import { CometChatMessageTemplate } from "../../shared/modals";
-import { localize } from "../../shared/resources/CometChatLocalize";
 import { ExtensionTypeConstants } from "../ExtensionConstants";
 import { getExtensionData } from "../ExtensionModerator";
 import { PollsConfigurationInterface } from "./PollsConfigurations";
@@ -21,6 +20,9 @@ import { getMessagePreviewInternal } from "../../shared/utils/MessageUtils";
 import { CometChatTheme } from "../../theme/type";
 import { CometChatCreatePoll } from "./Polls";
 import { PollsBubble } from "./PollsBubble";
+import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager"
+
+const t = getCometChatTranslation();
 
 /**
  *
@@ -87,7 +89,7 @@ export class PollsExtensionDecorator extends DataSourceDecorator {
         MessageCategoryConstants.custom &&
       (conversation.getLastMessage() as CometChat.BaseMessage).getDeletedAt() === undefined
     ) {
-      return getMessagePreviewInternal("bar-chart-fill", localize("CUSTOM_MESSAGE_POLL"), {
+      return getMessagePreviewInternal("bar-chart-fill", t("CUSTOM_MESSAGE_POLL"), {
         theme,
       });
     } else {
@@ -152,7 +154,7 @@ export class PollsExtensionDecorator extends DataSourceDecorator {
     )
       attachmentOptions.push({
         id: "polls",
-        title: localize("CUSTOM_MESSAGE_POLL"),
+        title: t("CUSTOM_MESSAGE_POLL"),
         icon: <Icon name='poll_icon' color={theme.color.primary} />,
         CustomView: (user, group, _id, pollsProps) => {
           return (

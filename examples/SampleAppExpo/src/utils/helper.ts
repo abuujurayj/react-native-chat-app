@@ -92,7 +92,7 @@ export function getLastSeenTime(
   const dateOptions: Intl.DateTimeFormatOptions = {
     day: '2-digit',
     month: 'short',
-    ...(isSameYear ? {} : {year: 'numeric'}),
+    ...(isSameYear ? {} : { year: 'numeric' }),
   };
 
   // Options for time formatting

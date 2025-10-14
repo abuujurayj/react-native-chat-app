@@ -9,10 +9,10 @@ import {
   ViewStyle,
 } from "react-native";
 import { useTheme } from "../../../theme";
-import { localize } from "../../resources/CometChatLocalize";
 import { CometChatTheme } from "../../../theme/type";
 import { CometChatUIEventHandler, CometChatUIEvents } from "../../events";
 import { ViewAlignment } from "../../constants/UIKitConstants";
+import { useCometChatTranslation } from "../../resources/CometChatLocalizeNew";
 
 /**
  * Props for the CometChatMessageInput component.
@@ -99,9 +99,10 @@ export interface CometChatMessageInputInterface {
  */
 export const CometChatMessageInput = (props: CometChatMessageInputInterface) => {
   const theme = useTheme();
+  const {t}= useCometChatTranslation()
   const {
     text = "",
-    placeHolderText = localize("ENTER_YOUR_MESSAGE_HERE"),
+    placeHolderText = t("ENTER_YOUR_MESSAGE_HERE"),
     onChangeText,
     style,
     SecondaryButtonView,

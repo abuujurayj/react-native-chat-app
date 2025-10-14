@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   TouchableOpacity,
   View,
@@ -18,24 +18,24 @@ import {
   ChatConfigurator,
   useCometChatTranslation,
 } from '@cometchat/chat-uikit-react-native';
-import {StackScreenProps} from '@react-navigation/stack';
-import {RootStackParamList} from '../../../navigation/types';
-import {Icon} from '@cometchat/chat-uikit-react-native';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../navigation/types';
+import { Icon } from '@cometchat/chat-uikit-react-native';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
 import InfoIcon from '../../../assets/icons/InfoIcon';
-import {CommonUtils} from '../../../utils/CommonUtils';
+import { CommonUtils } from '../../../utils/CommonUtils';
 import Info from '../../../assets/icons/Info';
 import {useActiveChat} from '../../../utils/ActiveChatContext';
 
 type Props = StackScreenProps<RootStackParamList, 'Messages'>;
 
-const Messages: React.FC<Props> = ({route, navigation}) => {
-  const {user, group, fromMention = false} = route.params;
+const Messages: React.FC<Props> = ({ route, navigation }) => {
+  const { user, group, fromMention = false } = route.params;
   const loggedInUser = useRef<CometChat.User>(
     CometChatUIKit.loggedInUser!,
   ).current;
   const theme = useTheme();
-  const { t } = useCometChatTranslation()
+  const { t } = useCometChatTranslation();
   const themeRef = useRef(theme);
   const navigationRef = useRef(navigation);
   const routeRef = useRef(route);
@@ -77,14 +77,14 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
 
   useEffect(() => {
     CometChatUIEventHandler.addUserListener(userListenerId, {
-      ccUserBlocked: (item: {user: CometChat.User}) =>
+      ccUserBlocked: (item: { user: CometChat.User }) =>
         handleccUserBlocked(item),
-      ccUserUnBlocked: (item: {user: CometChat.User}) =>
+      ccUserUnBlocked: (item: { user: CometChat.User }) =>
         handleccUserUnBlocked(item),
     });
 
     CometChatUIEventHandler.addUIListener(openmessageListenerId, {
-      openChat: ({user}) => {
+      openChat: ({ user }) => {
         if (user != undefined) {
           navigation.push('Messages', {
             user,
@@ -99,11 +99,11 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
     };
   }, [localUser]);
 
-  const handleccUserBlocked = ({user}: {user: CometChat.User}) => {
+  const handleccUserBlocked = ({ user }: { user: CometChat.User }) => {
     setLocalUser(CommonUtils.clone(user));
   };
 
-  const handleccUserUnBlocked = ({user}: {user: CometChat.User}) => {
+  const handleccUserUnBlocked = ({ user }: { user: CometChat.User }) => {
     setLocalUser(CommonUtils.clone(user));
   };
 
@@ -147,7 +147,8 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
               navigation.navigate('GroupInfo', {
                 group: group,
               });
-            }}>
+            }}
+          >
             <Icon
               icon={
                 <Info color={theme.color.iconPrimary} height={24} width={24} />
@@ -166,7 +167,8 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
               navigation.navigate('UserInfo', {
                 user: user,
               });
-            }}>
+            }}
+          >
             <Icon
               icon={
                 <InfoIcon
@@ -246,8 +248,9 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
         <View
           style={[
             styles.blockedContainer,
-            {backgroundColor: theme.color.background3},
-          ]}>
+            { backgroundColor: theme.color.background3 },
+          ]}
+        >
           <Text
             style={[
               theme.typography.button.regular,
@@ -256,12 +259,14 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
                 textAlign: 'center',
                 paddingBottom: 10,
               },
-            ]}>
+            ]}
+          >
             {t('BLOCKED_USER_DESC')}
           </Text>
           <TouchableOpacity
             onPress={() => unblock(localUser)}
-            style={[styles.button, {borderColor: theme.color.borderDefault}]}>
+            style={[styles.button, { borderColor: theme.color.borderDefault }]}
+          >
             <Text
               style={[
                 theme.typography.button.medium,
@@ -269,7 +274,8 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
                 {
                   color: theme.color.textPrimary,
                 },
-              ]}>
+              ]}
+            >
               {t('UNBLOCK')}
             </Text>
           </TouchableOpacity>
@@ -282,8 +288,8 @@ const Messages: React.FC<Props> = ({route, navigation}) => {
             ...(Platform.OS === 'android'
               ? {}
               : {
-                behavior: 'padding',
-              }),
+                  behavior: 'padding',
+                }),
           }}
         />
       )}

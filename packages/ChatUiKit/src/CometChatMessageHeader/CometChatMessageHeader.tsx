@@ -1,6 +1,6 @@
 import React, { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { ChatConfigurator, localize } from "../shared";
+import { ChatConfigurator, getLastSeenTime } from "../shared";
 import { listners } from "./listners";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { GroupTypeConstants, UserStatusConstants } from "../shared/constants/UIKitConstants";
@@ -13,6 +13,7 @@ import { useTheme } from "../theme";
 import { MessageHeaderStyle } from "./styles";
 import { CommonUtils } from "../shared/utils/CommonUtils";
 import { DeepPartial } from "../shared/helper/types";
+import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
 
 export type CometChatMessageHeaderInterface = {
   /**
@@ -113,6 +114,7 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   const msgTypingListenerId = "message_typing_" + new Date().getTime();
   const groupListenerId = "head_group_" + new Date().getTime();
   const theme = useTheme();
+  const { t } = useCometChatTranslation();
 
   const {
     TitleView,
@@ -159,49 +161,6 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   };
 
   /**
-   * Returns a formatted last seen string.
-   */
-  function getLastSeenTime(timestamp: number, translations: Translations): string {
-    try {
-      if (timestamp === null) return `${translations.lastSeen} Unknown`;
-
-      if (String(timestamp).length === 10) timestamp *= 1000;
-
-      const now = new Date();
-      const lastSeen = new Date(timestamp);
-      const diffInMillis = now.getTime() - lastSeen.getTime();
-      const diffInMinutes = Math.floor(diffInMillis / (1000 * 60));
-      const diffInHours = Math.floor(diffInMillis / (1000 * 60 * 60));
-
-      if (diffInMinutes === 0) return `${translations.lastSeen} ${translations.minutesAgo(1)}`;
-      if (diffInMinutes < 60)
-        return `${translations.lastSeen} ${translations.minutesAgo(diffInMinutes)}`;
-      if (diffInHours < 24) return `${translations.lastSeen} ${translations.hoursAgo(diffInHours)}`;
-
-      const isSameYear = lastSeen.getFullYear() === now.getFullYear();
-      const dateOptions: Intl.DateTimeFormatOptions = {
-        day: "2-digit",
-        month: "short",
-        ...(isSameYear ? {} : { year: "numeric" }),
-      };
-      const timeOptions: Intl.DateTimeFormatOptions = {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      };
-
-      const formattedDate = lastSeen.toLocaleDateString(undefined, dateOptions);
-      const formattedTime = lastSeen.toLocaleTimeString(undefined, timeOptions);
-
-      if (formattedDate === "Invalid Date" || formattedTime === "Invalid Date") return "Offline";
-      return `${translations.lastSeen} ${formattedDate} at ${formattedTime}`;
-    } catch (e) {
-      errorHandler(e);
-      return "";
-    }
-  }
-
-  /**
    * Renders the back button.
    */
   const BackButton = useCallback(
@@ -243,10 +202,10 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
                   ? { uri: userObj.getAvatar() }
                   : undefined
                 : groupObj
-                ? groupObj.getIcon()
-                  ? { uri: groupObj.getIcon() }
+                  ? groupObj.getIcon()
+                    ? { uri: groupObj.getIcon() }
+                    : undefined
                   : undefined
-                : undefined
             }
             name={(userObj?.getName() ?? groupObj?.getName())!}
           />
@@ -272,14 +231,21 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   const SubtitleViewFnc = useCallback(() => {
     try {
       if (typingText !== "")
-        return <Text style={[messageHeaderStyles.typingIndicatorTextStyle]}>{typingText}</Text>;
-
+        return (
+          <Text
+            numberOfLines={1}
+            ellipsizeMode='tail'
+            style={[messageHeaderStyles.typingIndicatorTextStyle]}
+          >
+            {typingText}
+          </Text>
+        );
       let subtitle = "";
 
       if (groupObj) {
         const count = groupObj?.["membersCount"];
         if (count || count === 0) {
-          subtitle = `${count} ${localize(count === 1 ? "MEMBER" : "MEMBERS")}`;
+          subtitle = `${count} ${t(count === 1 ? "MEMBER" : "MEMBERS")}`;
         }
       }
 
@@ -291,8 +257,8 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
       ) {
         subtitle =
           userStatus === UserStatusConstants.online
-            ? localize("ONLINE")
-            : getLastSeenTime(userObj.getLastActiveAt(), translations);
+            ? t("ONLINE")
+            : getLastSeenTime(userObj.getLastActiveAt()); // Updated to use getLastSeenTime function
       }
 
       if (subtitle) {
@@ -335,15 +301,15 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
       groupObj?.getGuid() === typist.getReceiverId()
     ) {
       setTypingText(
-        status === "typing" ? `${typist.getSender().getName()}: ${localize("IS_TYPING")}` : ""
+        status === "typing" ? `${typist.getSender().getName()}: ${t("IS_TYPING")}` : ""
       );
     } else if (
       receiverTypeRef.current === CometChat.RECEIVER_TYPE.USER &&
       receiverTypeRef.current === typist.getReceiverType() &&
-      userObj?.getUid() === typist.getSender().getUid()
-      && !(userObj.getBlockedByMe() || userObj.getHasBlockedMe())
+      userObj?.getUid() === typist.getSender().getUid() &&
+      !(userObj.getBlockedByMe() || userObj.getHasBlockedMe())
     ) {
-      setTypingText(status === "typing" ? localize("TYPING") : "");
+      setTypingText(status === "typing" ? t("TYPING") : "");
     }
   };
 

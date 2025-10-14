@@ -1,9 +1,10 @@
 import React from "react";
 import { Text, View } from "react-native";
 import { useTheme } from "../../../theme";
-import { DateHelper, dateHelperInstance } from "../../helper/dateHelper";
+import { LocalizedDateHelper } from "../../helper/LocalizedDateHelper";
 import { ValueOf } from "../../helper/types";
 import { CometChatTheme } from "../../../theme/type";
+import { useLocalizedDate } from "./../../helper/useLocalizedDateHook";
 
 /**
  * Props for the CometChatDateSeparator component.
@@ -20,7 +21,7 @@ export interface CometChatDateSeparatorInterface {
    * - dayDateFormat: Today, Yesterday, or "d MMM, yyyy"
    * - dayWeekDayDateTimeFormat: Today (time), weekday, Yesterday, or "dd/mm/yyyy"
    */
-  pattern: ValueOf<typeof DateHelper.patterns>;
+  pattern: ValueOf<typeof LocalizedDateHelper.patterns>;
   /**
    * Custom string to be displayed instead of the formatted date.
    */
@@ -34,20 +35,21 @@ export interface CometChatDateSeparatorInterface {
 /**
  * CometChatDateSeparator is a component that displays a formatted date/time separator
  * between messages. If a custom date string is provided, it will be displayed instead.
- *
+ *  
  *  - Props for the component.
  *  The rendered date separator view.
  */
 export const CometChatDateSeparator = (props: CometChatDateSeparatorInterface) => {
   const { timeStamp, pattern, customDateString, style } = props;
   const theme = useTheme();
+  const { formatDate } = useLocalizedDate();
 
   return (
     <View style={[theme.dateSeparatorStyles.containerStyle, style?.containerStyle]}>
       <Text style={[theme.dateSeparatorStyles.textStyle, style?.textStyle]}>
         {customDateString
           ? customDateString
-          : dateHelperInstance.getFormattedDate(timeStamp, pattern)}
+          : formatDate(timeStamp, pattern)}
       </Text>
     </View>
   );

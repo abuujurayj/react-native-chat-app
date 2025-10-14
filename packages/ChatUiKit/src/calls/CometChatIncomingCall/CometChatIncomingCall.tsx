@@ -1,13 +1,7 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  SafeAreaView,
-  StyleSheet,
-} from "react-native";
-import { CometChatAvatar, CometChatSoundManager, localize } from "../../shared";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { CometChatAvatar, CometChatSoundManager } from "../../shared";
 import {
   CallTypeConstants,
   MessageCategoryConstants,
@@ -23,6 +17,8 @@ import { IncomingCallStyle } from "./style";
 import { deepMerge } from "../../shared/helper/helperFunctions";
 import { DeepPartial } from "../../shared/helper/types";
 import { JSX } from "react";
+import { useCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const listnerID = "CALL_LISTENER_" + new Date().getTime();
 const CometChatCalls = CallingPackage.CometChatCalls;
@@ -89,6 +85,7 @@ export const CometChatIncomingCall = (props: CometChatIncomingCallInterface): JS
   } = props;
 
   const theme = useTheme();
+  const { t } = useCometChatTranslation();
   const [showCallScreen, setShowCallScreen] = useState(false);
   const acceptedCall = useRef<CometChat.Call>(undefined);
 
@@ -258,12 +255,7 @@ export const CometChatIncomingCall = (props: CometChatIncomingCallInterface): JS
    */
   return (
     <SafeAreaView style={styles.overlay}>
-      <View
-        style={[
-          incomingCallStyle.containerStyle,
-          { width: "100%" },
-        ]}
-      >
+      <View style={[incomingCallStyle.containerStyle, { width: "100%" }]}>
         {/* Top row: LeadingView, Title/Subtitle, TrailingView */}
         <View style={styles.topRow}>
           {LeadingView && LeadingView(call)}
@@ -272,7 +264,7 @@ export const CometChatIncomingCall = (props: CometChatIncomingCallInterface): JS
               TitleView(call)
             ) : (
               <Text style={incomingCallStyle.titleTextStyle}>
-                {call["sender"]?.["name"] ?? localize("INCOMING_CALL")}
+                {call["sender"]?.["name"] ?? t("INCOMING_CALL")}
               </Text>
             )}
 
@@ -280,11 +272,15 @@ export const CometChatIncomingCall = (props: CometChatIncomingCallInterface): JS
               SubtitleView(call)
             ) : (
               <View style={styles.rowInline}>
-                <Icon name="call-fill" size={16} containerStyle={{ marginTop: 4, marginRight: 4 }} />
+                <Icon
+                  name='call-fill'
+                  size={16}
+                  containerStyle={{ marginTop: 4, marginRight: 4 }}
+                />
                 <Text style={incomingCallStyle.subtitleTextStyle}>
                   {call?.["type"] === CallTypeConstants.audio
-                    ? localize("INCOMING_AUDIO_CALL")
-                    : localize("INCOMING_VIDEO_CALL")}
+                    ? t("INCOMING_AUDIO_CALL")
+                    : t("INCOMING_VIDEO_CALL")}
                 </Text>
               </View>
             )}
@@ -303,22 +299,12 @@ export const CometChatIncomingCall = (props: CometChatIncomingCallInterface): JS
 
         {/* Buttons row */}
         <View style={[styles.bottomRow, { marginTop: 16 }]}>
-          <TouchableOpacity
-            onPress={endCall}
-            style={incomingCallStyle.declineCallButtonStyle}
-          >
-            <Text style={incomingCallStyle.declineCallTextStyle}>
-              {localize("DECLINE")}
-            </Text>
+          <TouchableOpacity onPress={endCall} style={incomingCallStyle.declineCallButtonStyle}>
+            <Text style={incomingCallStyle.declineCallTextStyle}>{t("DECLINE")}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={acceptCall}
-            style={incomingCallStyle.acceptCallButtonStyle}
-          >
-            <Text style={incomingCallStyle.acceptCallTextStyle}>
-              {localize("ACCEPT")}
-            </Text>
+          <TouchableOpacity onPress={acceptCall} style={incomingCallStyle.acceptCallButtonStyle}>
+            <Text style={incomingCallStyle.acceptCallTextStyle}>{t("ACCEPT")}</Text>
           </TouchableOpacity>
         </View>
       </View>

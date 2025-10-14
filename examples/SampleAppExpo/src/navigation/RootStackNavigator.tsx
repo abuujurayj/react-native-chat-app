@@ -1,30 +1,29 @@
-import React from 'react';
-import {createStackNavigator} from '@react-navigation/stack';
-import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
-import BottomTabNavigator from './BottomTabNavigator';
-import OngoingCallScreen from '../components/conversations/screens/OngoingCallScreen';
-import {SCREEN_CONSTANTS} from '../utils/AppConstants';
-import {useTheme} from '@cometchat/chat-uikit-react-native';
-import {RootStackParamList} from './types';
-import {navigationRef, processPendingNavigation} from './NavigationService';
-import SampleUser from '../components/login/SampleUser';
-import AppCredentials from '../components/login/AppCredentials';
-import {Platform, StatusBar, useColorScheme} from 'react-native';
-import {navigateToConversation} from '../utils/helper';
-import Conversations from '../components/conversations/screens/Conversations';
-import CreateConversation from '../components/conversations/screens/CreateConversation';
-import Messages from '../components/conversations/screens/Messages';
-import ThreadView from '../components/conversations/screens/ThreadView';
-import UserInfo from '../components/conversations/screens/UserInfo';
-import AddMember from '../components/conversations/screens/AddMember';
-import BannedMember from '../components/conversations/screens/BannedMember';
-import ViewMembers from '../components/conversations/screens/ViewMembers';
-import GroupInfo from '../components/conversations/screens/GroupInfo';
-import TransferOwnership from '../components/conversations/screens/TransferOwnership';
-import Calls from '../components/calls/Calls';
-import {CallDetails} from '../components/calls/CallDetails';
-import Users from '../components/users/Users';
-import Groups from '../components/groups/Groups';
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
+import BottomTabNavigator from "./BottomTabNavigator";
+import OngoingCallScreen from "../components/conversations/screens/OngoingCallScreen";
+import { SCREEN_CONSTANTS } from "../utils/AppConstants";
+import { useTheme } from "@cometchat/chat-uikit-react-native";
+import { RootStackParamList } from "./types";
+import { navigationRef, processPendingNavigation } from "./NavigationService";
+import SampleUser from "../components/login/SampleUser";
+import AppCredentials from "../components/login/AppCredentials";
+import { StatusBar, useColorScheme } from "react-native";
+import Conversations from "../components/conversations/screens/Conversations";
+import CreateConversation from "../components/conversations/screens/CreateConversation";
+import Messages from "../components/conversations/screens/Messages";
+import ThreadView from "../components/conversations/screens/ThreadView";
+import UserInfo from "../components/conversations/screens/UserInfo";
+import AddMember from "../components/conversations/screens/AddMember";
+import BannedMember from "../components/conversations/screens/BannedMember";
+import ViewMembers from "../components/conversations/screens/ViewMembers";
+import GroupInfo from "../components/conversations/screens/GroupInfo";
+import TransferOwnership from "../components/conversations/screens/TransferOwnership";
+import Calls from "../components/calls/Calls";
+import { CallDetails } from "../components/calls/CallDetails";
+import Users from "../components/users/Users";
+import Groups from "../components/groups/Groups";
 
 type Props = {
   isLoggedIn: boolean;
@@ -33,7 +32,7 @@ type Props = {
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials}: Props) => {
+const RootStackNavigator = ({ isLoggedIn, hasValidAppCredentials }: Props) => {
   const theme = useTheme();
   const NavigationTheme = {
     ...DefaultTheme,
@@ -43,9 +42,9 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials}: Props) => {
     },
   };
 
-  const isDark = useColorScheme() === 'dark';
+  const isDark = useColorScheme() === "dark";
   const backgroundColor = theme.color.background2;
-  const barStyle = isDark ? 'light-content' : 'dark-content';
+  const barStyle = isDark ? "light-content" : "dark-content";
 
   return (
     <>
@@ -59,23 +58,24 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials}: Props) => {
         onReady={() => {
           processPendingNavigation();
         }}
-        theme={NavigationTheme}>
+        theme={NavigationTheme}
+      >
         <Stack.Navigator
           id={undefined}
           initialRouteName={
             isLoggedIn
               ? SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR
-              :
-            hasValidAppCredentials
-            ? SCREEN_CONSTANTS.SAMPLE_USER
-            : SCREEN_CONSTANTS.APP_CRED
+              : hasValidAppCredentials
+              ? SCREEN_CONSTANTS.SAMPLE_USER
+              : SCREEN_CONSTANTS.APP_CRED
           }
           screenOptions={{
             gestureEnabled: true,
-            gestureDirection: 'horizontal',
+            gestureDirection: "horizontal",
             headerShown: false,
-            animation: 'slide_from_right',
-          }}>
+            animation: "slide_from_right",
+          }}
+        >
           {/* Auth Screens */}
           <Stack.Screen
             name={SCREEN_CONSTANTS.APP_CRED}

@@ -2,10 +2,10 @@ import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { CometChatTheme } from "../../theme/type";
 import { useTheme } from "../../theme";
-import { localize } from "../../shared";
 import { deepMerge } from "../../shared/helper/helperFunctions";
 import { DeepPartial } from "../../shared/helper/types";
 import { JSX } from "react";
+import { useCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew";
 
 /**
  * Props for the CometChatMeetCallBubble component.
@@ -82,6 +82,7 @@ export interface CometChatUserCallBubbleInterface {
 export const CometChatCallActionBubble = (props: CometChatUserCallBubbleInterface) => {
   const { titleText, icon, style } = props;
   const theme = useTheme();
+  const {t} = useCometChatTranslation()
 
   // Merge default theme styles with optional style overrides
   const callActionBubbleStyles = useMemo(() => {
@@ -92,7 +93,7 @@ export const CometChatCallActionBubble = (props: CometChatUserCallBubbleInterfac
     <View style={{ justifyContent: "center", alignItems: "center" }}>
       <View
         style={
-          titleText === localize("MISSED_CALL")
+          titleText === t("MISSED_CALL")
             ? callActionBubbleStyles.missedCallContainerStyle
             : callActionBubbleStyles.containerStyle
         }
@@ -100,7 +101,7 @@ export const CometChatCallActionBubble = (props: CometChatUserCallBubbleInterfac
         {icon}
         <Text
           style={
-            titleText === localize("MISSED_CALL")
+            titleText === t("MISSED_CALL")
               ? callActionBubbleStyles.missedCallTextStyle
               : callActionBubbleStyles.textStyle
           }

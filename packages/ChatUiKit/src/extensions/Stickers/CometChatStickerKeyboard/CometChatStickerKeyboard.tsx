@@ -2,7 +2,6 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React, { useRef } from "react";
 import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { Icon } from "../../../shared/icons/Icon";
-import { localize } from "../../../shared/resources/CometChatLocalize";
 import { ErrorEmptyView } from "../../../shared/views/ErrorEmptyView/ErrorEmptyView";
 import { useTheme } from "../../../theme";
 import { CometChatTheme } from "../../../theme/type";
@@ -10,6 +9,7 @@ import { ExtensionConstants } from "../../ExtensionConstants";
 import { Hooks } from "./hooks";
 import { Skeleton } from "./Skeleton";
 import { Styles } from "./style";
+import { useCometChatTranslation } from "../../../shared/resources/CometChatLocalizeNew";
 
 /**
  * Interface defining the props for CometChatStickerKeyboard component
@@ -98,6 +98,7 @@ export const CometChatStickerKeyboard = (props: CometChatStickerKeyboardInterfac
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
   const theme = useTheme();
+  const {t}= useCometChatTranslation()
   const flatListRef = useRef<FlatList>(null);
 
   /**
@@ -142,7 +143,7 @@ export const CometChatStickerKeyboard = (props: CometChatStickerKeyboardInterfac
                 { color: theme.color.textTertiary, textAlign: "center" },
               ]}
             >
-              {localize("SOMETHING_WENT_WRONG")}
+              {t("SOMETHING_WENT_WRONG")}
             </Text>
           </View>
         </View>
@@ -162,8 +163,8 @@ export const CometChatStickerKeyboard = (props: CometChatStickerKeyboardInterfac
     if (stickerList.length === 0) {
       return (
         <ErrorEmptyView
-          title='No Stickers Available'
-          subTitle='You don’t have any stickers yet.'
+          title={t("NO_STICKERS_AVAILABLE")}
+          subTitle={t("YOU_DONT_HAVE_STICKERS_YET")}
           Icon={
             <Icon
               containerStyle={{ marginBottom: 10 }}

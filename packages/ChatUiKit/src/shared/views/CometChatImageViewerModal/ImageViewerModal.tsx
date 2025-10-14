@@ -1,43 +1,50 @@
 import React, { useLayoutEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Modal,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Image, Modal, StyleSheet, TouchableOpacity, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ReactNativeZoomableViewWithGestures } from "../../libs/ImageZoom";
-import { ICONS } from "./resources";
+import { Icon } from "../../icons/Icon";
 
 export const ImageViewerModal = ({ imageUrl, isVisible, onClose }: any) => {
   const [downloaded, setDownloaded] = useState(false);
+  const insets = useSafeAreaInsets();
+
   useLayoutEffect(() => {
-    Image.prefetch(imageUrl.uri).then((res) => {
+    // include imageUrl as dep so it re-runs when URL changes
+    if (!imageUrl) return;
+    Image.prefetch(typeof imageUrl === "string" ? imageUrl : imageUrl.uri).then((res) => {
       setDownloaded(res);
     });
-
-    Image.getSize(
-      imageUrl.uri,
-      (res) => {
-        console.log("success : ", res);
-      },
-      (res) => {
-        console.log("error : ", res);
-      }
-    );
-  }, []);
+  }, [imageUrl]);
 
   return (
     <Modal animationType='slide' transparent={false} visible={isVisible} onRequestClose={onClose}>
-      <SafeAreaView style={styles.centeredView}>
+      {/* keep SafeAreaView so bottom inset is handled too */}
+      <SafeAreaView style={styles.centeredView} edges={["bottom"]}>
+        <View
+          style={[
+            styles.header,
+            {
+              // push header below the notch/status bar
+              paddingTop: insets.top,
+              height: 60 + insets.top,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.closeButton,
+              {
+                // respect left inset (very useful on iPhone with rounded corners)
+                marginLeft: Math.max(10, insets.left + 6),
+              },
+            ]}
+            onPress={onClose}
+          >
+            <Icon name='arrow-back-fill' color={"#fff"} height={22} width={22} />
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Image source={ICONS.backIcon} style={{ tintColor: "#fff", height: 20, width: 20 }} />
-            </TouchableOpacity>
-          </View>
           {downloaded ? (
             <View style={styles.imageContainer}>
               <ReactNativeZoomableViewWithGestures onSwipeDown={onClose}>
@@ -45,7 +52,9 @@ export const ImageViewerModal = ({ imageUrl, isVisible, onClose }: any) => {
               </ReactNativeZoomableViewWithGestures>
             </View>
           ) : (
-            <ActivityIndicator color={"#fff"} />
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator color={"#fff"} size='large' />
+            </View>
           )}
         </View>
       </SafeAreaView>
@@ -56,38 +65,41 @@ export const ImageViewerModal = ({ imageUrl, isVisible, onClose }: any) => {
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
-    zIndex: 1,
-    elevation: 1,
+    backgroundColor: "#000",
   },
   container: {
     flex: 1,
+    backgroundColor: "#000",
+  },
+  loaderContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
   },
   header: {
     position: "absolute",
     top: 0,
+    left: 0,
+    right: 0,
     backgroundColor: "transparent",
-    justifyContent: "flex-start",
-    width: "100%",
-    zIndex: 100,
+    zIndex: 1000,
+    elevation: 50,
+    justifyContent: "center",
   },
   imageContainer: {
     flex: 1,
-    height: "100%",
-    width: "100%",
+    marginVertical: 60,
+  },
+  closeButton: {
+    height: 44,
+    width: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 22,
   },
   imageStyle: {
     width: "100%",
     height: "100%",
-  },
-  closeButton: {
-    zIndex: 10,
-    height: 60,
-    width: 60,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 10,
   },
 });

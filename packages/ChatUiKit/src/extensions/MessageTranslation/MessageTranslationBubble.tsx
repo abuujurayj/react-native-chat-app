@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
+import { Text, TextStyle, View, ViewStyle } from "react-native";
 import {
   CometChatMentionsFormatter,
   CometChatTextFormatter,
   CometChatUrlsFormatter,
-  localize,
 } from "../../shared";
 import { CometChatTextBubble } from "../../shared/views";
 import { useTheme } from "../../theme";
+import { useCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew";
 
 /**
  * Props for MessageTranslationBubble component.
@@ -54,6 +54,7 @@ export interface MessageTranslationBubbleProps {
  */
 export const MessageTranslationBubble: React.FC<MessageTranslationBubbleProps> = (props) => {
   const theme = useTheme();
+  const {t}= useCometChatTranslation()
 
   // Destructure the props.
   const {
@@ -128,7 +129,7 @@ export const MessageTranslationBubble: React.FC<MessageTranslationBubbleProps> =
             },
           ]}
         >
-          {localize("TEXT_TRANSLATED")}
+          {t("TEXT_TRANSLATED")}
         </Text>
       </View>
     );

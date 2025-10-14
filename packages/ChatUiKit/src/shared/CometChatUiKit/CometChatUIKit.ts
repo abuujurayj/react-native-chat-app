@@ -11,7 +11,7 @@ import { StickersExtension } from "../../extensions/Stickers";
 import { ThumbnailGenerationExtension } from "../../extensions/ThumbnailGeneration";
 import { ListenerInitializer } from "../events/ListenerInitializer";
 import { ChatConfigurator, ExtensionsDataSource } from "../framework";
-import { CometChatLocalize, CometChatSoundManager } from "../resources";
+import { CometChatSoundManager } from "../resources";
 import { getUnixTimestampInMilliseconds, messageStatus } from "../utils/CometChatMessageHelper";
 import { permissionUtil } from "../utils/PermissionUtil";
 import { CometChatUIKitHelper } from "./CometChatUIKitHelper";
@@ -380,5 +380,4 @@ export class CometChatUIKit {
   }
 
   static SoundManager: typeof CometChatSoundManager = CometChatSoundManager;
-  static Localize: typeof CometChatLocalize = CometChatLocalize;
 }

@@ -2,9 +2,9 @@ import React from "react";
 import { View } from "react-native";
 import { useTheme } from "../../../theme";
 import { Icon } from "../../icons/Icon";
-import { localize } from "../../resources";
 import { CometChatTextBubbleText } from "../CometChatTextBubble/CometChatTextBubble";
 import { DeletedBubbleStyle } from "./styles";
+import { useCometChatTranslation } from "../../resources/CometChatLocalizeNew";
 
 /**
  * Props for the CometChatDeletedBubble component.
@@ -29,7 +29,8 @@ export interface CometChatDeletedBubbleInterface {
  */
 export const CometChatDeletedBubble = (props: CometChatDeletedBubbleInterface) => {
   const theme = useTheme();
-  const { text = localize("DELETE_MSG_TEXT"), style = {} } = props;
+  const {t}=useCometChatTranslation()
+  const { text = t("DELETE_MSG_TEXT"), style = {} } = props;
 
   return (
     <View

@@ -1,4 +1,4 @@
-import {CometChat} from '@cometchat/chat-sdk-react-native';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
 import React, {
   useCallback,
   useEffect,
@@ -13,6 +13,7 @@ import {
   NativeModules,
   Platform,
   KeyboardAvoidingView,
+  BackHandler,
 } from 'react-native';
 import {
   CometChatGroupsEvents,
@@ -24,20 +25,25 @@ import {
   useCometChatTranslation,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
-import {Icon} from '@cometchat/chat-uikit-react-native';
-import {useRoute, useNavigation, RouteProp} from '@react-navigation/native';
-import {styles} from './AddMemberStyles';
-import {commonVars} from '@cometchat/chat-uikit-react-native/src/shared/base/vars';
-import ArrowBack from '../../../assets/icons/ArrowBack'
+import { Icon } from '@cometchat/chat-uikit-react-native';
+import {
+  useRoute,
+  useNavigation,
+  RouteProp,
+  useFocusEffect,
+} from '@react-navigation/native';
+import { styles } from './AddMemberStyles';
+import { commonVars } from '@cometchat/chat-uikit-react-native/src/shared/base/vars';
+import ArrowBack from '../../../assets/icons/ArrowBack';
 import { RootStackParamList } from '../../../navigation/types';
-const {CommonUtil} = NativeModules;
+const { CommonUtil } = NativeModules;
 
 const AddMember: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'AddMember'>>();
   const navigation = useNavigation();
-  const {group} = route.params;
+  const { group } = route.params;
   const theme = useTheme();
-  const {t}= useCometChatTranslation()
+  const { t } = useCometChatTranslation();
   const userRef = useRef<CometChatUsersActionsInterface>(null);
   const [selectedUsers, setSelectedUsers] = useState<CometChat.User[]>([]);
   const [errorToastVisible, setErrorToastVisible] = useState(false);
@@ -52,6 +58,23 @@ const AddMember: React.FC = () => {
       }
     };
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        // Navigate back to message screen (same as your onPress handler)
+        navigation.goBack();
+        return true; // Prevent default back behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [navigation]),
+  );
 
   useLayoutEffect(() => {
     if (Platform.OS === 'ios') {
@@ -111,7 +134,7 @@ const AddMember: React.FC = () => {
         if (addedMembers.length > 0) {
           group.setMembersCount(group.getMembersCount() + addedMembers.length);
           // Create separate action for each added member
-          addedMembers.forEach((member) => {
+          addedMembers.forEach(member => {
             const action: CometChat.Action = new CometChat.Action(
               guid,
               CometChatUiKitConstants.MessageTypeConstants.groupMember,
@@ -153,24 +176,30 @@ const AddMember: React.FC = () => {
 
   return (
     <KeyboardAvoidingView
-
       behavior="padding"
-      enabled={Platform.OS === 'ios'? true: false}
+      enabled={Platform.OS === 'ios' ? true : false}
       keyboardVerticalOffset={kbOffset}
-      style={{flex: 1, backgroundColor: theme.color.background1}}>
+      style={{ flex: 1, backgroundColor: theme.color.background1 }}
+    >
       {/* Header */}
-      <View style={{flex: 1}}>  
+      <View style={{ flex: 1 }}>
         <View
           style={[
             styles.addMemberContainer,
-            {borderBottomColor: theme.color.borderLight},
-          ]}>
+            { borderBottomColor: theme.color.borderLight },
+          ]}
+        >
           <TouchableOpacity
             style={styles.iconContainer}
-            onPress={() => navigation.goBack()}>
+            onPress={() => navigation.goBack()}
+          >
             <Icon
               icon={
-                <ArrowBack color={theme.color.iconPrimary} height={24} width={24} />
+                <ArrowBack
+                  color={theme.color.iconPrimary}
+                  height={24}
+                  width={24}
+                />
               }
             />
           </TouchableOpacity>
@@ -178,8 +207,9 @@ const AddMember: React.FC = () => {
             style={[
               theme.typography.heading1.bold,
               styles.addMemberText,
-              {color: theme.color.textPrimary},
-            ]}>
+              { color: theme.color.textPrimary },
+            ]}
+          >
             {t('ADD_MEMBERS')}
           </Text>
         </View>
@@ -206,17 +236,20 @@ const AddMember: React.FC = () => {
         {/* Add Members Button */}
         <TouchableOpacity
           onPress={() => addMembersToGroup(selectedUsers)}
-          style={styles.addMembersButton}>
+          style={styles.addMembersButton}
+        >
           <View
             style={[
               styles.addMembersButtonContainer,
-              {backgroundColor: theme.color.primaryButtonBackground},
-            ]}>
+              { backgroundColor: theme.color.primaryButtonBackground },
+            ]}
+          >
             <Text
               style={[
                 theme.typography.heading4.medium,
-                {color: theme.color.primaryButtonText, alignSelf: 'center'},
-              ]}>
+                { color: theme.color.primaryButtonText, alignSelf: 'center' },
+              ]}
+            >
               {t('ADD_MEMBERS')}
             </Text>
           </View>
@@ -225,7 +258,11 @@ const AddMember: React.FC = () => {
         {/* Error Toast */}
         {errorToastVisible && (
           <View
-            style={[styles.toastContainer, {backgroundColor: theme.color.error}]}>
+            style={[
+              styles.toastContainer,
+              { backgroundColor: theme.color.error },
+            ]}
+          >
             <Text style={styles.toastTextStyle}>{errorToastMessage}</Text>
           </View>
         )}

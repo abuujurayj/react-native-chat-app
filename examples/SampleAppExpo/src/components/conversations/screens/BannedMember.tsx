@@ -1,19 +1,23 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Modal,
   TouchableWithoutFeedback,
+  BackHandler,
 } from 'react-native';
 import {
   CometChatConfirmDialog,
   CometChatList,
   CometChatListActionsInterface,
 } from '@cometchat/chat-uikit-react-native/src/shared';
-import {Skeleton} from '@cometchat/chat-uikit-react-native/src/CometChatUsers/Skeleton';
-import {Icon, useCometChatTranslation} from '@cometchat/chat-uikit-react-native';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
+import { Skeleton } from '@cometchat/chat-uikit-react-native/src/CometChatUsers/Skeleton';
+import {
+  Icon,
+  useCometChatTranslation,
+} from '@cometchat/chat-uikit-react-native';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
 import {
   CometChatGroupsEvents,
   CometChatUIEventHandler,
@@ -21,10 +25,10 @@ import {
   CometChatUiKitConstants,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
-import {ErrorEmptyView} from '@cometchat/chat-uikit-react-native/src/shared/views/ErrorEmptyView/ErrorEmptyView';
-import {RouteProp} from '@react-navigation/native';
-import {RootStackParamList} from '../../../navigation/types';
-import {StackNavigationProp} from '@react-navigation/stack';
+import { ErrorEmptyView } from '@cometchat/chat-uikit-react-native/src/shared/views/ErrorEmptyView/ErrorEmptyView';
+import { RouteProp, useFocusEffect } from '@react-navigation/native';
+import { RootStackParamList } from '../../../navigation/types';
+import { StackNavigationProp } from '@react-navigation/stack';
 import {
   getBannedMemberStyleLight,
   styles,
@@ -43,13 +47,30 @@ const BannedMember: React.FC<BannedMembersRouteProp> = ({
   route,
   navigation,
 }) => {
-  const {group} = route.params;
+  const { group } = route.params;
   const theme = useTheme();
-  const {t}= useCometChatTranslation()
+  const { t } = useCometChatTranslation();
   const bannedListRef = useRef<CometChatListActionsInterface>(null);
 
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<CometChat.User | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        // Navigate back to message screen (same as your onPress handler)
+        navigation.goBack();
+        return true; // Prevent default back behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [navigation]),
+  );
 
   /**
    * --- Callbacks / Handlers ---
@@ -119,7 +140,7 @@ const BannedMember: React.FC<BannedMembersRouteProp> = ({
     return (
       <View style={styles.flexContainer}>
         <ErrorEmptyView
-          title={t("NO_BANNED_MEMBERS_FOUND")}
+          title={t('NO_BANNED_MEMBERS_FOUND')}
           Icon={
             <Icon
               icon={
@@ -130,7 +151,7 @@ const BannedMember: React.FC<BannedMembersRouteProp> = ({
                 />
               }
               size={theme.spacing.spacing.s20}
-              containerStyle={{marginBottom: theme.spacing.spacing.s5}}
+              containerStyle={{ marginBottom: theme.spacing.spacing.s5 }}
             />
           }
           containerStyle={styles.emptyViewContainer}
@@ -178,8 +199,9 @@ const BannedMember: React.FC<BannedMembersRouteProp> = ({
       <View
         style={[
           styles.flexContainer,
-          {backgroundColor: theme.color.background1},
-        ]}>
+          { backgroundColor: theme.color.background1 },
+        ]}
+      >
         <CometChatList
           title={t('BANNED_MEMBERS')}
           hideStickyHeader={true}

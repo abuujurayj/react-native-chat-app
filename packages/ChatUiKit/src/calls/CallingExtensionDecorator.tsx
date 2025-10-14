@@ -1,7 +1,9 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React, { JSX } from "react";
 import { Modal, View } from "react-native";
-import { ChatConfigurator, CometChatUIEventHandler, CometChatUIKit } from "../shared";
+import { ChatConfigurator } from "../shared/framework/ChatConfigurator";
+import { CometChatUIEventHandler } from "../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
+import { CometChatUIKit } from "../shared/CometChatUiKit/CometChatUIKit";
 import { AdditionalAuxiliaryHeaderOptionsParams, AdditionalParams } from "../shared/base/Types";
 import {
   CallContstatnts,
@@ -11,7 +13,7 @@ import {
 import { DataSource } from "../shared/framework/DataSource";
 import { DataSourceDecorator } from "../shared/framework/DataSourceDecorator";
 import { CometChatMessageTemplate } from "../shared/modals";
-import { localize } from "../shared/resources/CometChatLocalize";
+import { getCometChatTranslation, getCurrentLanguage } from "../shared/resources/CometChatLocalizeNew/LocalizationManager";
 import { permissionUtil } from "../shared/utils/PermissionUtil";
 import { CallUIEvents } from "./CallEvents";
 import { CallingConfiguration } from "./CallingConfiguration";
@@ -20,12 +22,13 @@ import { CallUtils } from "./CallUtils";
 import { CometChatMeetCallBubble } from "./CometChatCallBubble";
 import { CometChatCallButtons } from "./CometChatCallButtons";
 import { CometChatOngoingCall } from "./CometChatOngoingCall";
-import { DateHelper, dateHelperInstance } from "../shared/helper/dateHelper";
 import { Icon } from "../shared/icons/Icon";
 import { CometChatCallActionBubble } from "./CometChatCallBubble/CometChatCallBubble";
 import { CometChatTheme } from "../theme/type";
+import { LocalizedDateHelper, localizedDateHelperInstance } from "../shared/helper/LocalizedDateHelper";
 
 const CometChatCalls = CallingPackage.CometChatCalls;
+const t = getCometChatTranslation();
 
 /**
  * CallingExtensionDecorator extends the DataSourceDecorator to add calling-specific
@@ -129,27 +132,27 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
           <Icon
             name={callStatus.selectedIcon}
             height={
-              callStatus.callMessageText === localize("MISSED_CALL")
+              callStatus.callMessageText === t("MISSED_CALL")
                 ? theme.messageListStyles?.callActionBubbleStyles?.missedCallIconStyle?.height ?? 16
                 : theme.messageListStyles?.callActionBubbleStyles?.iconStyle?.height ?? 16
             }
             width={
-              callStatus.callMessageText === localize("MISSED_CALL")
+              callStatus.callMessageText === t("MISSED_CALL")
                 ? theme.messageListStyles?.callActionBubbleStyles?.missedCallIconStyle?.width ?? 16
                 : theme.messageListStyles?.callActionBubbleStyles?.iconStyle?.width ?? 16
             }
             color={
-              callStatus.callMessageText === localize("MISSED_CALL")
+              callStatus.callMessageText === t("MISSED_CALL")
                 ? theme.messageListStyles?.callActionBubbleStyles?.missedCallIconStyle?.tintColor
                 : theme.messageListStyles?.callActionBubbleStyles?.iconStyle?.tintColor
             }
             imageStyle={
-              callStatus.callMessageText === localize("MISSED_CALL")
+              callStatus.callMessageText === t("MISSED_CALL")
                 ? theme.messageListStyles?.callActionBubbleStyles?.missedCallIconStyle
                 : theme.messageListStyles?.callActionBubbleStyles?.iconStyle
             }
             containerStyle={
-              callStatus.callMessageText === localize("MISSED_CALL")
+              callStatus.callMessageText === t("MISSED_CALL")
                 ? theme.messageListStyles?.callActionBubbleStyles?.missedCallIconContainerStyle
                 : theme.messageListStyles?.callActionBubbleStyles?.iconContainerStyle
             }
@@ -243,8 +246,8 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
     return (
       <View>
         <CometChatMeetCallBubble
-          buttonText={localize("JOIN")}
-          titleText={callType === "audio" ? localize("AUDIO_CALL") : localize("VIDEO_CALL")}
+          buttonText={t("JOIN")}
+          titleText={callType === "audio" ? t("AUDIO_CALL") : t("VIDEO_CALL")}
           icon={BubbleIcon}
           onClick={() =>
             this.startDirectCall(
@@ -256,7 +259,7 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
           }
           style={_style ?? {}}
           subTitleText={
-            dateHelperInstance.getFormattedDate(sentAt, DateHelper.patterns.callBubble)!
+            localizedDateHelperInstance.getFormattedDate(sentAt, LocalizedDateHelper.patterns.callBubble, getCurrentLanguage())
           }
         />
       </View>
@@ -410,9 +413,9 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
       return super.getLastConversationMessage(conversation, theme);
     let lastMesssageString = "";
     if (conversation.getLastMessage()["type"] == "audio")
-      lastMesssageString = localize("AUDIO_CALL");
+      lastMesssageString = t("AUDIO_CALL");
     if (conversation.getLastMessage()["type"] == "video")
-      lastMesssageString = localize("VIDEO_CALL");
+      lastMesssageString = t("VIDEO_CALL");
     return lastMesssageString;
   }
 }

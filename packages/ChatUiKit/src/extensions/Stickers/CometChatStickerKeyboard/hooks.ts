@@ -2,9 +2,9 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React from "react";
 import { MessageEvents } from "../../../shared/events";
 import { CometChatUIEventHandler } from "../../../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
-import { localize } from "../../../shared/resources/CometChatLocalize";
 import { ExtensionConstants, ExtensionURLs } from "../../ExtensionConstants";
 import { CometChatStickerKeyboardInterface } from "./CometChatStickerKeyboard";
+import { useCometChatTranslation } from "../../../shared/resources/CometChatLocalizeNew";
 
 export const Hooks = (
   props: CometChatStickerKeyboardInterface, // Adjust type based on actual usage
@@ -18,6 +18,7 @@ export const Hooks = (
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setError: React.Dispatch<React.SetStateAction<string | null>>,
 ) => {
+  const { t } = useCometChatTranslation();
   React.useEffect(() => {
     setLoading(true); // Start loading
     CometChat.callExtension(ExtensionConstants.stickers, "GET", ExtensionURLs.stickers, {})
@@ -44,7 +45,7 @@ export const Hooks = (
       })
       .catch((error) => {
         console.log(error);
-        setError(props?.errorText || localize("SOMETHING_WENT_WRONG"));
+        setError(props?.errorText || t("SOMETHING_WENT_WRONG"));
         setLoading(false); // End loading even if there's an error
         CometChatUIEventHandler.emitMessageEvent(MessageEvents.ccMessageError, error);
       });

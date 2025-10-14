@@ -5,7 +5,6 @@ import {
   CometChatList,
   CometChatListActionsInterface,
   CometChatListProps,
-  localize,
 } from "../shared";
 import { CometChatUIEventHandler } from "../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
 import { deepMerge } from "../shared/helper/helperFunctions";
@@ -18,6 +17,7 @@ import { Skeleton } from "./Skeleton";
 import { UserStyle } from "./style";
 import { CommonUtils } from "../shared/utils/CommonUtils";
 import { CometChatTooltipMenu } from "../shared/views/CometChatTooltipMenu";
+import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
 
 /**
  * Interface for the menu items (tooltip actions).
@@ -228,6 +228,7 @@ export const CometChatUsers = React.forwardRef<
 >((props, ref) => {
   const userListenerId = "userStatus_" + new Date().getTime();
   const theme = useTheme();
+  const {t}= useCometChatTranslation()
   const [hideSearchError, setHideSearchError] = useState(false);
 
   const {
@@ -257,7 +258,7 @@ export const CometChatUsers = React.forwardRef<
     hideHeader,
     onSelection,
     onSubmit,
-    searchPlaceholderText = localize("SEARCH"),
+    searchPlaceholderText = t("SEARCH"),
     ...newProps
   } = props;
   const userRef = useRef<CometChatUsersActionsInterface>(null);
@@ -367,8 +368,8 @@ export const CometChatUsers = React.forwardRef<
         style={{ flex: 1 }}
       >
         <ErrorEmptyView
-          title={localize("NO_USERS_AVAILABLE")}
-          subTitle={localize("ADD_CONTACTS")}
+          title={t("NO_USERS_AVAILABLE")}
+          subTitle={t("ADD_CONTACTS")}
           Icon={
             <Icon
               name='user-empty-icon'
@@ -406,9 +407,9 @@ export const CometChatUsers = React.forwardRef<
     return (
       <View style={{ flex: 1 }}>
         <ErrorEmptyView
-          title={localize("OOPS")}
-          subTitle={localize("SOMETHING_WENT_WRONG")}
-          tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
+          title={t("OOPS")}
+          subTitle={t("SOMETHING_WENT_WRONG")}
+          tertiaryTitle={t("WRONG_TEXT_TRY_AGAIN")}
           Icon={
             <Icon
               name='error-state'
@@ -442,7 +443,7 @@ export const CometChatUsers = React.forwardRef<
         hideError={hideError}
         hideSubmitButton={props.hideSubmitButton}
         AppBarOptions={AppBarOptions}
-        title={title ? title : localize("USERS")}
+        title={title ? title : t("USERS")}
         onError={onError}
         TrailingView={TrailingView}
         selectionMode={selectionMode}

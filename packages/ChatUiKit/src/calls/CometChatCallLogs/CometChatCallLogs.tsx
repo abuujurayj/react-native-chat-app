@@ -9,7 +9,7 @@ import {
   GestureResponderEvent,
   ActivityIndicator,
 } from "react-native";
-import { CometChatAvatar, localize } from "../../shared";
+import { CometChatAvatar} from "../../shared";
 import { CallTypeConstants } from "../../shared/constants/UIKitConstants";
 import { CometChatUIEventHandler } from "../../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
 import { CallUIEvents } from "../CallEvents";
@@ -28,6 +28,7 @@ import { deepMerge } from "../../shared/helper/helperFunctions";
 import { DeepPartial, ValueOf } from "../../shared/helper/types";
 import { CometChatTooltipMenu, MenuItemInterface } from "../../shared/views/CometChatTooltipMenu";
 import { JSX } from "react";
+import { useCometChatTranslation, useLocalizedDate, LocalizedDateHelper } from "../../shared";
 
 const listenerId = "callEventListener_" + new Date().getTime();
 const CometChatCalls = CallingPackage.CometChatCalls;
@@ -143,6 +144,8 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
   const [showOutgoingCallScreen, setShowOutgoingCallScreen] = useState(false);
 
   const theme = useTheme();
+  const {t} = useCometChatTranslation()
+  const { formatDate } = useLocalizedDate();
   const mergedCallLogsStyle = useMemo(() => {
     return deepMerge(theme.callLogsStyles, style ?? {});
   }, [theme, style]);
@@ -451,10 +454,10 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
                 SubtitleView(item)
               ) : (
                 <Text style={mergedCallLogsStyle.itemStyle.subTitleTextStyle}>
-                  {dateHelperInstance.getFormattedDate(
-                    item["initiatedAt"] * 1000,
-                    datePattern ?? DateHelper.patterns.callBubble
-                  )}
+                    {formatDate(
+                      item["initiatedAt"] * 1000,
+                      datePattern ?? LocalizedDateHelper.patterns.callLogs
+                    )}
                 </Text>
               )}
             </View>
@@ -489,9 +492,9 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
     if (ErrorView) return <ErrorView />;
     return (
       <ErrorEmptyView
-        title='Oops!'
-        subTitle={localize("SOMETHING_WENT_WRONG")}
-        tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
+        title={t("OOPS")}
+        subTitle={t("SOMETHING_WENT_WRONG")}
+        tertiaryTitle={t("WRONG_TEXT_TRY_AGAIN")}
         Icon={
           <Icon
             name='error-state'
@@ -521,7 +524,7 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
                 ...theme.typography.button.medium,
               }}
             >
-              {localize("RETRY")}
+              {t("RETRY")}
             </Text>
           </TouchableOpacity>
         }
@@ -536,8 +539,8 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
     if (EmptyView) return <EmptyView />;
     return (
       <ErrorEmptyView
-        title='No Call Logs Yet'
-        subTitle='Make or receive calls to see your call history listed here'
+        title={t("NO_CALL_LOGS")}
+        subTitle={t("CALL_LOGS_EMPTY_MESSAGE")}
         Icon={
           <Icon
             name='call-fill'
@@ -603,7 +606,7 @@ export const CometChatCallLogs = (props: CometChatCallLogsConfigurationInterface
                   />
                 </TouchableOpacity>
               ) : null}
-              <Text style={mergedCallLogsStyle.titleTextStyle}>{localize("CALLS")}</Text>
+              <Text style={mergedCallLogsStyle.titleTextStyle}>{t("CALLS")}</Text>
             </View>
             <View style={Style.row}>{AppBarOptions && <AppBarOptions />}</View>
           </View>

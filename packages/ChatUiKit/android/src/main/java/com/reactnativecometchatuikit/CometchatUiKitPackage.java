@@ -6,6 +6,7 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
+import com.reactnativecometchatuikit.ProximityModule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +25,7 @@ public class CometchatUiKitPackage implements ReactPackage {
         modules.add(new ImageManager(reactContext));
         modules.add(new WebViewManager(reactContext));
         modules.add(new TimeZoneCodeManager(reactContext));
+        modules.add(new ProximityModule(reactContext));
         return modules;
     }
 

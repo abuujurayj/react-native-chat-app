@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.authors      = package["author"].is_a?(Hash) ? [package["author"]] : package["author"]
 
   s.platforms    = { :ios => "11.0" }
-  s.source       = { :git => "https://github.com/cometchat-pro/cometchat-pro-react-native-ui-kit.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/cometchat/cometchat-uikit-react-native.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm}"
 

@@ -1,4 +1,3 @@
-import { StatusBar, useColorScheme } from "react-native";
 import "./gesture-handler";
 import React, { useState, useEffect, useRef } from "react";
 import {
@@ -26,22 +25,12 @@ import RootStackNavigator from "./src/navigation/RootStackNavigator";
 import { AppConstants } from "./src/utils/AppConstants";
 import { requestAndroidPermissions } from "./src/utils/helper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ActiveChatProvider } from './src/utils/ActiveChatContext';
+import { ActiveChatProvider } from "./src/utils/ActiveChatContext";
 
-function App() {
-  const isDarkMode = useColorScheme() === "dark";
+// Listener ID for registering and removing CometChat listeners.
+const listenerId = "app";
 
-  return (
-    <SafeAreaProvider>
-      <ActiveChatProvider>
-        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
-        <AppContent />
-      </ActiveChatProvider>
-    </SafeAreaProvider>
-  );
-}
-
-const AppContent = (): React.ReactElement => {
+const App = (): React.ReactElement => {
   const [callReceived, setCallReceived] = useState(false);
   const incomingCall = useRef<CometChat.Call | CometChat.CustomMessage | null>(
     null
@@ -49,9 +38,9 @@ const AppContent = (): React.ReactElement => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [currentToken, setCurrentToken] = useState("");
+  const [isTokenRegistered, setIsTokenRegistered] = useState(false);
   const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
-  // Listener ID for registering and removing CometChat listeners.
-  const listenerId = "app";
 
   /**
    * Initialize CometChat UIKit and configure Google Sign-In.
@@ -257,33 +246,30 @@ const AppContent = (): React.ReactElement => {
   // Once initialization is complete, render the main app UI.
   return (
     <SafeAreaProvider>
-      <SafeAreaView edges={['top', 'bottom']} style={{flex: 1}}>
-        <CometChatThemeProvider>
-          <CometChatI18nProvider>
-            {/* Render the incoming call UI if the user is logged in and a call is received */}
-            {isLoggedIn && callReceived && incomingCall.current ? (
-              <CometChatIncomingCall
-                call={incomingCall.current}
-                onDecline={() => {
-                  // Handle call decline by clearing the incoming call state.
-                  incomingCall.current = null;
-                  setCallReceived(false);
-                }}
-                style={{
-                  containerStyle: {
-                    marginTop: Platform.OS === 'android' ? 40 : 0,
-                  },
-                }}
+      <ActiveChatProvider>
+        <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1 }}>
+          <CometChatThemeProvider>
+            <CometChatI18nProvider>
+              {/* Render the incoming call UI if the user is logged in and a call is received */}
+              {isLoggedIn && callReceived && incomingCall.current ? (
+                <CometChatIncomingCall
+                  call={incomingCall.current}
+                  onDecline={() => {
+                    // Handle call decline by clearing the incoming call state.
+                    incomingCall.current = null;
+                    setCallReceived(false);
+                  }}
+                />
+              ) : null}
+              {/* Render the main navigation stack, passing the login status as a prop */}
+              <RootStackNavigator
+                isLoggedIn={isLoggedIn}
+                hasValidAppCredentials={hasValidAppCredentials}
               />
-            ) : null}
-            {/* Render the main navigation stack, passing the login status as a prop */}
-            <RootStackNavigator
-              isLoggedIn={isLoggedIn}
-              hasValidAppCredentials={hasValidAppCredentials}
-            />
-          </CometChatI18nProvider>
-        </CometChatThemeProvider>
-      </SafeAreaView>
+            </CometChatI18nProvider>
+          </CometChatThemeProvider>
+        </SafeAreaView>
+      </ActiveChatProvider>
     </SafeAreaProvider>
   );
 };

@@ -37,7 +37,6 @@ export {
   CometChatMessageTemplate,
 } from "./modals";
 
-export { CometChatLocalize, localize } from "./resources/CometChatLocalize";
 export {
   CometChatConversationUtils,
   CometChatMessagePreview,
@@ -107,3 +106,9 @@ export { CometChatUIKit, CometChatUIKitHelper, UIKitSettings } from "./CometChat
 export type { CometChatMessageComposerAction } from "./helper/types";
 
 export { messageStatus } from "./utils/CometChatMessageHelper/index";
+
+export { getCometChatTranslation, getCurrentLanguage} from "./resources/CometChatLocalizeNew/LocalizationManager";
+export { useLocalizedDate } from "./helper/useLocalizedDateHook";
+export { LocalizedDateHelper } from "./helper/LocalizedDateHelper";
+export { useCometChatTranslation } from "./resources/CometChatLocalizeNew/useCometChatTranslationHook";
+export {getLastSeenTime} from "./helper/functions";

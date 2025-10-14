@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,12 @@ import {
   Image,
   useColorScheme,
   Platform,
+  StatusBar,
   Dimensions,
-  SafeAreaView,
   ScrollView,
   KeyboardAvoidingView,
   BackHandler,
+  Keyboard,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -21,10 +22,12 @@ import {
   useCometChatTranslation,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
-import {navigate, navigationRef} from '../../navigation/NavigationService';
-import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import { navigate, navigationRef } from '../../navigation/NavigationService';
+import { SCREEN_CONSTANTS } from '../../utils/AppConstants';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
 
 const AppCredentials: React.FC = () => {
   const [storedAppId, setStoredAppId] = useState<string>('');
@@ -40,9 +43,39 @@ const AppCredentials: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const theme = useTheme();
-  const {t}=useCometChatTranslation()
-  const {width} = Dimensions.get('window');
+  const { t } = useCometChatTranslation();
+  const { width } = Dimensions.get('window');
   const mode = useColorScheme();
+
+  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight(); // returns 0 if no header
+  const statusBarHeight =
+    Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
+
+  const [keyboardBehavior, setKeyboardBehavior] = useState<
+    'padding' | 'height' | undefined
+  >(Platform.OS === 'ios' ? 'padding' : 'height');
+
+  useEffect(() => {
+    const showListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardBehavior(Platform.OS === 'ios' ? 'padding' : 'height');
+    });
+
+    const hideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardBehavior(undefined); // Remove behavior when keyboard hides
+    });
+
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
+  // For iOS use insets.top (not status bar) + header height
+  const keyboardVerticalOffset = useMemo(() => {
+  return Platform.OS === 'ios'
+    ? (insets.top || 0) + (headerHeight || 0)
+    : (statusBarHeight || 0) + (headerHeight || 0);
+}, [insets.top, headerHeight, statusBarHeight]);
 
   // Compute if form is valid (all fields provided)
   const isFormValid =
@@ -142,20 +175,24 @@ const AppCredentials: React.FC = () => {
     navigate('BottomTabNavigator');
     navigationRef.reset({
       index: 0,
-      routes: [{name: SCREEN_CONSTANTS.SAMPLE_USER}],
+      routes: [{ name: SCREEN_CONSTANTS.SAMPLE_USER }],
     });
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, {backgroundColor: theme.color.background2}]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.color.background2 }]}
+    >
       <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        style={{ flex: 1 }}
+        behavior={keyboardBehavior} // Use dynamic behavior
+        keyboardVerticalOffset={keyboardVerticalOffset}
+      >
         <View style={styles.contentContainer}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled">
+            keyboardShouldPersistTaps="handled"
+          >
             {/* Header/Logo */}
             <View style={styles.logoContainer}>
               <Image
@@ -181,7 +218,8 @@ const AppCredentials: React.FC = () => {
                   marginBottom: 20,
                   alignSelf: 'center',
                 },
-              ]}>
+              ]}
+            >
               {t('APP_CREDENTIALS')}
             </Text>
 
@@ -190,8 +228,9 @@ const AppCredentials: React.FC = () => {
               <Text
                 style={[
                   theme.typography.caption1.medium,
-                  {color: theme.color.textPrimary, marginBottom: 10},
-                ]}>
+                  { color: theme.color.textPrimary, marginBottom: 10 },
+                ]}
+              >
                 {t('REGION')}
               </Text>
               <View style={styles.regionRow}>
@@ -210,7 +249,8 @@ const AppCredentials: React.FC = () => {
                           : theme.color.borderDefault,
                     },
                   ]}
-                  onPress={() => setSelectedRegion('US')}>
+                  onPress={() => setSelectedRegion('US')}
+                >
                   <View style={styles.flagInnerContainer}>
                     <Image
                       source={require('../../assets/icons/US.png')}
@@ -219,8 +259,9 @@ const AppCredentials: React.FC = () => {
                     <Text
                       style={[
                         theme.typography.button.medium,
-                        {color: theme.color.textSecondary},
-                      ]}>
+                        { color: theme.color.textSecondary },
+                      ]}
+                    >
                       US
                     </Text>
                   </View>
@@ -241,7 +282,8 @@ const AppCredentials: React.FC = () => {
                           : theme.color.borderDefault,
                     },
                   ]}
-                  onPress={() => setSelectedRegion('EU')}>
+                  onPress={() => setSelectedRegion('EU')}
+                >
                   <View style={styles.flagInnerContainer}>
                     <Image
                       source={require('../../assets/icons/EU.png')}
@@ -250,8 +292,9 @@ const AppCredentials: React.FC = () => {
                     <Text
                       style={[
                         theme.typography.button.medium,
-                        {color: theme.color.textSecondary},
-                      ]}>
+                        { color: theme.color.textSecondary },
+                      ]}
+                    >
                       EU
                     </Text>
                   </View>
@@ -272,7 +315,8 @@ const AppCredentials: React.FC = () => {
                           : theme.color.borderDefault,
                     },
                   ]}
-                  onPress={() => setSelectedRegion('IN')}>
+                  onPress={() => setSelectedRegion('IN')}
+                >
                   <View style={styles.flagInnerContainer}>
                     <Image
                       source={require('../../assets/icons/India.png')}
@@ -281,8 +325,9 @@ const AppCredentials: React.FC = () => {
                     <Text
                       style={[
                         theme.typography.button.medium,
-                        {color: theme.color.textSecondary},
-                      ]}>
+                        { color: theme.color.textSecondary },
+                      ]}
+                    >
                       IN
                     </Text>
                   </View>
@@ -295,8 +340,9 @@ const AppCredentials: React.FC = () => {
               <Text
                 style={[
                   theme.typography.caption1.medium,
-                  {color: theme.color.textPrimary, paddingBottom: 5},
-                ]}>
+                  { color: theme.color.textPrimary, paddingBottom: 5 },
+                ]}
+              >
                 APP ID
               </Text>
               <TextInput
@@ -320,8 +366,9 @@ const AppCredentials: React.FC = () => {
               <Text
                 style={[
                   theme.typography.caption1.medium,
-                  {color: theme.color.textPrimary, paddingBottom: 5},
-                ]}>
+                  { color: theme.color.textPrimary, paddingBottom: 5 },
+                ]}
+              >
                 Auth Key
               </Text>
               <TextInput
@@ -342,23 +389,27 @@ const AppCredentials: React.FC = () => {
           </ScrollView>
 
           {/* Continue Button */}
-          <TouchableOpacity
-            style={[
-              styles.continueButton,
-              {
-                backgroundColor: theme.color.primaryButtonBackground,
-                opacity: isFormValid ? 1 : 0.6,
-              },
-            ]}
-            onPress={handleContinue}>
-            <Text
+          <View style={styles.buttonWrapper}>
+            <TouchableOpacity
               style={[
-                theme.typography.button.medium,
-                {textAlign: 'center', color: theme.color.staticWhite},
-              ]}>
-              {t('CONTINUE')}
-            </Text>
-          </TouchableOpacity>
+                styles.continueButton,
+                {
+                  backgroundColor: theme.color.primaryButtonBackground,
+                  opacity: isFormValid ? 1 : 0.6,
+                },
+              ]}
+              onPress={handleContinue}
+            >
+              <Text
+                style={[
+                  theme.typography.button.medium,
+                  { textAlign: 'center', color: theme.color.staticWhite },
+                ]}
+              >
+                {t('CONTINUE')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
       {/* Toast Message */}
@@ -367,25 +418,13 @@ const AppCredentials: React.FC = () => {
           <Text style={styles.toastText}>{toastMessage}</Text>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
 export default AppCredentials;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  scrollContent: {
-    paddingBottom: 16,
-  },
   logoContainer: {
     alignItems: 'center',
     marginTop: Platform.OS === 'android' ? 30 : 50,
@@ -442,5 +481,21 @@ const styles = StyleSheet.create({
   toastText: {
     color: '#fff',
     fontSize: 14,
+  },
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 80,
+  },
+  buttonWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10,
   },
 });

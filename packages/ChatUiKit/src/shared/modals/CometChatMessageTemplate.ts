@@ -57,6 +57,11 @@ interface MessageTemplateInterface {
     alignment: MessageBubbleAlignmentType
   ) => JSX.Element | null;
 
+  LeadingView?: (
+    messageObject: CometChat.BaseMessage,
+    alignment: MessageBubbleAlignmentType
+  ) => JSX.Element | null;
+
   /**
    * The status info view of the message template for DateTime and Receipt.
    * @param messageObject - The message object.
@@ -141,6 +146,11 @@ export class CometChatMessageTemplate implements MessageTemplateInterface {
     messageObject: CometChat.BaseMessage,
     alignment: MessageBubbleAlignmentType
   ) => JSX.Element | null;
+
+  LeadingView?: (
+    messageObject: CometChat.BaseMessage,
+    alignment: MessageBubbleAlignmentType
+  ) => JSX.Element | null;
   /**
    * The status info view of the message template for DateTime and Receipt.
    * @param messageObject - The message object.
@@ -186,6 +196,7 @@ export class CometChatMessageTemplate implements MessageTemplateInterface {
     BottomView,
     BubbleView,
     HeaderView,
+    LeadingView,
     StatusInfoView,
     FooterView,
     options,
@@ -196,6 +207,7 @@ export class CometChatMessageTemplate implements MessageTemplateInterface {
     this.BottomView = BottomView;
     this.BubbleView = BubbleView;
     this.HeaderView = HeaderView;
+    this.LeadingView = LeadingView;
     this.StatusInfoView = StatusInfoView;
     this.FooterView = FooterView;
     this.options = options;

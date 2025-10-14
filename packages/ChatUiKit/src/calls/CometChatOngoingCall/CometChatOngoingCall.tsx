@@ -4,6 +4,8 @@ import { ActivityIndicator, View } from "react-native";
 import { CallingPackage } from "../CallingPackage";
 import { useTheme } from "../../theme";
 import { JSX } from "react";
+import { NativeModules } from "react-native";
+const { Proximity } = NativeModules;
 
 const CometChatCalls = CallingPackage.CometChatCalls;
 
@@ -65,6 +67,17 @@ export const CometChatOngoingCall = (props: CometChatOngoingCallInterface): JSX.
       callSettings.current = null;
     };
   }, [sessionID, onError]);
+
+
+  useEffect(() => {
+    if (callToken) {
+      Proximity?.setEnabled(true);
+    }
+
+    return () => {
+      Proximity?.setEnabled(false);
+    };
+  }, [callToken]);
 
   return (
     <View style={[{ height: "100%", width: "100%", position: "relative" }]}>

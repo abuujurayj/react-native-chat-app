@@ -7,7 +7,6 @@ import {
   CometChatMessageTemplate,
   CometChatUIEventHandler,
   CometChatUiKitConstants,
-  localize,
 } from "../shared";
 import { MessageUtils } from "../shared/utils/MessageUtils";
 import { Style } from "./styles";
@@ -20,6 +19,7 @@ import { MessageReceipt } from "../shared/constants/UIKitConstants";
 import { CometChatTheme } from "../theme/type";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import { DeepPartial } from "../shared/helper/types";
+import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
 
 const listenerId = "uiEvents_" + new Date().getTime();
 
@@ -54,8 +54,9 @@ export interface CometChatMessageInformationInterface {
  * @returns A JSX.Element containing the rendered message information.
  */
 export const CometChatMessageInformation = (props: CometChatMessageInformationInterface) => {
+  const {t} = useCometChatTranslation()
   const {
-    title = localize("MESSAGE_INFORMATION"),
+    title = t("MESSAGE_INFORMATION"),
     message,
     template,
     BubbleView,
@@ -124,7 +125,7 @@ export const CometChatMessageInformation = (props: CometChatMessageInformationIn
           {receiverTypeIsUser && (
             <CometChatReceipt receipt={status} style={mergedStyle.receiptItemStyle.receiptStyles} />
           )}
-          <Text style={statusTextStyle}>{localize(status)}</Text>
+          <Text style={statusTextStyle}>{t(status)}</Text>
         </View>
         {time && time !== defaultReceiptTimestampForUser ? (
           receiptDatePattern ? (
@@ -132,15 +133,8 @@ export const CometChatMessageInformation = (props: CometChatMessageInformationIn
           ) : (
             <CometChatDate
               style={{ textStyle: mergedStyle.receiptItemStyle.subtitleStyle }}
-              customDateString={new Date(time * 1000).toLocaleString("en-GB", {
-                year: "numeric",
-                month: "numeric",
-                day: "numeric",
-                hour: "numeric",
-                minute: "numeric",
-                hour12: true,
-              })}
-              timeStamp={time}
+              pattern="dayDateTimeFormat"
+              timeStamp={time*1000}
             />
           )
         ) : (
@@ -324,8 +318,8 @@ export const CometChatMessageInformation = (props: CometChatMessageInformationIn
     if (ErrorStateView) return <ErrorStateView />;
     return (
       <ErrorEmptyView
-        subTitle={localize("WRONG_TEXT")}
-        tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
+        subTitle={t("WRONG_TEXT")}
+        tertiaryTitle={t("WRONG_TEXT_TRY_AGAIN")}
         containerStyle={mergedStyle.errorStateStyle?.containerStyle}
         titleStyle={mergedStyle.errorStateStyle?.titleStyle}
         subTitleStyle={mergedStyle.errorStateStyle?.subtitleStyle}

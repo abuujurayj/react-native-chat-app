@@ -1,12 +1,12 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React, { JSX, useEffect, useMemo, useRef, useState } from "react";
-import { Modal, SafeAreaView, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Text, TouchableOpacity, View } from "react-native";
 import {
   MessageCategoryConstants,
   MessageTypeConstants,
 } from "../../shared/constants/UIKitConstants";
 import { CometChatUIEventHandler } from "../../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
-import { CometChatSoundManager, localize } from "../../shared/resources";
+import { CometChatSoundManager } from "../../shared/resources";
 import { CometChatAvatar } from "../../shared/views";
 import { CallUIEvents } from "../CallEvents";
 import { CallingPackage } from "../CallingPackage";
@@ -16,6 +16,8 @@ import { Icon } from "../../shared/icons/Icon";
 import { deepMerge } from "../../shared/helper/helperFunctions";
 import { OutgoingCallStyle } from "./styles";
 import { DeepPartial } from "../../shared/helper/types";
+import { useCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const listenerId = "callListener_" + new Date().getTime();
 const CometChatCalls = CallingPackage.CometChatCalls;
@@ -112,6 +114,7 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
   const isCallEnded = useRef<null | boolean>(undefined);
 
   const theme = useTheme();
+  const { t } = useCometChatTranslation();
 
   // Merge default and custom styles for the outgoing call.
   const outgoingCallStyle = useMemo(() => {
@@ -152,7 +155,9 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
     ) {
       ongoingCall.current = call;
       if (call.getType() == MessageTypeConstants.meeting) {
-        callSessionId.current = ((call as CometChat.CustomMessage).getCustomData() as any)?.sessionId;
+        callSessionId.current = (
+          (call as CometChat.CustomMessage).getCustomData() as any
+        )?.sessionId;
       }
       if (call.getCategory() === MessageCategoryConstants.call) {
         callSessionId.current = call["sessionId"];
@@ -271,7 +276,7 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
   return (
     <Modal
       transparent
-      animationType="fade"
+      animationType='fade'
       visible={isModalVisible}
       onRequestClose={handleModalClose}
     >
@@ -291,7 +296,7 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
             {SubtitleView ? (
               SubtitleView(call)
             ) : (
-              <Text style={outgoingCallStyle.subtitleTextStyle}>{localize("CALLING")}</Text>
+              <Text style={outgoingCallStyle.subtitleTextStyle}>{t("CALLING")}</Text>
             )}
             {AvatarView ? (
               AvatarView(call)
@@ -315,7 +320,7 @@ export const CometChatOutgoingCall = (props: CometChatOutgoingCallInterface): JS
                 onPress={handleModalClose}
               >
                 <Icon
-                  name="call-end-fill"
+                  name='call-end-fill'
                   size={32}
                   height={outgoingCallStyle.endCallIconStyle.height}
                   width={outgoingCallStyle.endCallIconStyle.width}

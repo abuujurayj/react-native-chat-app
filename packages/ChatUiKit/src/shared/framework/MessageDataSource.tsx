@@ -26,7 +26,6 @@ import { CometChatMessageComposerAction } from "../helper/types";
 import { Icon } from "../icons/Icon";
 import { CometChatMessageOption } from "../modals/CometChatMessageOption";
 import { CometChatMessageTemplate } from "../modals/CometChatMessageTemplate";
-import { localize } from "../resources/CometChatLocalize";
 import { CometChatConversationUtils } from "../utils/conversationUtils";
 import { CometChatAudioBubble } from "../views/CometChatAudioBubble";
 import { CometChatDeletedBubble } from "../views/CometChatDeletedBubble";
@@ -38,6 +37,9 @@ import { ChatConfigurator } from "./ChatConfigurator";
 import { DataSource } from "./DataSource";
 import { CommonUtils } from "../utils/CommonUtils";
 import { DimensionValue, ViewStyle } from "react-native";
+import { getCometChatTranslation } from "../resources/CometChatLocalizeNew/LocalizationManager";
+
+const t = getCometChatTranslation();
 
 export enum MentionContext {
   Incoming = 'incoming',
@@ -91,7 +93,7 @@ export class MessageDataSource implements DataSource {
   getEditOption(theme: CometChatTheme): CometChatMessageOption {
     return {
       id: MessageOptionConstants.editMessage,
-      title: localize("EDIT"),
+      title: t("EDIT"),
       icon: (
         <Icon
           name='edit'
@@ -111,7 +113,7 @@ export class MessageDataSource implements DataSource {
   getDeleteOption(theme: CometChatTheme): CometChatMessageOption {
     return {
       id: MessageOptionConstants.deleteMessage,
-      title: localize("DELETE"),
+      title: t("DELETE"),
       icon: (
         <Icon
           name='delete'
@@ -133,7 +135,7 @@ export class MessageDataSource implements DataSource {
   getReplyOption(theme: CometChatTheme): CometChatMessageOption {
     return {
       id: MessageOptionConstants.replyMessage,
-      title: localize("REPLY"),
+      title: t("REPLY"),
       icon: (
         <Icon
           name='reply'
@@ -152,7 +154,7 @@ export class MessageDataSource implements DataSource {
   getReplyInThreadOption(theme: CometChatTheme): CometChatMessageOption {
     return {
       id: MessageOptionConstants.replyInThread,
-      title: localize("REPLY_IN_THREAD"),
+      title: t("REPLY_IN_THREAD"),
       icon: (
         <Icon
           name='subdirectory-arrow-right'
@@ -171,7 +173,7 @@ export class MessageDataSource implements DataSource {
   getShareOption(theme: CometChatTheme): CometChatMessageOption {
     return {
       id: MessageOptionConstants.shareMessage,
-      title: localize("SHARE"),
+      title: t("SHARE"),
       icon: (
         <Icon
           name='share'
@@ -190,7 +192,7 @@ export class MessageDataSource implements DataSource {
   getCopyOption(theme: CometChatTheme): CometChatMessageOption {
     return {
       id: MessageOptionConstants.copyMessage,
-      title: localize("COPY"),
+      title: t("COPY"),
       icon: (
         <Icon
           name='content-copy'
@@ -209,14 +211,14 @@ export class MessageDataSource implements DataSource {
   // getForwardOption(): CometChatMessageOption {
   //     return {
   //         id: MessageOptionConstants.forwardMessage,
-  //         title: localize("FORWARD"),
+  //         title: t("FORWARD"),
   //         icon: ICONS.FORWARD
   //     }
   // }
   getInformationOption(theme: CometChatTheme): CometChatMessageOption {
     return {
       id: MessageOptionConstants.messageInformation,
-      title: localize("INFO"),
+      title: t("INFO"),
       icon: (
         <Icon
           name='info'
@@ -236,7 +238,7 @@ export class MessageDataSource implements DataSource {
   getPrivateMessageOption(theme: CometChatTheme): CometChatMessageOption {
     return {
       id: MessageOptionConstants.sendMessagePrivately,
-      title: localize("MESSAGE_PRIVATELY"),
+      title: t("MESSAGE_PRIVATELY"),
       icon: (
         <Icon
           name='reply'
@@ -667,11 +669,128 @@ export class MessageDataSource implements DataSource {
     return messageOptionList;
   }
 
+  /**
+ * Returns a localized group action message string for group events (added, kicked, banned, etc.)
+ */
+  getActionMessage(message: any): string {
+
+    let actionMessage = "";
+
+    if (!message || typeof message !== "object") {
+      return "";
+    }
+
+    const action =
+      message.action ||
+      message.data?.action ||
+      message.rawMessage?.action;
+
+    const actionBy = message.actionBy || message.rawMessage?.actionBy;
+    const actionOn = message.actionOn || message.rawMessage?.actionOn;
+
+    // Do NOT require actionOn for JOINED/LEFT.
+    const requiresActionOn = action !== "joined" && action !== "left";
+
+    if (!actionBy || (requiresActionOn && !actionOn)) {
+      return message.message || "";
+    }
+
+    // Names (JOINED/LEFT only need byName)
+    const byName = actionBy?.name || "User";
+    const onName = requiresActionOn ? (actionOn?.name || "User") : "";
+
+    const GroupMemberAction = {
+      ADDED: "added",
+      JOINED: "joined",
+      LEFT: "left",
+      KICKED: "kicked",
+      BANNED: "banned",
+      UNBANNED: "unbanned",
+      SCOPE_CHANGE: "scopeChanged",
+    } as const;
+
+    switch (action) {
+      case GroupMemberAction.ADDED:
+        // Use template string with placeholders for names
+        actionMessage = t("MESSAGE_LIST_ACTION_ADDED").replace("${byName}", byName).replace("${onName}", onName);
+        // Fallback to simpler format if template is missing
+        if (actionMessage === "MESSAGE_LIST_ACTION_ADDED") {
+          actionMessage = `${byName} ${t("ADDED")} ${onName}`;
+        }
+        break;
+
+      case GroupMemberAction.JOINED:
+        // No onName needed
+        actionMessage = t("MESSAGE_LIST_ACTION_JOINED").replace("${byName}", byName);
+        if (actionMessage === "MESSAGE_LIST_ACTION_JOINED") {
+          actionMessage = `${byName} ${t("JOINED")}`;
+        }
+        break;
+
+      case GroupMemberAction.LEFT:
+        // No onName needed
+        actionMessage = t("MESSAGE_LIST_ACTION_LEFT").replace("${byName}", byName);
+        if (actionMessage === "MESSAGE_LIST_ACTION_LEFT") {
+          actionMessage = `${byName} ${t("LEFT")}`;
+        }
+        break;
+
+      case GroupMemberAction.KICKED:
+        actionMessage = t("MESSAGE_LIST_ACTION_KICKED").replace("${byName}", byName).replace("${onName}", onName);
+        if (actionMessage === "MESSAGE_LIST_ACTION_KICKED") {
+          actionMessage = `${byName} ${t("KICKED")} ${onName}`;
+        }
+        break;
+
+      case GroupMemberAction.BANNED:
+        actionMessage = t("MESSAGE_LIST_ACTION_BANNED").replace("${byName}", byName).replace("${onName}", onName);
+        if (actionMessage === "MESSAGE_LIST_ACTION_BANNED") {
+          actionMessage = `${byName} ${t("BANNED")} ${onName}`;
+        }
+        break;
+
+      case GroupMemberAction.UNBANNED:
+        actionMessage = t("MESSAGE_LIST_ACTION_UNBANNED").replace("${byName}", byName).replace("${onName}", onName);
+        if (actionMessage === "MESSAGE_LIST_ACTION_UNBANNED") {
+          actionMessage = `${byName} ${t("UNBANNED")} ${onName}`;
+        }
+        break;
+
+      case GroupMemberAction.SCOPE_CHANGE: {
+        const newScope =
+          message.newScope ||
+          message.data?.extras?.scope?.new ||
+          message.rawMessage?.data?.extras?.scope?.new ||
+          "";
+
+        const translatedRole = newScope ? t(newScope.toUpperCase()) : "";
+
+        // Template with three placeholders
+        actionMessage = t("MESSAGE_LIST_ACTION_SCOPE_CHANGED")
+          .replace("${byName}", byName)
+          .replace("${onName}", onName)
+          .replace("${role}", translatedRole);
+
+        if (actionMessage === "MESSAGE_LIST_ACTION_SCOPE_CHANGED") {
+          actionMessage = `${byName} ${t("MADE")} ${onName} ${translatedRole}`.trim();
+        }
+        break;
+      }
+
+      default:
+        actionMessage = message.message || "";
+        break;
+    }
+
+    return actionMessage;
+  }
+
   getGroupActionBubble(message: CometChat.BaseMessage, theme: CometChatTheme): JSX.Element | null {
     if (isActionMessage(message)) {
+      const messageText = this.getActionMessage(message)
       return (
         <CometChatTextBubble
-          text={`${message.getMessage()}`}
+          text={messageText}
           textContainerStyle={theme.messageListStyles?.groupActionBubbleStyles?.textContainerStyle}
           textStyle={theme?.messageListStyles?.groupActionBubbleStyles?.textStyle}
         />
@@ -1136,7 +1255,7 @@ export class MessageDataSource implements DataSource {
             : theme.messageListStyles.incomingMessageBubbleStyles;
         return (
           <CometChatDeletedBubble
-            text={localize("NOT_SUPPORTED") ?? "This message type is not supported"}
+            text={t("NOT_SUPPORTED") ?? "This message type is not supported"}
             style={_style?.deletedBubbleStyles}
           />
         );
@@ -1163,7 +1282,7 @@ export class MessageDataSource implements DataSource {
             : theme.messageListStyles.incomingMessageBubbleStyles;
         return (
           <CometChatDeletedBubble
-            text={localize("NOT_SUPPORTED") ?? "This message type is not supported"}
+            text={t("NOT_SUPPORTED") ?? "This message type is not supported"}
             style={_style?.deletedBubbleStyles}
           />
         );
@@ -1190,7 +1309,7 @@ export class MessageDataSource implements DataSource {
             : theme.messageListStyles.incomingMessageBubbleStyles;
         return (
           <CometChatDeletedBubble
-            text={localize("NOT_SUPPORTED") ?? "This message type is not supported"}
+            text={t("NOT_SUPPORTED") ?? "This message type is not supported"}
             style={_style?.deletedBubbleStyles}
           />
         );
@@ -1318,19 +1437,19 @@ export class MessageDataSource implements DataSource {
     let subtitle: string = messageType;
     switch (messageType) {
       case MessageTypeConstants.text:
-        subtitle = localize("TEXT");
+        subtitle = t("TEXT");
         break;
       case MessageTypeConstants.image:
-        subtitle = localize("MESSAGE_IMAGE");
+        subtitle = t("MESSAGE_IMAGE");
         break;
       case MessageTypeConstants.video:
-        subtitle = localize("MESSAGE_VIDEO");
+        subtitle = t("MESSAGE_VIDEO");
         break;
       case MessageTypeConstants.file:
-        subtitle = localize("MESSAGE_FILE");
+        subtitle = t("MESSAGE_FILE");
         break;
       case MessageTypeConstants.audio:
-        subtitle = localize("MESSAGE_AUDIO");
+        subtitle = t("MESSAGE_AUDIO");
         break;
       default:
         subtitle = messageType;
@@ -1346,7 +1465,7 @@ export class MessageDataSource implements DataSource {
     if (!additionalAttachmentOptionsParams?.hideCameraOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.takePhoto,
-        title: localize("CAMERA"),
+        title: t("CAMERA"),
         icon: (
           <Icon
             name='photo-camera-fill'
@@ -1370,7 +1489,7 @@ export class MessageDataSource implements DataSource {
     if (!additionalAttachmentOptionsParams?.hideImageAttachmentOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.image,
-        title: localize("ATTACH_IMAGE"),
+        title: t("ATTACH_IMAGE"),
         icon: (
           <Icon
             name='photo-fill'
@@ -1395,7 +1514,7 @@ export class MessageDataSource implements DataSource {
     if (!additionalAttachmentOptionsParams?.hideVideoAttachmentOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.video,
-        title: localize("ATTACH_VIDEO"),
+        title: t("ATTACH_VIDEO"),
         icon: (
           <Icon
             name='videocam-fill'
@@ -1420,7 +1539,7 @@ export class MessageDataSource implements DataSource {
     if (!additionalAttachmentOptionsParams?.hideAudioAttachmentOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.audio,
-        title: localize("ATTACH_AUDIO"),
+        title: t("ATTACH_AUDIO"),
         icon: (
           <Icon
             name='play-circle-fill'
@@ -1444,7 +1563,7 @@ export class MessageDataSource implements DataSource {
     if (!additionalAttachmentOptionsParams?.hideFileAttachmentOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.file,
-        title: localize("ATTACH_DOCUMENT"),
+        title: t("ATTACH_DOCUMENT"),
         icon: (
           <Icon
             name='description-fill'
@@ -1475,7 +1594,7 @@ export class MessageDataSource implements DataSource {
     if (!additionalAttachmentOptionsParams?.hideCameraOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.takePhoto,
-        title: localize("CAMERA"),
+        title: t("CAMERA"),
         icon: (
           <Icon
             name='photo-camera-fill'
@@ -1499,7 +1618,7 @@ export class MessageDataSource implements DataSource {
     if (!additionalAttachmentOptionsParams?.hideImageAttachmentOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.image,
-        title: localize("ATTACH_IMAGE"),
+        title: t("ATTACH_IMAGE"),
         icon: (
           <Icon
             name='photo-fill'
@@ -1524,7 +1643,7 @@ export class MessageDataSource implements DataSource {
     if (!additionalAttachmentOptionsParams?.hideVideoAttachmentOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.video,
-        title: localize("ATTACH_VIDEO"),
+        title: t("ATTACH_VIDEO"),
         icon: (
           <Icon
             name='videocam-fill'
@@ -1549,7 +1668,7 @@ export class MessageDataSource implements DataSource {
     if (!additionalAttachmentOptionsParams?.hideAudioAttachmentOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.audio,
-        title: localize("ATTACH_AUDIO"),
+        title: t("ATTACH_AUDIO"),
         icon: (
           <Icon
             name='play-circle-fill'
@@ -1573,7 +1692,7 @@ export class MessageDataSource implements DataSource {
     if (!additionalAttachmentOptionsParams?.hideFileAttachmentOption) {
       attachmentOptions.push({
         id: MessageTypeConstants.file,
-        title: localize("ATTACH_DOCUMENT"),
+        title: t("ATTACH_DOCUMENT"),
         icon: (
           <Icon
             name='description-fill'
@@ -1621,7 +1740,12 @@ export class MessageDataSource implements DataSource {
     conversation: CometChat.Conversation,
     theme?: CometChatTheme
   ): string | JSX.Element {
-    return CometChatConversationUtils.getMessagePreview(conversation.getLastMessage(), theme);
+    const lastMessage = conversation.getLastMessage();
+    if (lastMessage && lastMessage.category === 'action') {
+      const actionMsg = this.getActionMessage(lastMessage);
+      if (actionMsg) return actionMsg;
+    }
+    return CometChatConversationUtils.getMessagePreview(lastMessage, theme);
   }
 
   getAllTextFormatters(

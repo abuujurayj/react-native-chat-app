@@ -23,6 +23,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
  */
 export interface MenuItemInterface {
   text: string;
+  translationKey?: string; // for localization
   onPress: () => void;
   icon?: ImageSourcePropType | JSX.Element;
   textStyle?: TextStyle;

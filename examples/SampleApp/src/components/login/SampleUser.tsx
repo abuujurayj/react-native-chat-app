@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
-  SafeAreaView,
   Dimensions,
   useColorScheme,
   Pressable,
@@ -15,8 +14,10 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  StatusBar,
+  Keyboard,
 } from 'react-native';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
 import {
   CometChatAvatar,
   CometChatUIKit,
@@ -24,12 +25,17 @@ import {
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
 import Check from '../../assets/icons/CheckFill';
-import {sampleData} from '../../utils/helper';
-import {SCREEN_CONSTANTS} from '../../utils/AppConstants';
-import {navigate, navigationRef} from '../../navigation/NavigationService';
-import Skeleton from './Skeleton'
+import { sampleData } from '../../utils/helper';
+import { SCREEN_CONSTANTS } from '../../utils/AppConstants';
+import { navigate, navigationRef } from '../../navigation/NavigationService';
+import Skeleton from './Skeleton';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
 
-type GridItem = CometChat.User | {dummy: true};
+type GridItem = CometChat.User | { dummy: true };
 
 const LoginScreen: React.FC = () => {
   const [users, setUsers] = useState<CometChat.User[]>([]);
@@ -40,7 +46,35 @@ const LoginScreen: React.FC = () => {
 
   const theme = useTheme();
   const mode = useColorScheme();
-  const {width} = Dimensions.get('window');
+  const { width } = Dimensions.get('window');
+  const statusBarHeight =
+    Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
+
+  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight(); // returns 0 if no header
+  const keyboardVerticalOffset =
+    Platform.OS === 'ios'
+      ? (insets.top + 8 || 0) + (headerHeight || 0)
+      : (statusBarHeight + 6 || 0) + (headerHeight || 0);
+
+  const [keyboardBehavior, setKeyboardBehavior] = useState<
+    'padding' | 'height' | undefined
+  >(Platform.OS === 'ios' ? 'padding' : 'height');
+
+  useEffect(() => {
+    const showListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardBehavior(Platform.OS === 'ios' ? 'padding' : 'height');
+    });
+
+    const hideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardBehavior(undefined); // Remove behavior when keyboard hides
+    });
+
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     (async function loadUsers(): Promise<void> {
@@ -66,11 +100,11 @@ const LoginScreen: React.FC = () => {
     setIsLoading(true);
     const uid: string = userUID.trim() || selectedUser!;
     try {
-      await CometChatUIKit.login({uid});
+      await CometChatUIKit.login({ uid });
       navigate('BottomTabNavigator');
       navigationRef.reset({
         index: 0,
-        routes: [{name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR}],
+        routes: [{ name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR }],
       });
     } catch (error: any) {
       console.log('Login failed with exception:', error);
@@ -118,7 +152,7 @@ const LoginScreen: React.FC = () => {
   ): ImageSourcePropType => {
     if (typeof avatar === 'string') {
       if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
-        return {uri: avatar};
+        return { uri: avatar };
       }
     }
     return avatar as ImageSourcePropType;
@@ -135,7 +169,7 @@ const LoginScreen: React.FC = () => {
     const numberOfElementsLastRow = users.length % numColumns;
     if (numberOfElementsLastRow !== 0) {
       for (let i = 0; i < numColumns - numberOfElementsLastRow; i++) {
-        gridData.push({dummy: true});
+        gridData.push({ dummy: true });
       }
     }
   }
@@ -146,23 +180,33 @@ const LoginScreen: React.FC = () => {
         style={{
           alignItems: 'center',
           justifyContent: 'center',
-        }}>
+        }}
+      >
         <ActivityIndicator
           size="small"
           color={theme.color.staticWhite}
-          style={{alignSelf: 'center', justifyContent: 'center'}}
+          style={{ alignSelf: 'center', justifyContent: 'center' }}
         />
       </View>
     );
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardAvoidingContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <SafeAreaView
-        style={[styles.container, {backgroundColor: theme.color.background2}]}>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.color.background2 }]}
+      edges={['top']}
+    >
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingContainer}
+        behavior={keyboardBehavior} // Use dynamic behavior
+        keyboardVerticalOffset={keyboardVerticalOffset}
+      >
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {/* App Logo */}
           <View style={styles.logoContainer}>
             <Image
@@ -184,8 +228,9 @@ const LoginScreen: React.FC = () => {
             style={[
               theme.typography.heading2.bold,
               styles.logInTitle,
-              {color: theme.color.textPrimary},
-            ]}>
+              { color: theme.color.textPrimary },
+            ]}
+          >
             Log In
           </Text>
 
@@ -194,8 +239,9 @@ const LoginScreen: React.FC = () => {
             style={[
               theme.typography.body.medium,
               styles.subtitle,
-              {color: theme.color.textPrimary},
-            ]}>
+              { color: theme.color.textPrimary },
+            ]}
+          >
             Choose a Sample User
           </Text>
 
@@ -208,7 +254,9 @@ const LoginScreen: React.FC = () => {
                 {gridData.map((item, index) => {
                   // Render a blank view for dummy items
                   if ('dummy' in item && item.dummy) {
-                    return <View key={`dummy-${index}`} style={styles.userCard} />;
+                    return (
+                      <View key={`dummy-${index}`} style={styles.userCard} />
+                    );
                   }
 
                   // Otherwise, render a user
@@ -231,7 +279,8 @@ const LoginScreen: React.FC = () => {
                             : theme.color.background1,
                         },
                       ]}
-                      onPress={() => handleSelectUser(user)}>
+                      onPress={() => handleSelectUser(user)}
+                    >
                       {/* Show the check icon ONLY if selected */}
                       {isSelected && (
                         <View style={styles.checkIconContainer}>
@@ -255,16 +304,18 @@ const LoginScreen: React.FC = () => {
                         style={[
                           theme.typography.body.medium,
                           styles.firstNameText,
-                          {color: theme.color.textPrimary},
-                        ]}>
+                          { color: theme.color.textPrimary },
+                        ]}
+                      >
                         {firstName}
                       </Text>
                       <Text
                         style={[
                           theme.typography.caption1.regular,
                           styles.uidText,
-                          {color: theme.color.textSecondary},
-                        ]}>
+                          { color: theme.color.textSecondary },
+                        ]}
+                      >
                         {user.getUid()}
                       </Text>
                     </Pressable>
@@ -277,17 +328,24 @@ const LoginScreen: React.FC = () => {
           {/* Horizontal divider with "Or" in the middle */}
           <View style={styles.dividerRow}>
             <View
-              style={[styles.divider, {borderColor: theme.color.borderDefault}]}
+              style={[
+                styles.divider,
+                { borderColor: theme.color.borderDefault },
+              ]}
             />
             <Text
               style={[
                 theme.typography.body.medium,
-                {color: theme.color.textTertiary},
-              ]}>
+                { color: theme.color.textTertiary },
+              ]}
+            >
               Or
             </Text>
             <View
-              style={[styles.divider, {borderColor: theme.color.borderDefault}]}
+              style={[
+                styles.divider,
+                { borderColor: theme.color.borderDefault },
+              ]}
             />
           </View>
 
@@ -296,8 +354,9 @@ const LoginScreen: React.FC = () => {
             style={[
               theme.typography.caption1.medium,
               styles.uidLabel,
-              {color: theme.color.textPrimary},
-            ]}>
+              { color: theme.color.textPrimary },
+            ]}
+          >
             Enter Your UID
           </Text>
           <TextInput
@@ -329,7 +388,8 @@ const LoginScreen: React.FC = () => {
               },
             ]}
             onPress={handleContinue}
-            disabled={(!selectedUser && !userUID.trim()) || isLoading}>
+            disabled={(!selectedUser && !userUID.trim()) || isLoading}
+          >
             {isLoading ? (
               <Loading />
             ) : (
@@ -337,8 +397,9 @@ const LoginScreen: React.FC = () => {
                 style={[
                   theme.typography.button.medium,
                   styles.continueButtonText,
-                  {color: theme.color.staticWhite},
-                ]}>
+                  { color: theme.color.staticWhite },
+                ]}
+              >
                 Continue
               </Text>
             )}
@@ -348,43 +409,45 @@ const LoginScreen: React.FC = () => {
             <Text
               style={[
                 theme.typography.body.regular,
-                {color: theme.color.textSecondary},
-              ]}>
-              Change
+                { color: theme.color.textSecondary },
+              ]}
+            >
+              Change{' '}
             </Text>
             <TouchableOpacity
               style={styles.changeCredentialsContainer}
               onPress={() => {
                 navigationRef.navigate(SCREEN_CONSTANTS.APP_CRED);
-              }}>
+              }}
+            >
               <Text
                 style={[
                   theme.typography.body.regular,
-                  {color: theme.color.primary},
-                ]}>
+                  { color: theme.color.primary },
+                ]}
+              >
                 App Credentials
               </Text>
             </TouchableOpacity>
           </View>
         </View>
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 export default LoginScreen;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   keyboardAvoidingContainer: {
     flex: 1,
   },
-  container: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
   scrollContainer: {
-    flexGrow: 1,
     paddingHorizontal: 16,
+    paddingTop: 16,
   },
   logoContainer: {
     alignItems: 'center',
@@ -451,11 +514,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     padding: 10,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   bottomContainer: {
-    paddingBottom: 20,
     paddingHorizontal: 16,
+    backgroundColor: 'transparent',
   },
   continueButton: {
     paddingVertical: 12,
@@ -468,8 +531,8 @@ const styles = StyleSheet.create({
   changeCredentialsWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
     justifyContent: 'center',
+    marginBottom: 10,
   },
   changeCredentialsContainer: {
     alignItems: 'center',

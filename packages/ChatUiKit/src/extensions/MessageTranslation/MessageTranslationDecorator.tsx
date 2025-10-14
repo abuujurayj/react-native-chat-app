@@ -1,7 +1,6 @@
 import { ChatConfigurator, DataSource, DataSourceDecorator } from "../../shared/framework";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { CometChatMessageOption } from "../../shared/modals";
-import { CometChatLocalize, localize } from "../../shared/resources/CometChatLocalize";
 import { ExtensionConstants, ExtensionURLs } from "../ExtensionConstants";
 import React, { JSX } from "react";
 import {
@@ -9,6 +8,8 @@ import {
   CometChatTextFormatter,
   CometChatUIKit,
   CometChatUrlsFormatter,
+  getCurrentLanguage,
+  MentionTextStyle,
 } from "../../shared";
 import { AdditionalParams, MessageBubbleAlignmentType } from "../../shared/base/Types";
 import {
@@ -23,6 +24,10 @@ import { MessageTranslationBubble } from "./MessageTranslationBubble";
 import { CometChatTheme } from "../../theme/type";
 import { Icon } from "../../shared/icons/Icon";
 import { MentionContext } from "../../shared/framework/MessageDataSource";
+import { DeepPartial } from "../../shared/helper/types";
+import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager"
+
+const t = getCometChatTranslation();
 
 /**
  * Decorator class for handling message translation in the chat application.
@@ -93,7 +98,7 @@ export class MessageTranslationExtensionDecorator extends DataSourceDecorator {
   ): CometChatMessageOption {
     return {
       id: MessageOptionConstants.translateMessage,
-      title: localize("TRANSLATE"),
+      title: t("TRANSLATE"),
       icon: (
         <Icon
           name='translate'
@@ -187,10 +192,11 @@ export class MessageTranslationExtensionDecorator extends DataSourceDecorator {
    * @param {CometChat.TextMessage} message - The text message to be translated.
    */
   translateMessage = (message: CometChat.TextMessage) => {
+    const language = getCurrentLanguage()
     const messageId = message.getId();
     const messageText = message.getText();
     // Get the target language for translation.
-    let translateToLanguage = CometChatLocalize.getLocale();
+    let translateToLanguage = language
 
     // Hide the bottom sheet (if visible).
     CometChatUIEventHandler.emitUIEvent(CometChatUIEvents.ccToggleBottomSheet, {

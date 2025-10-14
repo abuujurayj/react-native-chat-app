@@ -9,7 +9,6 @@ import { CometChatUIEvents, MessageEvents } from "../../shared/events";
 import { ChatConfigurator } from "../../shared/framework";
 import { CometChatMessageComposerAction } from "../../shared/helper/types";
 import { CometChatMessageTemplate } from "../../shared/modals";
-import { localize } from "../../shared/resources/CometChatLocalize";
 import { CometChatCollaborativeBubble } from "../CollaborativeBubble/CometChatCollaborativeBubble";
 import { ExtensionConstants, ExtensionTypeConstants } from "../ExtensionConstants";
 import { getExtensionData } from "../ExtensionModerator";
@@ -26,6 +25,8 @@ import { Icon } from "../../shared/icons/Icon";
 import { getMessagePreviewInternal } from "../../shared/utils/MessageUtils";
 import { DEFAULT_ICONS } from "../../theme/default/resources/icons";
 import { CometChatTheme } from "../../theme/type";
+import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager"
+const t = getCometChatTranslation();
 
 /**
  * Extension decorator for Collaborative Whiteboard messages.
@@ -92,7 +93,7 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
     ) {
       return getMessagePreviewInternal(
         "collaborative-whiteboard-fill",
-        localize("COLLABORATIVE_WHITEBOARD"),
+        t("COLLABORATIVE_WHITEBOARD"),
         { theme }
       );
     } else {
@@ -155,7 +156,7 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
     ) {
       attachmentOptions.push({
         id: "whiteboard",
-        title: localize("COLLABORATIVE_WHITEBOARD"),
+        title: t("COLLABORATIVE_WHITEBOARD"),
         icon: (
           <Icon
             name='collaborative-whiteboard-icon'
@@ -297,11 +298,11 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
 
         return (
           <CometChatCollaborativeBubble
-            title={localize("COLLABORATIVE_WHITEBOARD")}
+            title={t("COLLABORATIVE_WHITEBOARD")}
             titleStyle={_style?.titleStyle}
-            subtitle={localize("OPEN_WHITEBOARD_TO_DRAW")}
+            subtitle={t("OPEN_WHITEBOARD_TO_DRAW")}
             subtitleStyle={_style?.subtitleStyle}
-            buttonText={localize("OPEN_WHITEBOARD")}
+            buttonText={t("OPEN_WHITEBOARD")}
             icon={
               <Icon
                 name='collaborative-whiteboard-fill'

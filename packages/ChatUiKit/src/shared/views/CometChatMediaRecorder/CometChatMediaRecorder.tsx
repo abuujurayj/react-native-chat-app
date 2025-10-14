@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { localize } from "../..";
 import { useTheme } from "../../../theme";
 import { Icon } from "../../icons/Icon";
 import { AnimatingMic } from "./AnimatingMic";
@@ -17,6 +16,7 @@ import { Timer } from "./Timer";
 import { CometChatAudioPreview } from "./CometChatAudioPreview/CometChatAudioPreview";
 import { CometChatTheme } from "../../../theme/type";
 import { deepMerge } from "../../helper/helperFunctions";
+import { useCometChatTranslation } from "../../resources/CometChatLocalizeNew";
 
 export interface CometChatMediaRecorderInterface {
   onClose?: Function;
@@ -41,6 +41,7 @@ export const CometChatMediaRecorder = (props: CometChatMediaRecorderInterface) =
   });
 
   const theme = useTheme();
+  const {t}=useCometChatTranslation()
   const mergedStyle = useMemo(() => {
     return deepMerge(theme.mediaRecorderStyle, style ?? {});
   }, [theme, style]);
@@ -73,14 +74,14 @@ export const CometChatMediaRecorder = (props: CometChatMediaRecorderInterface) =
   }
 
   function permissionAlert() {
-    Alert.alert('', localize("MICROPHONE_PERMISSION"), [
+    Alert.alert('', t("MICROPHONE_PERMISSION"), [
       {
         style: "cancel",
-        text: localize("CANCEL"),
+        text: t("CANCEL"),
       },
       {
         style: "default",
-        text: localize("SETTINGS"),
+        text: t("SETTINGS"),
         onPress: () => {
           Linking.openSettings();
         },

@@ -17,7 +17,7 @@ import {
   CometChatUIKit,
 } from "../shared";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
-import { CometChatList, CometChatListProps, localize } from "../shared";
+import { CometChatList, CometChatListProps } from "../shared";
 import { MessageTypeConstants } from "../shared/constants/UIKitConstants";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import { DeepPartial } from "../shared/helper/types";
@@ -37,6 +37,7 @@ import ChangeCircle from "../shared/icons/components/change-circle";
 import Block from "../shared/icons/components/block";
 import Cancel from "../shared/icons/components/cancel";
 import { JSX } from "react";
+import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
 
 /**
  * Props for the CometChatGroupMembers component.
@@ -212,11 +213,12 @@ export interface CometChatGroupMembersInterface
  * @returns JSX.Element.
  */
 export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => {
+  const {t}= useCometChatTranslation()
   const {
     SubtitleView,
     ItemView,
     AppBarOptions,
-    searchPlaceholderText = "Search",
+    searchPlaceholderText = t("SEARCH"),
     showBackButton = false,
     onSelection,
     onSubmit,
@@ -268,21 +270,29 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
   const [isToolTipDismissed, setIsToolTipDismissed] = useState(false);
   const loggedInUser = React.useRef(CometChatUIKit.loggedInUser!);
 
+
   // Define role permissions for current user actions
   const RolePermissions: { [key: string]: string[] } = {
-    OWNER: ["Change Scope", "Ban", "Kick"],
-    ADMIN: ["Change Scope", "Ban", "Kick"],
-    MODERATOR: ["Change Scope", "Ban", "Kick"],
+    OWNER: ["CHANGE_SCOPE", "BAN", "KICK"],
+    ADMIN: ["CHANGE_SCOPE", "BAN", "KICK"],
+    MODERATOR: ["CHANGE_SCOPE", "BAN", "KICK"],
     PARTICIPANT: [],
   };
 
   // Determine available roles based on current user's role
   const roles = React.useMemo(() => {
     if (currentUserRole === "moderator") {
-      return ["Moderator", "Participant"];
+      return [
+        { display: t("MODERATOR"), value: "moderator" },
+        { display: t("PARTICIPANT"), value: "participant" }
+      ];
     }
-    return ["Admin", "Moderator", "Participant"];
-  }, [currentUserRole]);
+    return [
+      { display: t("ADMIN"), value: "admin" },
+      { display: t("MODERATOR"), value: "moderator" },
+      { display: t("PARTICIPANT"), value: "participant" }
+    ];
+  }, [currentUserRole, t]);
 
   // Set current user role based on whether the logged in user is the owner or not.
   useEffect(() => {
@@ -306,8 +316,8 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
     return (
       <View style={{ flex: 1 }}>
         <ErrorEmptyView
-          title={localize("NO_USERS_AVAILABLE")}
-          subTitle={localize("ADD_CONTACTS")}
+          title={t("NO_USERS_AVAILABLE")}
+          subTitle={t("ADD_CONTACTS")}
           Icon={
             <Icon
               name='user-empty-icon'
@@ -342,9 +352,9 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
     return (
       <View style={{ flex: 1 }}>
         <ErrorEmptyView
-          title={localize("OOPS")}
-          subTitle={localize("SOMETHING_WENT_WRONG")}
-          tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
+          title={t("OOPS")}
+          subTitle={t("SOMETHING_WENT_WRONG")}
+          tertiaryTitle={t("WRONG_TEXT_TRY_AGAIN")}
           Icon={
             <Icon
               icon={mergedStyle?.errorStateStyle?.icon as ImageSourcePropType | JSX.Element}
@@ -378,7 +388,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
     if (user.getUid() === group.getOwner()) {
       return (
         <View style={{ ...mergedStyle.ownerBadgeStyle?.containerStyle }}>
-          <Text style={{ ...mergedStyle.ownerBadgeStyle?.textStyle }}>{localize("OWNER")}</Text>
+          <Text style={{ ...mergedStyle.ownerBadgeStyle?.textStyle }}>{t("OWNER")}</Text>
         </View>
       );
     }
@@ -386,7 +396,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
       return (
         <View style={{ ...mergedStyle.moderatorBadgeStyle?.containerStyle }}>
           <Text style={{ ...mergedStyle.moderatorBadgeStyle?.textStyle }}>
-            {localize("MODERATOR")}
+            {t("MODERATOR")}
           </Text>
         </View>
       );
@@ -394,7 +404,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
     if (userRole === "admin") {
       return (
         <View style={{ ...mergedStyle.adminBadgeStyle?.containerStyle }}>
-          <Text style={{ ...mergedStyle.adminBadgeStyle?.textStyle }}>{localize("ADMIN")}</Text>
+          <Text style={{ ...mergedStyle.adminBadgeStyle?.textStyle }}>{t("ADMIN")}</Text>
         </View>
       );
     }
@@ -502,7 +512,8 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
   const getDefaultMenuItems = (item: CometChat.GroupMember): MenuItemInterface[] => {
     const defaultItems: MenuItemInterface[] = [
       {
-        text: "Change Scope",
+        text: t("CHANGE_SCOPE"),
+        translationKey: "CHANGE_SCOPE", // Added this for filtering
         onPress: () => {
           const currentScope = item.getScope();
           setTooltipVisible(false);
@@ -521,7 +532,8 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
         disabled: false,
       },
       {
-        text: "Ban",
+        text: t("BAN"),
+        translationKey: "BAN", // Added this for filtering
         onPress: () => {
           setTooltipVisible(false);
           setModalType("ban");
@@ -537,7 +549,8 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
         disabled: false,
       },
       {
-        text: "Kick",
+        text: t("KICK"),
+        translationKey: "KICK", // Added this for filtering
         onPress: () => {
           setTooltipVisible(false);
           setModalType("kick");
@@ -558,20 +571,20 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
 
     // Hide Kick?
     if (hideKickMemberOption) {
-      filteredItems = filteredItems.filter((i) => i.text !== "Kick");
+      filteredItems = filteredItems.filter((i) => i.translationKey !== "KICK");
     }
     // Hide Ban?
     if (hideBanMemberOption) {
-      filteredItems = filteredItems.filter((i) => i.text !== "Ban");
+      filteredItems = filteredItems.filter((i) => i.translationKey !== "BAN");
     }
     // Hide Scope?
     if (hideScopeChangeOption) {
-      filteredItems = filteredItems.filter((i) => i.text !== "Change Scope");
+      filteredItems = filteredItems.filter((i) => i.translationKey !== "CHANGE_SCOPE");
     }
 
-    // Now filter by user role permissions
+    // Now filter by user role permissions using the translationKey instead of text
     filteredItems = filteredItems.filter((itemMenu) =>
-      RolePermissions[currentUserRole?.toUpperCase()!].includes(itemMenu.text)
+      RolePermissions[currentUserRole?.toUpperCase()!].includes(itemMenu.translationKey || "")
     );
 
     return filteredItems;
@@ -616,7 +629,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
         searchPlaceholderText={searchPlaceholderText}
         TrailingView={TrailingView ?? TailViewContent}
         hideSearch={hideSearch ? hideSearch : hideSearchError}
-        title={localize("MEMBERS")}
+        title={t("MEMBERS")}
         searchRequestBuilder={searchRequestBuilder}
         requestBuilder={
           groupMemberRequestBuilder ||
@@ -774,33 +787,32 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
               />
             </View>
 
-            <Text style={mergedStyle?.changeScope?.titleStyle}>{localize("CHANGE_SCOPE")}</Text>
+            <Text style={mergedStyle?.changeScope?.titleStyle}>{t("CHANGE_SCOPE")}</Text>
 
             <Text style={mergedStyle?.changeScope?.subTitleStyle}>
-              {localize("SCOPE_CHANGE_INFO")}
+              {t("SCOPE_CHANGE_INFO")}
             </Text>
 
             <View style={mergedStyle?.changeScope?.actionBox}>
               {roles
-                // For moderators: do not allow demotion to Participant if already a moderator
                 .filter((role) => {
                   if (currentUserRole === "moderator") {
                     const targetScope = selectedItem.getScope();
-                    if (targetScope === "moderator" && role === "Participant") {
+                    if (targetScope === "moderator" && role.value === "participant") {
                       return false;
                     }
                   }
                   return true;
                 })
                 .map((role) => {
-                  const isDisabled = currentUserRole === "moderator" && role === "Admin";
+                  const isDisabled = currentUserRole === "moderator" && role.value === "admin";
                   return (
                     <TouchableOpacity
-                      key={role}
+                      key={role.value}
                       activeOpacity={isDisabled ? 1 : 0.7}
                       onPress={() => {
                         if (!isDisabled) {
-                          setSelectedRole(role);
+                          setSelectedRole(role.value);
                         }
                       }}
                       style={[
@@ -814,7 +826,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
                           { color: theme.color.textPrimary },
                         ]}
                       >
-                        {role}
+                        {role.display}
                       </Text>
                       <View
                         style={{
@@ -827,7 +839,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
                           alignItems: "center",
                         }}
                       >
-                        {selectedRole === role && (
+                        {selectedRole === role.value && (
                           <View
                             style={{
                               height: 12,
@@ -852,7 +864,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
                 }}
               >
                 <Text style={mergedStyle?.changeScope?.cancelStyle?.textStyle}>
-                  {localize("CANCEL")}
+                  {t("CANCEL")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -860,13 +872,13 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
                 onPress={async () => {
                   if (selectedItem && selectedRole) {
                     const currentScope = selectedItem.getScope();
-                    const scopeToSet = selectedRole.toLowerCase();
+                    const scopeToSet = selectedRole;
 
                     // If no change is needed, just close the bottom sheet.
                     if (scopeToSet === currentScope) {
                       setIsBottomSheetVisible(false);
                       setSelectedItem(null);
-                      setSelectedRole("Participant");
+                      setSelectedRole("participant");
                       return;
                     }
 
@@ -921,7 +933,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
                 }}
               >
                 <Text style={mergedStyle.changeScope?.confirmStyle?.textStyle}>
-                  {localize("SAVE")}
+                  {t("SAVE")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -998,8 +1010,8 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
                     }
                   >
                     {modalType === "ban"
-                      ? `${localize("BAN")} ${selectedItem.getName()} ?`
-                      : `${localize("KICK")} ${selectedItem.getName()} ?`}
+                      ? `${t("BAN")} ${selectedItem.getName()} ?`
+                      : `${t("KICK")} ${selectedItem.getName()} ?`}
                   </Text>
 
                   <Text
@@ -1010,8 +1022,8 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
                     }
                   >
                     {modalType === "ban"
-                      ? `${localize("BAN_MEMBER_CONFIRM")}${selectedItem.getName()}?`
-                      : `${localize("REMOVE_MEMBER_CONFIRM")}${selectedItem.getName()}?`}
+                      ? `${t("BAN_MEMBER_CONFIRM")}${selectedItem.getName()}?`
+                      : `${t("REMOVE_MEMBER_CONFIRM")}${selectedItem.getName()}?`}
                   </Text>
 
                   <View
@@ -1036,7 +1048,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
                             : mergedStyle.removeModalStyle?.cancelStyle?.textStyle),
                         }}
                       >
-                        {localize("NO")}
+                        {t("NO")}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -1062,7 +1074,7 @@ export const CometChatGroupMembers = (props: CometChatGroupMembersInterface) => 
                             : mergedStyle.removeModalStyle?.confirmStyle?.textStyle),
                         }}
                       >
-                        {localize("YES")}
+                        {t("YES")}
                       </Text>
                     </TouchableOpacity>
                   </View>

@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   NativeModules,
   Platform,
-  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -17,8 +16,9 @@ import {
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { commonVars } from "../../shared/base/vars";
 import { Icon } from "../../shared/icons/Icon";
-import { localize } from "../../shared/resources/CometChatLocalize";
 import { useTheme } from "../../theme";
+import { useCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { CommonUtil } = NativeModules;
 
@@ -128,10 +128,13 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
   const [loader, setLoader] = useState(false);
   const loggedInUser = useRef<CometChat.User | null>(null);
   const theme = useTheme();
+  const { t } = useCometChatTranslation();
   const answerRefs = useRef<(TextInput | null)[]>([]);
   const [lastRemovedIndex, setLastRemovedIndex] = useState<number | null>(null);
   const [newlyAddedIndex, setNewlyAddedIndex] = useState<number | null>(null);
   const flatListRef = useRef<FlatList>(null);
+  const insets = useSafeAreaInsets();
+  const LIMIT_ERROR = t("REACHED_MAX_LIMIT");
 
   /**
    * Validates the poll question and answer inputs.
@@ -140,17 +143,17 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
    */
   function validate() {
     if (!question.trim()) {
-      setError(localize("INVALID_POLL_QUESTION"));
+      setError(t("INVALID_POLL_QUESTION"));
       return false;
     }
     const filledAnswers = answers.filter((item) => item.trim() !== "");
     const hasEmptyAnswers = answers.some((item) => item.trim() === "");
     if (filledAnswers.length < 2) {
-      setError(answerHelpText || localize("INVALID_POLL_OPTION"));
+      setError(answerHelpText || t("INVALID_POLL_OPTION"));
       return false;
     }
     if (hasEmptyAnswers) {
-      setError(answerHelpText || localize("INVALID_POLL_OPTION"));
+      setError(answerHelpText || t("INVALID_POLL_OPTION"));
       return false;
     }
     setError("");
@@ -178,7 +181,7 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
       .catch((error) => {
         console.log("poll error", error);
         setLoader(false);
-        setError(localize("SOMETHING_WRONG"));
+        setError(t("SOMETHING_WRONG"));
         onError && onError(error);
       });
   }
@@ -203,12 +206,9 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
           paddingHorizontal: 15,
         }}
       >
-        <Icon name="info" color={theme.color.error} size={20} />
+        <Icon name='info' color={theme.color.error} size={20} />
         <Text
-          style={[
-            theme.typography.caption1.regular,
-            { color: theme.color.error, marginLeft: 10 },
-          ]}
+          style={[theme.typography.caption1.regular, { color: theme.color.error, marginLeft: 10 }]}
         >
           {error}
         </Text>
@@ -238,7 +238,7 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
     let existingAnswers = [...answers];
     existingAnswers[index] = text;
     setAnswers(existingAnswers);
-    if (error) {
+    if (error && error !== LIMIT_ERROR) {
       setError("");
     }
     if (index >= 2 && text.trim() === "") {
@@ -273,7 +273,7 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
       setAnswers(existingAnswers);
       setNewlyAddedIndex(existingAnswers.length - 1);
     } else {
-      setError("You can only add up to 12 options.");
+      setError(LIMIT_ERROR);
     }
   }
 
@@ -324,7 +324,7 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
    */
   function AddAnswer() {
     if (answers.length >= 12) {
-      return null;
+      return <View style={{ height: 10 }} />;
     }
     return (
       <TouchableOpacity
@@ -343,7 +343,7 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
             { color: theme.color.primary, textAlign: "center" },
           ]}
         >
-          {"+ " + (addAnswerText || localize("ADD_OPTIONS"))}
+          {"+ " + (addAnswerText || t("ADD_OPTIONS"))}
         </Text>
       </TouchableOpacity>
     );
@@ -398,6 +398,20 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
   }, [answers.length]);
 
   useEffect(() => {
+    if (error === LIMIT_ERROR && answers.length < 12) {
+      setError("");
+    }
+  }, [answers, error]);
+
+  useEffect(() => {
+    const isMaxAndAllFilled = answers.length >= 12 && answers.every((a) => a.trim() !== "");
+    if (isMaxAndAllFilled) {
+      setError(LIMIT_ERROR);
+    }
+    // do nothing when condition not met — the other effect you already added clears LIMIT_ERROR when answers < 12
+  }, [answers]);
+
+  useEffect(() => {
     let answerslist = new Array(defaultAnswers).fill("");
     setAnswers(answerslist);
     CometChat.getLoggedinUser()
@@ -419,7 +433,10 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.color.background1 }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.color.background1 }}
+      edges={["top", "left", "right"]}
+    >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         enabled={Platform.OS === "ios"}
@@ -428,12 +445,18 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={{ flex: 1 }}>
             {/* Header */}
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingTop: Platform.OS === "ios" ? insets.top : 0,
+              }}
+            >
               <TouchableOpacity
                 onPress={onClose}
                 style={{ flexDirection: "row", paddingVertical: 20, paddingLeft: 10 }}
               >
-                <Icon name="arrow-back" />
+                <Icon name='arrow-back' />
               </TouchableOpacity>
               <Text
                 style={[
@@ -441,7 +464,7 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
                   { color: theme.color.iconPrimary, paddingLeft: 10 },
                 ]}
               >
-                {title ? title : localize("CREATE_POLL")}
+                {title ? title : t("CREATE_POLL")}
               </Text>
             </View>
             {/* Question Input */}
@@ -453,7 +476,7 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
                     { marginTop: 15, color: theme.color.textPrimary },
                   ]}
                 >
-                  {localize("QUESTION")}
+                  {t("QUESTION")}
                 </Text>
                 <TextInput
                   value={question}
@@ -478,7 +501,7 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
                     { marginTop: 25, color: theme.color.textPrimary, marginBottom: 2 },
                   ]}
                 >
-                  {localize("OPTIONS")}
+                  {t("OPTIONS")}
                 </Text>
               </View>
             </View>
@@ -489,16 +512,17 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
                 data={answers}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={renderAnswerItem}
-                ListFooterComponent={
-                  <View style={{ paddingBottom: 20 }}>
+                // render a footer only when needed, avoiding a permanently present wrapper that causes extra space
+                ListFooterComponent={() => (
+                  <View style={{ paddingBottom: answers.length >= 12 ? 10 : 20 }}>
                     <AddAnswer />
                   </View>
-                }
+                )}
                 removeClippedSubviews={false}
-                keyboardShouldPersistTaps="always"
-                keyboardDismissMode="interactive"
+                keyboardShouldPersistTaps='always'
+                keyboardDismissMode='interactive'
                 contentContainerStyle={{
-                  paddingBottom: 100,
+                  paddingBottom: 20,
                   paddingTop: 10,
                   paddingHorizontal: 20,
                 }}
@@ -522,15 +546,18 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
               backgroundColor: "rgba(0,0,0,0.3)",
             }}
           >
-            <ActivityIndicator size="large" color={theme.color.primary} />
+            <ActivityIndicator size='large' color={theme.color.primary} />
           </View>
         )}
         {/* Fixed Create Button */}
         <View
           style={{
             paddingHorizontal: 20,
-            paddingVertical: 10,
             backgroundColor: theme.color.background1,
+            paddingBottom: Platform.select({
+              ios: Math.max(insets.bottom, 10),
+              android: 10,
+            }),
           }}
         >
           {error && <ErrorView />}
@@ -545,8 +572,10 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
               marginBottom: Platform.select({ ios: 0, android: 10 }),
             }}
           >
-            <Text style={[theme.typography.button.medium, { color: theme.color.primaryButtonText }]}>
-              {localize("CREATE")}
+            <Text
+              style={[theme.typography.button.medium, { color: theme.color.primaryButtonText }]}
+            >
+              {t("CREATE")}
             </Text>
           </TouchableOpacity>
         </View>

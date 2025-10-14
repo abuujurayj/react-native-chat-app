@@ -7,7 +7,6 @@ import {
   CometChatTextFormatter,
   CometChatUIKit,
   CometChatUrlsFormatter,
-  localize,
   MessageBubbleAlignmentType,
 } from "../shared";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
@@ -19,6 +18,7 @@ import { CometChatTheme } from "../theme/type";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import { CommonUtils } from "../shared/utils/CommonUtils";
 import { DeepPartial } from "../shared/helper/types";
+import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
 
 /**
  * Unique UI event identifier for CometChatUIEventHandler.
@@ -117,6 +117,7 @@ export const CometChatThreadHeader = (props: CometChatThreadHeaderInterface): JS
   const [replyCount, setReplyCount] = useState<number>(parentMessage.getReplyCount() || 0);
 
   const theme = useTheme();
+  const { t } = useCometChatTranslation();
   const style = deepMerge(theme.threadHeaderStyles, props.style ?? {});
 
   /**
@@ -264,7 +265,7 @@ export const CometChatThreadHeader = (props: CometChatThreadHeaderInterface): JS
             {replyCountVisibility
               ? replyCount.toString() +
                 " " +
-                (replyCount == 1 ? localize("REPLY") : localize("REPLIES"))
+                (replyCount == 1 ? t("REPLY") : t("REPLIES"))
               : ""}
           </Text>
         </View>

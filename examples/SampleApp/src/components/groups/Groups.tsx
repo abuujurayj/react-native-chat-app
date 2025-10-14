@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native';
+import { View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import {
@@ -118,7 +118,7 @@ const Groups: React.FC<GroupsProps> = ({ hideHeader = false }) => {
   if (shouldHide) return null;
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.safeAreaContainer,
         { backgroundColor: theme.color.background1 },
@@ -152,7 +152,7 @@ const Groups: React.FC<GroupsProps> = ({ hideHeader = false }) => {
         }}
         onJoinSuccess={handleNavigateToMessages}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

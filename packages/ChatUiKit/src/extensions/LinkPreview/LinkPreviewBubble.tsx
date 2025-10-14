@@ -9,10 +9,10 @@ import {
   Text,
   View,
 } from "react-native";
-import { localize } from "../../shared/resources/CometChatLocalize";
 import { DefaultLinkPreview } from "./resources";
 import { useTheme } from "../../theme";
 import { CometChatTheme } from "../../theme/type";
+import { useCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew";
 
 /**
  * Props for the LinkPreviewBubble component.
@@ -52,6 +52,7 @@ export interface LinkPreviewBubbleInterface {
 export const LinkPreviewBubble = (props: LinkPreviewBubbleInterface) => {
   const { style, link, title, ChildView, image, onPress, description, favicon } = props;
   const theme = useTheme();
+  const {t}=useCometChatTranslation()
 
   const _style = style;
 
@@ -88,7 +89,7 @@ export const LinkPreviewBubble = (props: LinkPreviewBubbleInterface) => {
       } else {
         const opened = await Linking.openURL(link);
         if (!opened) {
-          Alert.alert(localize("SOMETHING_WRONG"));
+          Alert.alert(t("SOMETHING_WRONG"));
         }
       }
     }

@@ -1,10 +1,11 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   BackHandler,
+  Platform,
 } from 'react-native';
 import {
   RouteProp,
@@ -19,13 +20,16 @@ import {
   useCometChatTranslation,
   CometChatUIKit,
   ChatConfigurator,
+  CometChatUIEventHandler,
+  CometChatUIEvents,
 } from '@cometchat/chat-uikit-react-native';
-import {Icon} from '@cometchat/chat-uikit-react-native';
-import {useTheme} from '@cometchat/chat-uikit-react-native';
-import {RootStackParamList} from '../../../navigation/types';
+import { Icon } from '@cometchat/chat-uikit-react-native';
+import { useTheme } from '@cometchat/chat-uikit-react-native';
+import { RootStackParamList } from '../../../navigation/types';
 import ArrowBack from '../../../assets/icons/ArrowBack';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { CometChat } from '@cometchat/chat-sdk-react-native';
+import { CommonUtils } from '../../../utils/CommonUtils';
 
 type ThreadViewRouteProp = RouteProp<RootStackParamList, 'ThreadView'>;
 type ThreadViewNavProp = StackNavigationProp<RootStackParamList>;
@@ -35,14 +39,57 @@ const ThreadView = () => {
   const navigation = useNavigation<ThreadViewNavProp>(); // <-- added navigation
   const { goBack } = navigation;
   const theme = useTheme();
-  const {t}= useCometChatTranslation()
+  const { t } = useCometChatTranslation();
 
   const loggedInUser = useRef<CometChat.User>(
     CometChatUIKit.loggedInUser!,
   ).current;
 
+  const [localUser, setLocalUser] = useState<CometChat.User | undefined>(
+    params?.user,
+  );
+
+  // keep listener ids unique
+  const userListenerId = 'thread_user_' + new Date().getTime();
+
+  // Fetch latest user on mount (if user present)
+  useEffect(() => {
+    let mounted = true;
+    const init = async () => {
+      try {
+        if (params?.user) {
+          const uid = params.user.getUid();
+          const fresh = await CometChat.getUser(uid);
+          if (mounted) setLocalUser(CommonUtils.clone(fresh));
+        }
+      } catch (err) {
+        console.error('Error fetching user in ThreadView:', err);
+      }
+    };
+    init();
+    return () => {
+      mounted = false;
+    };
+  }, [params?.user]);
+
+  // add UI listeners for block/unblock to update localUser
+  useEffect(() => {
+    CometChatUIEventHandler.addUserListener(userListenerId, {
+      ccUserBlocked: (payload: { user: CometChat.User }) => {
+        setLocalUser(CommonUtils.clone(payload.user));
+      },
+      ccUserUnBlocked: (payload: { user: CometChat.User }) => {
+        setLocalUser(CommonUtils.clone(payload.user));
+      },
+    });
+
+    return () => {
+      CometChatUIEventHandler.removeUserListener(userListenerId);
+    };
+  }, []);
+
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       const onBackPress = () => {
         goBack();
         return true; // Prevent default behavior
@@ -57,11 +104,27 @@ const ThreadView = () => {
     }, [goBack]),
   );
 
-  const {message, user, group} = params || {};
+  const { message, user, group } = params || {};
+  if (!message) return null;
 
-  if (!message) {
-    return null;
-  }
+  const unblock = async (userToUnblock: CometChat.User) => {
+    try {
+      const uid = userToUnblock.getUid();
+      const response = await CometChat.unblockUsers([uid]);
+      if (response) {
+        const fresh = await CometChat.getUser(uid);
+        setLocalUser(CommonUtils.clone(fresh));
+        CometChatUIEventHandler.emitUserEvent(
+          CometChatUIEvents.ccUserUnBlocked,
+          {
+            user: fresh,
+          },
+        );
+      }
+    } catch (error) {
+      console.error('Error unblocking user from ThreadView:', error);
+    }
+  };
 
   const getMentionsTap = useCallback(() => {
     const mentionsFormatter =
@@ -92,7 +155,7 @@ const ThreadView = () => {
   }, [user, group, loggedInUser, navigation, theme]);
 
   return (
-    <View style={{backgroundColor: theme.color.background1, flex: 1}}>
+    <View style={{ backgroundColor: theme.color.background1, flex: 1 }}>
       {/* Custom Header */}
       <View style={styles.headerStyle}>
         <TouchableOpacity style={styles.iconStyle} onPress={() => goBack()}>
@@ -110,15 +173,22 @@ const ThreadView = () => {
           <Text
             style={[
               theme.typography.heading1.bold,
-              {color: theme.color.textPrimary},
-            ]}>
+              { color: theme.color.textPrimary },
+            ]}
+          >
             {t('THREAD')}
           </Text>
           <Text
             style={[
               theme.typography.caption1.regular,
-              {color: theme.color.textSecondary},
-            ]}>
+              {
+                color: theme.color.textSecondary,
+                maxWidth: '90%',
+              },
+            ]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {user ? user?.getName() : group?.getName()}
           </Text>
         </View>
@@ -128,7 +198,7 @@ const ThreadView = () => {
       <CometChatThreadHeader parentMessage={message} />
 
       {/* Threaded Message List */}
-      <View style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
         <CometChatMessageList
           user={user}
           group={group}
@@ -138,12 +208,53 @@ const ThreadView = () => {
       </View>
 
       {/* Message Composer for Thread */}
-      <CometChatMessageComposer
-        user={user}
-        group={group}
-        parentMessageId={message.getId()}
-        onError={(error: any) => console.error('Composer Error:', error)}
-      />
+      {localUser?.getBlockedByMe() ? (
+        <View
+          style={[
+            styles.blockedContainer,
+            { backgroundColor: theme.color.background3 },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.button.regular,
+              {
+                color: theme.color.textSecondary,
+                textAlign: 'center',
+                paddingBottom: 10,
+              },
+            ]}
+          >
+            {t('BLOCKED_USER_DESC')}
+          </Text>
+          <TouchableOpacity
+            onPress={() => unblock(localUser)}
+            style={[styles.button, { borderColor: theme.color.borderDefault }]}
+          >
+            <Text
+              style={[
+                theme.typography.button.medium,
+                styles.buttontext,
+                {
+                  color: theme.color.textPrimary,
+                },
+              ]}
+            >
+              {t('UNBLOCK')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <CometChatMessageComposer
+          user={localUser}
+          group={group}
+          parentMessageId={message.getId()}
+          onError={(error: any) => console.error('Composer Error:', error)}
+          keyboardAvoidingViewProps={
+            Platform.OS === 'android' ? {} : { behavior: 'padding' }
+          }
+        />
+      )}
     </View>
   );
 };
@@ -161,6 +272,23 @@ const styles = StyleSheet.create({
   textStyle: {
     paddingLeft: 10,
     alignItems: 'flex-start',
+  },
+  blockedContainer: {
+    alignItems: 'center',
+    height: 90,
+    paddingVertical: 10,
+  },
+  button: {
+    flex: 1,
+    justifyContent: 'center',
+    borderWidth: 2,
+    width: '90%',
+    borderRadius: 8,
+  },
+  buttontext: {
+    paddingVertical: 5,
+    textAlign: 'center',
+    alignContent: 'center',
   },
 });
 

@@ -1,10 +1,10 @@
-import {CometChat} from '@cometchat/chat-sdk-react-native';
-import {CometChatUsers, useTheme} from '@cometchat/chat-uikit-react-native';
-import React, {useCallback} from 'react';
-import {SafeAreaView} from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {RootStackParamList} from '../../navigation/types';
-import {StackNavigationProp} from '@react-navigation/stack';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
+import { CometChatUsers, useTheme } from '@cometchat/chat-uikit-react-native';
+import React, { useCallback } from 'react';
+import { View } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../../navigation/types';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 type UserNavigationProp = StackNavigationProp<RootStackParamList, 'Users'>;
 
@@ -23,7 +23,7 @@ const Users: React.FC = () => {
   );
 
   return shouldHide ? null : (
-    <SafeAreaView style={{flex: 1, backgroundColor: theme.color.background1}}>
+    <View style={{ flex: 1, backgroundColor: theme.color.background1 }}>
       <CometChatUsers
         onItemPress={(user: CometChat.User) => {
           navigation.navigate('Messages', {
@@ -40,7 +40,7 @@ const Users: React.FC = () => {
           .sortBy('name')
           .setUIDs([])}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -1,7 +1,13 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View, Text, TouchableOpacity, useWindowDimensions} from 'react-native';
-import {RouteProp} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  BackHandler,
+} from 'react-native';
+import { RouteProp, useFocusEffect } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import {
   CometChatAvatar,
   CometChatGroupsEvents,
@@ -12,17 +18,17 @@ import {
   CometChatUIEvents,
   useCometChatTranslation,
 } from '@cometchat/chat-uikit-react-native';
-import {Icon} from '@cometchat/chat-uikit-react-native';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
+import { Icon } from '@cometchat/chat-uikit-react-native';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
 import {
   CometChatUIKit,
   CometChatUiKitConstants,
 } from '@cometchat/chat-uikit-react-native';
-import {RootStackParamList} from '../../../navigation/types';
-import {listners} from '../helper/GroupListeners';
-import {styles} from './GroupInfoStyles';
-import {leaveGroup} from '../../../utils/helper';
-import {CommonUtils} from '../../../utils/CommonUtils';
+import { RootStackParamList } from '../../../navigation/types';
+import { listners } from '../helper/GroupListeners';
+import { styles } from './GroupInfoStyles';
+import { leaveGroup } from '../../../utils/helper';
+import { CommonUtils } from '../../../utils/CommonUtils';
 import ArrowBack from '../../../assets/icons/ArrowBack';
 import Group from '../../../assets/icons/Group';
 import PersonAdd from '../../../assets/icons/PersonAdd';
@@ -35,13 +41,13 @@ type GroupInfoProps = {
   navigation: StackNavigationProp<RootStackParamList, 'GroupInfo'>;
 };
 
-const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
-  const {group} = route.params;
+const GroupInfo: React.FC<GroupInfoProps> = ({ route, navigation }) => {
+  const { group } = route.params;
   const theme = useTheme();
-  const {t}= useCometChatTranslation()
+  const { t } = useCometChatTranslation();
   const groupListenerId = useRef('groupListener' + new Date().getTime());
 
-  const [data, setData] = useState({groupDetails: group});
+  const [data, setData] = useState({ groupDetails: group });
   const [userScope, setUserScope] = useState(
     group?.getOwner() === CometChatUIKit.loggedInUser?.getUid()
       ? CometChatUiKitConstants.GroupMemberScope.owner
@@ -54,14 +60,14 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
   const [isDeleteExitModalOpen, setIsDeleteExitModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
-  const {width} = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const isSmallDevice = width < 360;
 
   useEffect(() => {
     // Update group details in state whenever group changes
     const handleGroupListener = (updatedGroup: CometChat.Group) => {
       if (updatedGroup.getGuid() === route.params.group.getGuid()) {
-        setData({groupDetails: updatedGroup});
+        setData({ groupDetails: updatedGroup });
         setUserScope(
           updatedGroup?.getOwner() === CometChatUIKit.loggedInUser?.getUid()
             ? CometChatUiKitConstants.GroupMemberScope.owner
@@ -70,16 +76,16 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
       }
     };
 
-    const handleGroupMemberKicked = ({kickedFrom}: any) => {
+    const handleGroupMemberKicked = ({ kickedFrom }: any) => {
       handleGroupListener(CommonUtils.clone(kickedFrom));
     };
-    const handleGroupMemberBanned = ({kickedFrom}: any) => {
+    const handleGroupMemberBanned = ({ kickedFrom }: any) => {
       handleGroupListener(CommonUtils.clone(kickedFrom));
     };
-    const handleGroupMemberAdded = ({userAddedIn}: any) => {
+    const handleGroupMemberAdded = ({ userAddedIn }: any) => {
       handleGroupListener(CommonUtils.clone(userAddedIn));
     };
-    const handleOwnershipChanged = ({group}: any) => {
+    const handleOwnershipChanged = ({ group }: any) => {
       handleGroupListener(group);
     };
 
@@ -105,6 +111,23 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
       CometChat.removeGroupListener(groupListenerId.current);
     };
   }, [group, userScope]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        // Navigate back to message screen (same as your onPress handler)
+        navigation.goBack();
+        return true; // Prevent default back behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [navigation]),
+  );
 
   const getLabel = (key: string) => {
     const label = t(key);
@@ -169,7 +192,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
               console.log(deletedConversation);
               CometChatUIEventHandler.emitConversationEvent(
                 CometChatConversationEvents.ccConversationDeleted,
-                {conversation: conversation},
+                { conversation: conversation },
               );
               navigation.pop(2);
             })
@@ -184,12 +207,15 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
   };
 
   return (
-    <View style={[styles.flexOne, {backgroundColor: theme.color.background1}]}>
+    <View
+      style={[styles.flexOne, { backgroundColor: theme.color.background1 }]}
+    >
       {/* Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.iconContainer}
-          onPress={() => navigation.goBack()}>
+          onPress={() => navigation.goBack()}
+        >
           <Icon
             icon={
               <ArrowBack
@@ -204,8 +230,9 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
           style={[
             theme.typography.heading1.bold,
             styles.pL5,
-            {color: theme.color.textPrimary},
-          ]}>
+            { color: theme.color.textPrimary },
+          ]}
+        >
           {t('GROUP_INFO')}
         </Text>
       </View>
@@ -214,8 +241,9 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
       <View
         style={[
           styles.groupInfoSection,
-          {borderColor: theme.color.borderLight},
-        ]}>
+          { borderColor: theme.color.borderLight },
+        ]}
+      >
         <View style={styles.infoTitleContainer}>
           <CometChatAvatar
             style={{
@@ -225,7 +253,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
             }}
             image={
               data.groupDetails?.getIcon()
-                ? {uri: data.groupDetails?.getIcon()}
+                ? { uri: data.groupDetails?.getIcon() }
                 : undefined
             }
             name={data.groupDetails?.getName() ?? ''}
@@ -235,10 +263,11 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
               style={[
                 theme.typography.heading3.medium,
                 styles.titleName,
-                {color: theme.color.textPrimary},
+                { color: theme.color.textPrimary },
               ]}
               numberOfLines={1}
-              ellipsizeMode="tail">
+              ellipsizeMode="tail"
+            >
               {data.groupDetails?.getName()}
             </Text>
           </View>
@@ -246,8 +275,9 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
             style={[
               theme.typography.caption1.medium,
               styles.boxLabel,
-              {color: theme.color.textSecondary},
-            ]}>
+              { color: theme.color.textSecondary },
+            ]}
+          >
             {data.groupDetails?.getMembersCount() +
               ' ' +
               t(
@@ -267,12 +297,13 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
           ].includes(userScope) && (
             <TouchableOpacity
               onPress={() => {
-                navigation.navigate('AddMember', {group});
+                navigation.navigate('AddMember', { group });
               }}
               style={[
                 styles.buttonContainer,
-                {borderColor: theme.color.borderDefault},
-              ]}>
+                { borderColor: theme.color.borderDefault },
+              ]}
+            >
               <Icon
                 icon={
                   <PersonAdd
@@ -288,7 +319,8 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                   theme.typography.caption1.regular,
                   styles.boxLabel,
                   { color: theme.color.textSecondary },
-                ]}>
+                ]}
+              >
                 {getLabel('ADD_MEMBERS')}
               </Text>
             </TouchableOpacity>
@@ -297,12 +329,13 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
           {/* View Members */}
           <TouchableOpacity
             onPress={() => {
-              navigation.navigate('ViewMembers', {group});
+              navigation.navigate('ViewMembers', { group });
             }}
             style={[
               styles.buttonContainer,
-              {borderColor: theme.color.borderDefault},
-            ]}>
+              { borderColor: theme.color.borderDefault },
+            ]}
+          >
             <Icon
               icon={
                 <Group color={theme.color.primary} height={24} width={24} />
@@ -314,7 +347,8 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                 theme.typography.caption1.regular,
                 styles.boxLabel,
                 { color: theme.color.textSecondary },
-              ]}>
+              ]}
+            >
               {getLabel('VIEW_MEMBERS')}
             </Text>
           </TouchableOpacity>
@@ -326,12 +360,13 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
               CometChatUiKitConstants.GroupMemberScope.moderator) && (
             <TouchableOpacity
               onPress={() => {
-                navigation.navigate('BannedMember', {group});
+                navigation.navigate('BannedMember', { group });
               }}
               style={[
                 styles.buttonContainer,
-                {borderColor: theme.color.borderDefault},
-              ]}>
+                { borderColor: theme.color.borderDefault },
+              ]}
+            >
               <Icon
                 icon={
                   <PersonOff
@@ -347,7 +382,8 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                   theme.typography.caption1.regular,
                   styles.boxLabel,
                   { color: theme.color.textSecondary },
-                ]}>
+                ]}
+              >
                 {getLabel('BANNED_MEMBERS')}
               </Text>
             </TouchableOpacity>
@@ -360,7 +396,8 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
         <View style={styles.actionButtons}>
           <TouchableOpacity
             onPress={() => setDeleteModalOpen(true)}
-            style={styles.iconContainer}>
+            style={styles.iconContainer}
+          >
             <Icon
               icon={<Delete color={theme.color.error} height={24} width={24} />}
             />
@@ -369,7 +406,8 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                 theme.typography.heading4.regular,
                 styles.mL5,
                 { color: theme.color.error },
-              ]}>
+              ]}
+            >
               {t('DELETE_CHAT_TEXT')}
             </Text>
           </TouchableOpacity>
@@ -389,7 +427,8 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                   setIsLeaveModalOpen(true);
                 }
               }}
-              style={styles.iconContainer}>
+              style={styles.iconContainer}
+            >
               <Icon
                 icon={
                   <Block color={theme.color.error} height={24} width={24} />
@@ -399,8 +438,9 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                 style={[
                   theme.typography.heading4.regular,
                   styles.mL5,
-                  {color: theme.color.error},
-                ]}>
+                  { color: theme.color.error },
+                ]}
+              >
                 {t('LEAVE')}
               </Text>
             </TouchableOpacity>
@@ -415,7 +455,8 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
           <View style={styles.actionButtons}>
             <TouchableOpacity
               onPress={() => setIsDeleteExitModalOpen(true)}
-              style={styles.iconContainer}>
+              style={styles.iconContainer}
+            >
               <Icon
                 icon={
                   <Delete color={theme.color.error} height={24} width={24} />
@@ -426,7 +467,8 @@ const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
                   theme.typography.heading4.regular,
                   styles.mL5,
                   { color: theme.color.error },
-                ]}>
+                ]}
+              >
                 {t('DELETE_AND_EXIT')}
               </Text>
             </TouchableOpacity>

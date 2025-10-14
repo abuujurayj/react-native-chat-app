@@ -1,5 +1,6 @@
 import { Alert, Linking, NativeModules, PermissionsAndroid, Platform } from "react-native";
-import { localize } from "../resources/CometChatLocalize/CometChatLocalize";
+import { getCometChatTranslation } from "../resources/CometChatLocalizeNew/LocalizationManager";
+const t = getCometChatTranslation();
 const { FileManager } = NativeModules;
 
 let instance: PermissionUtilIOS;
@@ -122,14 +123,14 @@ class PermissionUtilIOS {
       }
     }
     if (allResourcesAllowed === false) {
-      Alert.alert("", localize("CAMERA_PERMISSION"), [
+      Alert.alert("", t("CAMERA_PERMISSION"), [
         {
           style: "cancel",
-          text: localize("CANCEL"),
+          text: t("CANCEL"),
         },
         {
           style: "default",
-          text: localize("SETTINGS"),
+          text: t("SETTINGS"),
           onPress: () => {
             Linking.openSettings();
           },

@@ -1,7 +1,7 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { ColorValue, ImageSourcePropType, Text, View } from "react-native";
-import { CometChatList, CometChatListActionsInterface, localize } from "../shared";
+import { CometChatList, CometChatListActionsInterface } from "../shared";
 import { SelectionMode } from "../shared/base/Types";
 import { CometChatUIEventHandler } from "../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
 import { deepMerge } from "../shared/helper/helperFunctions";
@@ -18,6 +18,7 @@ import { GroupStyle } from "./GroupsStyle";
 import { Skeleton } from "./Skeleton";
 import { Style } from "./style";
 import { JSX } from "react";
+import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
 
 // Unique listener IDs for group events and UI events.
 const groupListenerId = "grouplist_" + new Date().getTime();
@@ -177,10 +178,12 @@ export interface CometChatGroupsInterface {
  * error/empty/loading views, and a long-press tooltip menu (if you provide menu items).
  */
 export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface, ref: any) => {
+  const { t } = useCometChatTranslation();
+
   const {
     AppBarOptions,
     style = {},
-    searchPlaceholderText = localize("SEARCH"),
+    searchPlaceholderText = t("SEARCH"),
     showBackButton = false,
     selectionMode = "none",
     onSelection = () => {},
@@ -212,7 +215,7 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
   // Theme references.
   const theme = useTheme();
   const { mode } = useThemeInternal();
-
+  
   // Internal ref to CometChatList methods.
   const groupListRef = useRef<CometChatListActionsInterface>(null);
 
@@ -256,8 +259,8 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
     return (
       <View style={{ flex: 1 }}>
         <ErrorEmptyView
-          title={localize("NO_GROUPS_AVAILABLE")}
-          subTitle={localize("ADD_CONTACTS")}
+          title={t("NO_GROUPS_AVAILABLE")}
+          subTitle={t("ADD_CONTACTS")}
           Icon={
             <Icon
               name='user-empty-icon'
@@ -293,9 +296,9 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
     return (
       <View style={{ flex: 1 }}>
         <ErrorEmptyView
-          title={localize("OOPS")}
-          subTitle={localize("SOMETHING_WENT_WRONG")}
-          tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
+          title={t("OOPS")}
+          subTitle={t("SOMETHING_WENT_WRONG")}
+          tertiaryTitle={t("WRONG_TEXT_TRY_AGAIN")}
           Icon={
             <Icon
               name='error-state'
@@ -526,7 +529,7 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
                 >
                   {group.getMembersCount() +
                     " " +
-                    localize(group.getMembersCount() === 1 ? "MEMBER" : "MEMBERS")}
+                    t(group.getMembersCount() === 1 ? "MEMBER" : "MEMBERS")}
                 </Text>
               )
         }
@@ -535,7 +538,7 @@ export const CometChatGroups = React.forwardRef((props: CometChatGroupsInterface
             ? null
             : (group.getType() as CometChatStatusIndicatorInterface["type"])
         }
-        title={localize("GROUPS")}
+        title={t("GROUPS")}
         hideSearch={hideSearch ? hideSearch : hideSearchError}
         listStyle={mergedStyle}
         LoadingView={

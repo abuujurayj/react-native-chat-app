@@ -12,7 +12,6 @@ import { ChatConfigurator, DataSource, DataSourceDecorator } from "../../shared/
 import { CometChatUIKit } from "../../shared/CometChatUiKit/CometChatUIKit";
 import { MessageCategoryConstants, ViewAlignment } from "../../shared/constants/UIKitConstants";
 import { Icon } from "../../shared/icons/Icon";
-import { localize } from "../../shared/resources";
 import { getUnixTimestampInMilliseconds } from "../../shared/utils/CometChatMessageHelper";
 import { getMessagePreviewInternal } from "../../shared/utils/MessageUtils";
 import { useTheme } from "../../theme";
@@ -22,6 +21,9 @@ import { CometChatStickerKeyboard } from "./CometChatStickerKeyboard";
 import { CometChatStickerBubble } from "./StickersBubble";
 import { StickerConfigurationInterface } from "./StickerConfiguration";
 import { AdditionalAuxiliaryOptionsParams } from "../../shared/base/Types";
+import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager"
+
+const t = getCometChatTranslation();
 
 /**
  * StickerButton Component
@@ -38,6 +40,7 @@ const StickerButton = ({ user, group, id, stickerIconStyle, stickerIcon }: any) 
   const [keyboardOpen, setKeyboardOpen] = useState(false); // Tracks if the system keyboard is open.
   const loggedInUser = useRef<CometChat.User | null>(null); // Stores the currently logged-in user.
   const theme = useTheme(); // Retrieves theme configurations for styling.
+
 
   /**
    * Fetches the logged-in user and sets it to `loggedInUser` ref.
@@ -352,7 +355,7 @@ export class StickersExtensionDecorator extends DataSourceDecorator {
       message.getCategory() === MessageCategoryConstants.custom &&
       message.getDeletedAt() === undefined
     ) {
-      return getMessagePreviewInternal("sticker-fill", localize("CUSTOM_MESSAGE_STICKER"), {
+      return getMessagePreviewInternal("sticker-fill", t("CUSTOM_MESSAGE_STICKER"), {
         theme,
       });
     } else {

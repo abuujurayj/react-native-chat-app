@@ -36,7 +36,6 @@ import {
   CometChatTextFormatter,
   CometChatUiKitConstants,
   CometChatUrlsFormatter,
-  localize,
   SuggestionItem,
 } from "../shared";
 import {
@@ -82,6 +81,7 @@ import { ExtensionConstants } from "../extensions";
 import { getExtensionData } from "../shared/helper/functions";
 import { DeepPartial } from "../shared/helper/types";
 import { CometChatDateSeparator } from "../shared/views/CometChatDateSeperator";
+import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
 
 let _defaultRequestBuilder: CometChat.MessagesRequestBuilder;
 
@@ -515,6 +515,7 @@ export const CometChatMessageList = memo(
       }, [hideGroupActionMessages]);
 
       const theme = useTheme();
+      const { t } = useCometChatTranslation();
 
       const mergedTheme: CometChatTheme = useMemo(() => {
         const themeClone = deepClone(theme);
@@ -1422,9 +1423,11 @@ export const CometChatMessageList = memo(
         });
         CometChatUIEventHandler.addGroupListener(groupEventListener, {
           ccGroupMemberUnBanned: ({ message }: any) => {
+            message["action"] = "unbanned";
             newMessage(message, false);
           },
           ccGroupMemberBanned: ({ message }: any) => {
+            message["action"] = "banned";
             newMessage(message, false);
           },
           ccGroupMemberAdded: ({ message, usersAdded, userAddedIn }: any) => {
@@ -1433,10 +1436,12 @@ export const CometChatMessageList = memo(
               message["muid"] = String(getUnixTimestamp());
               message["sentAt"] = getUnixTimestamp();
               message["actionOn"] = user;
+              message["action"] = "added";
               newMessage(message, false);
             });
           },
           ccGroupMemberKicked: ({ message }: any) => {
+            message["action"] = "kicked";
             newMessage(message, false);
           },
           ccGroupMemberScopeChanged: ({
@@ -1446,6 +1451,9 @@ export const CometChatMessageList = memo(
             scopeChangedFrom,
             group,
           }: any) => {
+            action["action"] = "scopeChanged";
+            action["newScope"] = scopeChangedTo;
+            action["oldScope"] = scopeChangedFrom;
             newMessage(action, false);
           },
           ccOwnershipChanged: ({ group, message }: any) => {
@@ -1457,7 +1465,7 @@ export const CometChatMessageList = memo(
           callListenerId,
           new CometChat.CallListener({
             onIncomingCallReceived: (call: any) => {
-              Platform.OS === 'ios' && Keyboard.dismiss();
+              Platform.OS === "ios" && Keyboard.dismiss();
               newMessage(call);
             },
             onOutgoingCallAccepted: (call: any) => {
@@ -1796,7 +1804,7 @@ export const CometChatMessageList = memo(
                       },
                     ]}
                   >
-                    {localize("EDITED")}
+                    {t("EDITED")}
                   </Text>
                 )}
                 {
@@ -1953,7 +1961,7 @@ export const CometChatMessageList = memo(
               <Text
                 style={_style.threadedMessageStyles?.indicatorTextStyle}
               >{`${item.getReplyCount()} ${
-                item.getReplyCount() > 1 ? localize("REPLIES") : localize("REPLY")
+                item.getReplyCount() > 1 ? t("REPLIES") : t("REPLY")
               }`}</Text>
               <CometChatBadge
                 style={{
@@ -2127,8 +2135,11 @@ export const CometChatMessageList = memo(
           }, [isThreaded, message, getThreadView, bubbleAlignment]);
 
           const LeadingView = useMemo(() => {
+            if (hasTemplate?.LeadingView) {
+              return hasTemplate.LeadingView(message, bubbleAlignment);
+            }
             return !isThreaded ? getLeadingView(message) : undefined;
-          }, [isThreaded, message, getLeadingView]);
+          }, [isThreaded, message, getLeadingView, hasTemplate, bubbleAlignment]);
 
           const BottomView = useMemo(() => {
             return hasTemplate?.BottomView && hasTemplate?.BottomView(message, bubbleAlignment);
@@ -2146,6 +2157,11 @@ export const CometChatMessageList = memo(
 
             const onLongPress = useCallback(() => {
               if (message.getDeletedBy() != null) return;
+
+              if (!message.getId()) {
+                return;
+              }
+
               setSelectedMessage(message);
               hasTemplate && openOptionsForMessage(message, hasTemplate);
             }, [hasTemplate, message, openOptionsForMessage]);
@@ -2276,51 +2292,94 @@ export const CometChatMessageList = memo(
         setShowMessageOptions([]);
       };
 
+      const sentAtToMs = (msg?: any): number | undefined => {
+        if (!msg) return undefined;
+        // try CometChat getter first
+        const raw =
+          typeof msg.getSentAt === "function"
+            ? msg.getSentAt()
+            : (msg?.sentAt ?? msg?.sent_at ?? msg?.sentOn ?? msg?.senton);
+        if (raw === undefined || raw === null) return undefined;
+        // if raw looks like seconds (10 digits) convert to ms
+        return raw < 1e12 ? raw * 1000 : raw;
+      };
+
+      const makeDayKey = (ms?: number | undefined) => {
+        if (!ms) return null;
+        const d = new Date(ms);
+        // use local date parts so "Today" follows user's timezone
+        return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+      };
+
+      const messageDayKeys = useMemo(() => {
+        return messagesList.map((m) => {
+          const ms = sentAtToMs(m);
+          return makeDayKey(ms); // null if no timestamp
+        });
+      }, [messagesList]);
+
+      const showDateSeparatorAtIndex = useMemo(() => {
+        const n = messagesList.length;
+        const flags = new Array<boolean>(n).fill(false);
+        // helper to find next non-null key to the right
+        const nextNonNullKey = (startIdx: number) => {
+          for (let j = startIdx; j < n; j++) {
+            if (messageDayKeys[j] != null) return messageDayKeys[j];
+          }
+          return null;
+        };
+
+        for (let i = 0; i < n; i++) {
+          const currKey = messageDayKeys[i] ?? nextNonNullKey(i);
+          const nextKey = i + 1 < n ? (messageDayKeys[i + 1] ?? nextNonNullKey(i + 1)) : null;
+          if (currKey != null && currKey !== nextKey) {
+            flags[i] = true;
+          } else if (i === n - 1 && currKey != null) {
+            // last message in list show header
+            flags[i] = true;
+          }
+        }
+        return flags;
+      }, [messageDayKeys, messagesList.length]);
+
+      const isSameLocalDay = (ms?: number) => {
+        if (!ms) return false;
+        const a = new Date(ms);
+        const b = new Date();
+        return (
+          a.getFullYear() === b.getFullYear() &&
+          a.getMonth() === b.getMonth() &&
+          a.getDate() === b.getDate()
+        );
+      };
+
+      const getDayHeaderString = (ms?: number | undefined) => {
+        if (!ms) return undefined;
+        if (isSameLocalDay(ms)) return t("TODAY") || "Today";
+        return dateSeparatorPattern ? dateSeparatorPattern(ms) : undefined;
+      };
+
       const RenderMessageItem = useCallback(
-        ({ item, theme }: { item: CometChat.BaseMessage; theme: CometChatTheme }) => {
-          const index = useMemo(() => {
-            return messagesContentListRef.current.findIndex(
-              (msg) => msg.getId() === item.getId() || msg.getMuid() === item.getMuid()
-            );
-          }, [item]);
-
-          const separatorView = useMemo(() => {
-            const previousMessageDate = messagesContentListRef.current[index + 1]
-              ? new Date(getSentAtTimestamp(messagesContentListRef.current[index + 1]))
-              : null;
-            const currentMessageDate = new Date(getSentAtTimestamp(item));
-            const currentDate = isNaN(currentMessageDate.getDate())
-              ? undefined
-              : `${currentMessageDate.getDate()}-${currentMessageDate.getMonth()}-${currentMessageDate.getFullYear()}`;
-
-            const previousDate = `${previousMessageDate?.getDate()}-${previousMessageDate?.getMonth()}-${previousMessageDate?.getFullYear()}`;
-            if (currentDate !== undefined && previousDate !== currentDate) {
-              return (
-                <View style={{ marginBottom: 10 }}>
-                  <CometChatDateSeparator
-                    timeStamp={getSentAtTimestamp(item)}
-                    pattern={"dayDateFormat"}
-                    customDateString={
-                      dateSeparatorPattern ? dateSeparatorPattern(item.getSentAt()) : undefined
-                    }
-                    style={theme.messageListStyles.dateSeparatorStyle}
-                  />
-                </View>
-              );
-            }
-            return null;
-          }, [item, dateSeparatorPattern, theme]);
+        ({
+          item,
+          theme,
+          idx,
+        }: {
+          item: CometChat.BaseMessage;
+          theme: CometChatTheme;
+          idx: number;
+        }) => {
+          const index = idx;
 
           lastMessageDate.current = getSentAtTimestamp(item);
 
           return (
-            <React.Fragment key={index}>
-              {separatorView}
+            <React.Fragment key={`${item.getId()}_${item.getMuid()}`}>
               <MessageView message={item} currentIndex={index} />
             </React.Fragment>
           );
         },
-        [mergedTheme]
+        [mergedTheme, messagesList, getSentAtTimestamp, dateSeparatorPattern]
       );
 
       const keyExtractor = useCallback((item: any) => `${item?.getId()}_${item.getMuid()}`, []);
@@ -2350,9 +2409,9 @@ export const CometChatMessageList = memo(
         if (ErrorView) return ErrorView();
         return (
           <ErrorEmptyView
-            title={"Oops!"}
-            subTitle={localize("SOMETHING_WENT_WRONG")}
-            tertiaryTitle={localize("WRONG_TEXT_TRY_AGAIN")}
+            title={t("OOPS")}
+            subTitle={t("SOMETHING_WENT_WRONG")}
+            tertiaryTitle={t("WRONG_TEXT_TRY_AGAIN")}
             Icon={
               <Icon
                 name='error-state'
@@ -2445,13 +2504,29 @@ export const CometChatMessageList = memo(
       // }, [messagesList]);
 
       const memoizedRenderItem = useCallback(
-        ({ item, index, separators }: any) => (
-          <View style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 8 }}>
-            <RenderMessageItem item={item} theme={mergedTheme} />
-            {itemSeparator()}
-          </View>
-        ),
-        [mergedTheme]
+        ({ item, index, separators }: any) => {
+          // index here is FlatList's index in messagesList (newest-first)
+          const showSeparator = showDateSeparatorAtIndex[index];
+          const ms = sentAtToMs(item) ?? Date.now();
+
+          return (
+            <View style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 8 }}>
+              {showSeparator && (
+                <View style={{ alignItems: "center", marginBottom: 8 }}>
+                  <CometChatDateSeparator
+                    timeStamp={ms}
+                    pattern={"dayDateFormat"}
+                    customDateString={getDayHeaderString(ms)}
+                    style={mergedTheme.messageListStyles.dateSeparatorStyle}
+                  />
+                </View>
+              )}
+              <RenderMessageItem item={item} theme={mergedTheme} idx={index} />
+              {itemSeparator()}
+            </View>
+          );
+        },
+        [mergedTheme, showDateSeparatorAtIndex, dateSeparatorPattern, messageDayKeys]
       );
 
       return (
@@ -2548,11 +2623,11 @@ export const CometChatMessageList = memo(
           )}
 
           <CometChatConfirmDialog
-            titleText={localize("DELETE_THIS_MESSAGE")}
+            titleText={t("DELETE_THIS_MESSAGE")}
             icon={<Icon name='delete' size={theme.spacing.spacing.s12} color={theme.color.error} />}
-            cancelButtonText={localize("CANCEL")}
-            confirmButtonText={localize("DELETE")}
-            messageText={localize("DELETE_MESSAGE_CONFIRM")}
+            cancelButtonText={t("CANCEL")}
+            confirmButtonText={t("DELETE")}
+            messageText={t("DELETE_MESSAGE_CONFIRM")}
             isOpen={showDeleteModal}
             // onDismiss={()=>console.log(deleteItem.current, "CometChatConfirmDialog  onDismiss")}
             onCancel={() => {

@@ -8,11 +8,13 @@ import {
   MentionsVisibility,
 } from "../../constants/UIKitConstants";
 import { CometChatUIEventHandler, CometChatUIEvents } from "../../events";
-import { localize } from "../../resources";
 import { SuggestionItem } from "../../views/CometChatSuggestionList";
 import { CometChatTextFormatter } from "../CometChatTextFormatter";
 import { CometChatTheme } from "../../../theme/type";
 import { deepMerge } from "../../helper/helperFunctions";
+import { getCometChatTranslation } from "../../resources/CometChatLocalizeNew/LocalizationManager";
+
+const t = getCometChatTranslation();
 
 /**
  * Represents the CometChatMentionsFormatter class.
@@ -569,8 +571,8 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
   }
 
   getErrorString() {
-    return `${localize("MENTION_UPTO")} ${this.limit} ${
-      this.limit === 1 ? localize("TIME") : localize("TIMES")
-    } ${localize("AT_A_TIME")}.`;
+    return `${t("MENTION_UPTO")} ${this.limit} ${
+      this.limit === 1 ? t("TIME") : t("TIMES")
+    } ${t("AT_A_TIME")}.`;
   }
 }

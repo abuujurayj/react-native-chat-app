@@ -1,27 +1,27 @@
-import {CometChat} from '@cometchat/chat-sdk-react-native';
-import React, {useCallback, useContext, useRef, useState} from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
+import React, { useCallback, useContext, useRef, useState } from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import {
   CometChatAvatar,
   CometChatConversations,
   CometChatUIKit,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
-import {AuthContext} from '../../../navigation/AuthContext';
+import { AuthContext } from '../../../navigation/AuthContext';
 import {
   useFocusEffect,
   useNavigation,
   CommonActions,
 } from '@react-navigation/native';
-import {TooltipMenu} from '../../../utils/TooltipMenu';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootStackParamList} from '../../../navigation/types';
+import { TooltipMenu } from '../../../utils/TooltipMenu';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../navigation/types';
 import AccountCircle from '../../../assets/icons/AccountCircle';
 import AddComment from '../../../assets/icons/AddComment';
 import InfoIcon from '../../../assets/icons/InfoIcon';
 import Logout from '../../../assets/icons/Logout';
-import {navigate, navigationRef} from '../../../navigation/NavigationService';
-import {AppConstants} from '../../../utils/AppConstants';
+import { navigate, navigationRef } from '../../../navigation/NavigationService';
+import { AppConstants } from '../../../utils/AppConstants';
 
 type ChatNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -30,9 +30,9 @@ type ChatNavigationProp = StackNavigationProp<
 
 const Conversations: React.FC<{}> = ({}) => {
   const theme = useTheme();
-  const {setIsLoggedIn: setLogout} = useContext(AuthContext);
+  const { setIsLoggedIn: setLogout } = useContext(AuthContext);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const tooltipPositon = React.useRef({pageX: 0, pageY: 0});
+  const tooltipPositon = React.useRef({ pageX: 0, pageY: 0 });
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const selectedConversation = useRef<CometChat.Conversation | null>(null);
   const navigation = useNavigation<ChatNavigationProp>();
@@ -78,7 +78,7 @@ const Conversations: React.FC<{}> = ({}) => {
       if (avatarContainerRef.current) {
         avatarContainerRef.current.measureInWindow((x, y, height) => {
           // Set tooltip position 10px below the avatar
-          tooltipPositon.current = {pageX: x, pageY: y + height};
+          tooltipPositon.current = { pageX: x, pageY: y + height };
         });
         selectedConversation.current = null;
         setTooltipVisible(true);
@@ -101,11 +101,9 @@ const Conversations: React.FC<{}> = ({}) => {
       return; // Exit if CometChat logout fails
     }
 
-
     // If all operations succeed, navigate to the LoginScreen
     setIsLoggingOut(false);
     setLogout(false);
-    // navigate('Login');
     navigationRef.dispatch(
       CommonActions.reset({
         index: 0,
@@ -120,7 +118,8 @@ const Conversations: React.FC<{}> = ({}) => {
         <TouchableOpacity
           onPress={() => {
             handleAvatarPress();
-          }}>
+          }}
+        >
           <CometChatAvatar
             style={{
               containerStyle: {
@@ -138,7 +137,7 @@ const Conversations: React.FC<{}> = ({}) => {
             }}
             image={
               loggedInUser?.getAvatar()
-                ? {uri: loggedInUser?.getAvatar()}
+                ? { uri: loggedInUser?.getAvatar() }
                 : undefined
             }
             name={loggedInUser?.getName() ?? ''}
@@ -149,8 +148,8 @@ const Conversations: React.FC<{}> = ({}) => {
   };
 
   return shouldHide ? null : (
-    <View style={{flex: 1}}>
-      <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <CometChatConversations
           {..._conversationsConfig}
           AppBarOptions={NewConversation}
@@ -164,7 +163,8 @@ const Conversations: React.FC<{}> = ({}) => {
           top: tooltipPositon.current.pageY,
           left: tooltipPositon.current.pageX,
           zIndex: 9999,
-        }}>
+        }}
+      >
         <TooltipMenu
           visible={tooltipVisible}
           onClose={() => {
@@ -186,7 +186,8 @@ const Conversations: React.FC<{}> = ({}) => {
                 <AddComment
                   height={24}
                   width={24}
-                  color={theme.color.textPrimary}></AddComment>
+                  color={theme.color.textPrimary}
+                ></AddComment>
               ),
               textColor: theme.color.textPrimary,
               iconColor: theme.color.textPrimary,
@@ -200,7 +201,8 @@ const Conversations: React.FC<{}> = ({}) => {
                 <AccountCircle
                   height={24}
                   width={24}
-                  color={theme.color.textPrimary}></AccountCircle>
+                  color={theme.color.textPrimary}
+                ></AccountCircle>
               ),
               textColor: theme.color.textPrimary,
               iconColor: theme.color.textPrimary,
@@ -214,7 +216,8 @@ const Conversations: React.FC<{}> = ({}) => {
                 <Logout
                   height={24}
                   width={24}
-                  color={theme.color.error}></Logout>
+                  color={theme.color.error}
+                ></Logout>
               ),
               textColor: theme.color.error,
               iconColor: theme.color.error,
@@ -226,7 +229,8 @@ const Conversations: React.FC<{}> = ({}) => {
                 <InfoIcon
                   height={24}
                   width={24}
-                  color={theme.color.textPrimary}></InfoIcon>
+                  color={theme.color.textPrimary}
+                ></InfoIcon>
               ),
             },
           ]}

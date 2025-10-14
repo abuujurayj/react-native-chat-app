@@ -32,7 +32,6 @@ import {
   CometChatListItemInterface,
   CometChatListStylesInterface,
   //Resources
-  CometChatLocalize,
   CometChatMediaRecorder,
   CometChatMediaRecorderInterface,
   CometChatMentionsFormatter,
@@ -77,10 +76,11 @@ import {
   SelectionMode,
   SuggestionItem,
   UIKitSettings,
-  localize,
   messageStatus,
   Icon,
   MenuItemInterface,
+  getCometChatTranslation,
+  getCurrentLanguage,
 } from "./shared";
 
 import {
@@ -158,6 +158,7 @@ import {
 
 import { CometChatMessageListProps as CometChatMessageListInterface } from "./CometChatMessageList";
 import { CometChatTheme } from "./theme/type";
+import { getLastSeenTime } from "./shared";
 export {
   CallUIEvents,
   CallingExtension,
@@ -201,7 +202,6 @@ export {
   //
   CometChatListItem,
   //
-  CometChatLocalize,
   CometChatMediaRecorder,
   /* Emoji Keyboard */
   /* Text Formatters */
@@ -249,13 +249,19 @@ export {
   SuggestionItem,
   ThumbnailGenerationExtension,
   UIKitSettings,
-  localize,
   messageStatus,
   Icon,
+  getCometChatTranslation,
+  getCurrentLanguage
 };
 export { CometChatThemeProvider, useTheme } from "./theme";
 
+export {CometChatI18nProvider,useCometChatTranslation} from "./shared/resources/CometChatLocalizeNew"
+export {localizedDateHelperInstance,LocalizedDateHelper} from "./shared/helper/LocalizedDateHelper"
+export { useLocalizedDate } from "./shared/helper/useLocalizedDateHook";
+
 export { CometChatMessageHeader } from "./CometChatMessageHeader";
+export {getLastSeenTime}
 
 export type {
   CometChatMessageComposerAction,

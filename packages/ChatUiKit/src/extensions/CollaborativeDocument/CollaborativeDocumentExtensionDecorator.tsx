@@ -18,13 +18,14 @@ import { ChatConfigurator, DataSource, DataSourceDecorator } from "../../shared/
 import { CometChatMessageComposerAction } from "../../shared/helper/types";
 import { Icon } from "../../shared/icons/Icon";
 import { CometChatMessageTemplate } from "../../shared/modals";
-import { localize } from "../../shared/resources/CometChatLocalize";
 import { getMessagePreviewInternal } from "../../shared/utils/MessageUtils";
 import { DEFAULT_ICONS } from "../../theme/default/resources/icons";
 import { CometChatTheme } from "../../theme/type";
 import { CometChatCollaborativeBubble } from "../CollaborativeBubble/CometChatCollaborativeBubble";
 import { ExtensionConstants, ExtensionTypeConstants } from "../ExtensionConstants";
 import { getExtensionData } from "../ExtensionModerator";
+import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager"
+const t = getCometChatTranslation();
 
 export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator {
   documentUrl: string = "v1/create";
@@ -56,7 +57,7 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
     ) {
       return getMessagePreviewInternal(
         "collaborative-document-fill",
-        localize("CUSTOM_MESSAGE_DOCUMENT"),
+        t("CUSTOM_MESSAGE_DOCUMENT"),
         { theme }
       );
     } else {
@@ -100,7 +101,7 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
     )
       attachmentOptions.push({
         id: "document",
-        title: localize("COLLABORATIVE_DOCUMENT"),
+        title: t("COLLABORATIVE_DOCUMENT"),
         icon: (
           <Icon
             name='collaborative-document-icon'
@@ -222,11 +223,11 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
 
         return (
           <CometChatCollaborativeBubble
-            title={localize("COLLABORATIVE_DOCUMENT")}
+            title={t("COLLABORATIVE_DOCUMENT")}
             titleStyle={_style?.titleStyle}
-            subtitle={localize("OPEN_DOCUMENT_TO_DRAW")}
+            subtitle={t("OPEN_DOCUMENT_TO_DRAW")}
             subtitleStyle={_style?.subtitleStyle}
-            buttonText={localize("OPEN_DOCUMENT")}
+            buttonText={t("OPEN_DOCUMENT")}
             icon={
               <Icon
                 name='collaborative-whiteboard-fill'

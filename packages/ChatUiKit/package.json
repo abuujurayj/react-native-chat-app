@@ -1,6 +1,6 @@
 {
   "name": "@cometchat/chat-uikit-react-native",
-  "version": "5.0.2",
+  "version": "5.1.2",
   "description": "Ready-to-use Chat UI Components for React Native",
   "main": "src/index",
   "module": "src/index",
@@ -39,11 +39,11 @@
     "Uikit",
     "SDK"
   ],
-  "repository": "https://github.com/cometchat-pro/cometchat-pro-react-native-ui-kit",
+  "repository": "https://github.com/cometchat/cometchat-uikit-react-native",
   "author": "Inscripts",
   "license": "https://www.cometchat.com/legal-terms-of-service",
   "bugs": {
-    "url": "https://github.com/cometchat-pro/cometchat-pro-react-native-ui-kit/issues"
+    "url": "https://github.com/cometchat/cometchat-uikit-react-native/issues"
   },
   "homepage": "https://www.cometchat.com",
   "publishConfig": {
@@ -66,6 +66,7 @@
   },
   "dependencies": {
     "@types/prop-types": "^15.7.14",
+    "dayjs": "^1.11.18",
     "prop-types": "^15.8.1"
   },
   "peerDependencies": {
@@ -75,7 +76,8 @@
     "react-native": "*",
     "react-native-gesture-handler": "*",
     "react-native-svg": "*",
-    "react-native-video": "*"
+    "react-native-video": "*",
+    "react-native-localize": "*"
   },
   "jest": {
     "preset": "react-native",
