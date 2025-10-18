@@ -1,0 +1,2 @@
+export { CometChatAIAssistantChatHistory } from "./CometChatAIAssistantChatHistory";
+

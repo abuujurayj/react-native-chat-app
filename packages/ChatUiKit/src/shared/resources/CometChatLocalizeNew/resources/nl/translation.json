@@ -452,5 +452,11 @@
     "MESSAGE_LIST_ACTION_UNBANNED": "${byName} heeft de verbanning van ${onName} opgeheven",
     "MESSAGE_LIST_ACTION_SCOPE_CHANGED": "${byName} heeft ${onName} ${role} gemaakt",
     "YOU_DONT_HAVE_STICKERS_YET": "Je hebt nog geen stickers.",
-    "meeting": "Vergadering"
+    "meeting": "Vergadering",
+    "NO_CONVERSATION_HISTORY_FOUND": "Geen gesprekshistorie gevonden",
+    "SOMETHING_WENT_WRONG_ON_OUR_END": "Er ging iets mis aan onze kant. Probeer het opnieuw.",
+    "START_A_CHAT": "Start een chat door op de knop 'Nieuwe chat' te tikken",
+    "CHAT_HISTORY": "Chatgeschiedenis",
+    "ASK_ANYTHING": "Vraag iets...",
+    "AI_ASSISTANT": "AI-assistent"
 }

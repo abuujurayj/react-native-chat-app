@@ -1507,7 +1507,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
       const withObj = conv.getConversationWith();
       const avatarURL = withObj instanceof CometChat.User ? withObj.getAvatar() : withObj.getIcon();
       const name = withObj.getName();
-
+      
       return (
         <>
           <CometChatAvatar
@@ -1526,19 +1526,45 @@ export const CometChatConversations = (props: ConversationInterface) => {
   );
 
   const TitleViewRaw = useCallback(
-    (conv: CometChat.Conversation) => (
-      <Text numberOfLines={1} ellipsizeMode='tail' style={mergedStyles.itemStyle.titleStyle}>
-        {conv.getConversationWith().getName()}
-      </Text>
-    ),
+    (conv: CometChat.Conversation) => {
+      const conversationWith = conv.getConversationWith();
+      const isAgentic = conversationWith instanceof CometChat.User && conversationWith.getRole() === "@agentic";
+
+      return (
+        <View style={[
+          { flex: 1 },
+          isAgentic ? { justifyContent: 'center' } : null
+        ]}>
+          <Text
+            numberOfLines={1}
+            ellipsizeMode='tail'
+            style={mergedStyles.itemStyle.titleStyle}
+          >
+            {conversationWith.getName()}
+          </Text>
+        </View>
+      );
+    },
     [mergedStyles]
   );
 
-  const SubtitleViewRaw = (conv: CometChat.Conversation) => (
-    <LastMessageView conversations={conv} typingText={conv?.["lastMessage"]?.["typing"]} />
-  );
+  const SubtitleViewRaw = (conv: CometChat.Conversation) => {
+    const conversationWith = conv.getConversationWith();
+    if (conversationWith instanceof CometChat.User && conversationWith.getRole() === "@agentic") {
+      return <></>;
+    }
+    return (
+      <LastMessageView conversations={conv} typingText={conv?.["lastMessage"]?.["typing"]} />
+    );
+  };
 
-  const TrailingViewRaw = useCallback((conv: CometChat.Conversation) => getTrailingView(conv), []);
+  const TrailingViewRaw = useCallback((conv: CometChat.Conversation) => {
+    const conversationWith = conv.getConversationWith();
+    if (conversationWith instanceof CometChat.User && conversationWith.getRole() === "@agentic") {
+      return <></>;
+    }
+    return getTrailingView(conv);
+  }, [getTrailingView]);
 
   return (
     <View style={mergedStyles.containerStyle}>

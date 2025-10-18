@@ -93,7 +93,7 @@ export const getMessageListStylesLight = (
 ): CometChatTheme["messageListStyles"] => {
   return {
     containerStyle: {
-      backgroundColor: color.background2,
+      backgroundColor: color.background3,
       flex: 1,
     },
     scrollToBottomButtonStyle: {
@@ -267,6 +267,42 @@ export const getMessageListStylesLight = (
         },
         dateReceiptContainerStyle: {
           paddingRight: spacing.padding.p1,
+        },
+      },
+      assistantBubbleStyles: {
+        containerStyle: {
+          backgroundColor: "transparent",
+          borderRadius: spacing.radius.r3,
+          minWidth: 90,
+          alignSelf: "flex-start",
+          marginTop: -16,
+        },
+        textStyle: {
+          fontFamily: typography.fontFamily,
+          color: color.receiveBubbleText,
+          ...typography.body.regular,
+        },
+        placeholderTextStyle: {
+          fontFamily: typography.fontFamily,
+          color: color.receiveBubbleText,
+          ...typography.body.regular,
+          opacity: 0.6,
+        },
+        copyButtonStyle: {
+          backgroundColor: color.primary,
+          padding: spacing.padding.p1,
+          borderRadius: spacing.radius.r1,
+        },
+        errorContainerStyle: {
+          backgroundColor: color.error,
+          padding: spacing.padding.p2,
+          borderRadius: spacing.radius.r2,
+          marginTop: spacing.margin.m1,
+        },
+        errorTextStyle: {
+          color: color.background1,
+          fontFamily: typography.fontFamily,
+          ...typography.caption1.regular,
         },
       },
       audioBubbleStyles: getAudioBubbleStyleLight(color, spacing, typography)
@@ -537,7 +573,7 @@ export const getMessageListStylesDark = (
 ): CometChatTheme["messageListStyles"] => {
   return {
     containerStyle: {
-      backgroundColor: color.background2,
+      backgroundColor: color.background3,
       flex: 1,
     },
     scrollToBottomButtonStyle: {
@@ -713,6 +749,42 @@ export const getMessageListStylesDark = (
         },
         dateReceiptContainerStyle: {
           paddingRight: spacing.padding.p1,
+        },
+      },
+      assistantBubbleStyles: {
+        containerStyle: {
+          backgroundColor: "transparent", 
+          borderRadius: spacing.radius.r3,
+          minWidth: 90,
+          alignSelf: "flex-start",
+          marginTop: -14,
+        },
+        textStyle: {
+          fontFamily: typography.fontFamily,
+          color: color.receiveBubbleText,
+          ...typography.body.regular,
+        },
+        placeholderTextStyle: {
+          fontFamily: typography.fontFamily,
+          color: color.receiveBubbleText,
+          ...typography.body.regular,
+          opacity: 0.6,
+        },
+        copyButtonStyle: {
+          backgroundColor: color.primary,
+          padding: spacing.padding.p1,
+          borderRadius: spacing.radius.r1,
+        },
+        errorContainerStyle: {
+          backgroundColor: color.error,
+          padding: spacing.padding.p2,
+          borderRadius: spacing.radius.r2,
+          marginTop: spacing.margin.m1,
+        },
+        errorTextStyle: {
+          color: color.background1,
+          fontFamily: typography.fontFamily,
+          ...typography.caption1.regular,
         },
       },
       audioBubbleStyles: getAudioBubbleStyleDark(color, spacing, typography)

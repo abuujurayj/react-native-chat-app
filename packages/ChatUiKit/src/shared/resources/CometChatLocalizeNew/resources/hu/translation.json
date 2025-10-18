@@ -453,5 +453,11 @@
 	"YOU_DONT_HAVE_STICKERS_YET": "Még nincsenek matricáid.",
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "Hanghívást kezdeményezett",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "Videohívást kezdeményezett",
-	"meeting": "Találkozó"
+	"meeting": "Találkozó",
+	"NO_CONVERSATION_HISTORY_FOUND": "Nincs beszélgetési előzmény",
+	"SOMETHING_WENT_WRONG_ON_OUR_END": "Valami hiba történt nálunk. Kérjük, próbálja újra",
+	"START_A_CHAT": "Kezdje el a csevegést a 'Új csevegés' gombra kattintva",
+	"CHAT_HISTORY": "Chat előzményei",
+	"ASK_ANYTHING": "Kérdezz bármit...",
+	"AI_ASSISTANT": "AI asszisztens"
 }

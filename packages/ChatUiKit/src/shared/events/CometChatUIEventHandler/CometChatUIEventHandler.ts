@@ -188,6 +188,9 @@ export class CometChatUIEventHandler {
         case listener._eventListener?.onMessagesReadByAll?.name:
           listener._eventListener?.onMessagesReadByAll?.(param);
           break;
+        case listener._eventListener?.onAIAssistantMessageReceived?.name:
+          listener._eventListener?.onAIAssistantMessageReceived?.(param);
+          break;
       }
     });
   }

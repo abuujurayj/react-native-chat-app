@@ -22,6 +22,7 @@ import {
   MessageOptionConstants,
   MessageTypeConstants,
 } from "../constants/UIKitConstants";
+import { CometChatUiKitConstants } from "../index";
 import { CometChatMessageComposerAction } from "../helper/types";
 import { Icon } from "../icons/Icon";
 import { CometChatMessageOption } from "../modals/CometChatMessageOption";
@@ -33,10 +34,13 @@ import { CometChatFileBubble } from "../views/CometChatFileBubble";
 import { CometChatImageBubble } from "../views/CometChatImageBubble";
 import { CometChatTextBubble } from "../views/CometChatTextBubble";
 import { CometChatVideoBubble } from "../views/CometChatVideoBubble";
+import CometChatAIAssistantMessageBubble from '../views/CometChatAIAssistantMessageBubble/CometChatAIAssistantMessageBubble';
+import CometChatStreamMessageBubble from '../views/CometChatStreamMessageBubble/CometChatStreamMessageBubble';
 import { ChatConfigurator } from "./ChatConfigurator";
 import { DataSource } from "./DataSource";
 import { CommonUtils } from "../utils/CommonUtils";
-import { DimensionValue, ViewStyle } from "react-native";
+import { DimensionValue, TouchableOpacity, ViewStyle } from "react-native";
+import Clipboard from "@react-native-clipboard/clipboard";
 import { getCometChatTranslation } from "../resources/CometChatLocalizeNew/LocalizationManager";
 
 const t = getCometChatTranslation();
@@ -90,6 +94,65 @@ function isDeletedMessage(message: CometChat.BaseMessage): boolean {
 }
 
 export class MessageDataSource implements DataSource {
+
+  // --- AI/Tool/Stream Bubble Implementations ---
+  getAgentAssistantMessageBubble(message: CometChat.BaseMessage, theme: CometChatTheme): JSX.Element {
+    return <CometChatAIAssistantMessageBubble message={message} theme={theme} />;
+  }
+
+  getStreamMessageBubble(message: CometChat.BaseMessage, theme: CometChatTheme): JSX.Element {
+    return <CometChatStreamMessageBubble key={message.getId() + message.getType()} message={message} theme={theme} />;
+  }
+
+  handleCopy = (message: CometChat.BaseMessage) => {
+    try {
+      let textToCopy = "";
+
+      if (isTextMessage(message)) {
+        textToCopy = message.getText();
+      } else {
+        const messageData = message as any;
+        textToCopy = messageData.data?.text ||
+          messageData.data?.content ||
+          messageData.text ||
+          messageData.content || "";
+      }
+
+      if (textToCopy?.trim()) {
+        Clipboard.setString(textToCopy);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+  getAgentAssistantMessageTemplate(theme: CometChatTheme): CometChatMessageTemplate {
+    return new CometChatMessageTemplate({
+      type: 'assistant',
+      category: 'agentic',
+      ContentView: (message: CometChat.BaseMessage) => 
+        this.getAgentAssistantMessageBubble(message, theme),
+
+      options: undefined,
+
+      FooterView: (message: CometChat.BaseMessage) => (
+        <TouchableOpacity onPress={() => this.handleCopy(message as CometChat.AIAssistantMessage)}>
+          <Icon name="ai-copy-option" width={24} height={24} containerStyle={{marginLeft: 10, marginBottom: -20}} color={theme.color.textSecondary} />
+        </TouchableOpacity>
+      ),
+    });
+  }
+
+  getStreamMessageTemplate(theme: CometChatTheme, additionalParams?: AdditionalParams): CometChatMessageTemplate {
+    return new CometChatMessageTemplate({
+      type: CometChatUiKitConstants.streamMessageTypes.run_started,
+      category: MessageCategoryConstants.stream,
+      ContentView: (message: CometChat.BaseMessage) => this.getStreamMessageBubble(message, theme),
+      options: undefined,
+      FooterView: undefined,
+    });
+  }
   getEditOption(theme: CometChatTheme): CometChatMessageOption {
     return {
       id: MessageOptionConstants.editMessage,
@@ -1349,6 +1412,7 @@ export class MessageDataSource implements DataSource {
       ChatConfigurator.dataSource.getFormMessageTemplate(theme, additionalParams),
       ChatConfigurator.dataSource.getSchedulerMessageTemplate(theme, additionalParams),
       ChatConfigurator.dataSource.getCardMessageTemplate(theme, additionalParams),
+      ChatConfigurator.dataSource.getAgentAssistantMessageTemplate(theme, additionalParams),
     ];
   }
 
@@ -1390,8 +1454,13 @@ export class MessageDataSource implements DataSource {
       case MessageTypeConstants.card:
         template = ChatConfigurator.dataSource.getCardMessageTemplate(theme, additionalParams);
         break;
+      case MessageTypeConstants.assistant:
+        template = ChatConfigurator.dataSource.getAgentAssistantMessageTemplate(theme, additionalParams);
+        break;
+      default:
+        return null;
     }
-    return null;
+    return template;
   }
 
   getAllMessageTypes(): string[] {
@@ -1406,6 +1475,7 @@ export class MessageDataSource implements DataSource {
       MessageTypeConstants.form,
       MessageTypeConstants.card,
       MessageTypeConstants.scheduler,
+      MessageTypeConstants.assistant
     ];
   }
   getAllMessageCategories(): string[] {
@@ -1413,6 +1483,7 @@ export class MessageDataSource implements DataSource {
       MessageCategoryConstants.message,
       MessageCategoryConstants.action,
       MessageCategoryConstants.interactive,
+      MessageCategoryConstants.agentic
     ];
   }
   getAuxiliaryOptions(
@@ -1769,3 +1840,5 @@ export class MessageDataSource implements DataSource {
     return new CometChatUrlsFormatter(loggedInUser);
   }
 }
+//for internal use only
+export const internalMessageDataSource = new MessageDataSource();

@@ -452,6 +452,11 @@
 	"MESSAGE_LIST_ACTION_UNBANNED": "${byName} ने ${onName} का प्रतिबंध हटाया",
 	"MESSAGE_LIST_ACTION_SCOPE_CHANGED": "${byName} ने ${onName} को ${role} बनाया",
 	"YOU_DONT_HAVE_STICKERS_YET": "आपके पास अभी तक कोई स्टिकर नहीं है।",
-	"meeting": "मीटिंग"
-
+	"meeting": "मीटिंग",
+	"NO_CONVERSATION_HISTORY_FOUND": "कोई बातचीत का इतिहास नहीं मिला",
+	"SOMETHING_WENT_WRONG_ON_OUR_END": "हमारी ओर से कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
+	"START_A_CHAT": "'नई चैट' बटन पर टैप करके चैट शुरू करें।",
+	"CHAT_HISTORY": "चैट इतिहास",
+	"ASK_ANYTHING": "कुछ भी पूछें...",
+	"AI_ASSISTANT": "एआई सहायक"
 }

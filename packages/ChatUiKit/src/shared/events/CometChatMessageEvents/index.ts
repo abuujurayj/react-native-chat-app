@@ -31,7 +31,9 @@ export class CometChatMessageEvents {
   static previewMessageForEdit = Symbol("previewMessageForEdit");
 
   static onBackButtonClick = Symbol("onBackButtonClick");
-
+  static onAIAssistantMessageReceived = Symbol("onAIAssistantMessageReceived");
+  static onAIToolResultReceived = Symbol("onAIToolResultReceived");
+  static onAIToolArgumentsReceived = Symbol("onAIToolArgumentsReceived");
   static _triggers = {};
 
   static emit = (...args) => {

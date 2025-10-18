@@ -1,6 +1,6 @@
 {
   "name": "@cometchat/chat-uikit-react-native",
-  "version": "5.1.2",
+  "version": "5.2.0",
   "description": "Ready-to-use Chat UI Components for React Native",
   "main": "src/index",
   "module": "src/index",
@@ -66,8 +66,11 @@
   },
   "dependencies": {
     "@types/prop-types": "^15.7.14",
+    "prop-types": "^15.8.1",
+    "react-native-markdown-display": "^7.0.2",
+    "rxjs": "^7.8.2",
     "dayjs": "^1.11.18",
-    "prop-types": "^15.8.1"
+    "react-native-localize": "^3.5.2"
   },
   "peerDependencies": {
     "@cometchat/chat-sdk-react-native": "*",

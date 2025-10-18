@@ -453,5 +453,11 @@
 	"MESSAGE_LIST_ACTION_UNBANNED": "${byName} hat die Verbannung von ${onName} aufgehoben",
 	"MESSAGE_LIST_ACTION_SCOPE_CHANGED": "${byName} hat ${onName} zum ${role} ernannt",
 	"YOU_DONT_HAVE_STICKERS_YET": "Du hast noch keine Sticker.",
-	"meeting": "Besprechung"
+	"meeting": "Besprechung",
+	"NO_CONVERSATION_HISTORY_FOUND": "Kein Gesprächsverlauf gefunden",
+	"SOMETHING_WENT_WRONG_ON_OUR_END": "Etwas ist schief gelaufen. Bitte versuchen Sie es erneut",
+	"START_A_CHAT": "Beginnen Sie einen Chat, indem Sie auf die Schaltfläche 'Neuer Chat' tippen",
+	"CHAT_HISTORY": "Chat-Verlauf",
+	"ASK_ANYTHING": "Frag etwas...",
+	"AI_ASSISTANT": "AI-Assistent"
 }

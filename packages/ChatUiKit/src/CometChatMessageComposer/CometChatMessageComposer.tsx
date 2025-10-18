@@ -16,6 +16,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+import { startStreamingForRunId, stopStreamingForRunId, streamingState$ } from "../shared/services/stream-message.service";
 import {
   CometChatActionSheet,
   CometChatBottomSheet,
@@ -46,6 +47,7 @@ import { MessageEvents } from "../shared/events";
 import { CometChatUIEventHandler } from "../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
 import { CometChatMessageComposerAction, DeepPartial } from "../shared/helper/types";
 import { Icon } from "../shared/icons/Icon";
+import { CometChatSendButtonView } from "../shared/views/CometChatSendButtonView/CometChatSendButtonView";
 import {
   getUnixTimestampInMilliseconds,
   messageStatus,
@@ -431,6 +433,13 @@ export interface CometChatMessageComposerInterface {
    * @default "left"
    */
   auxiliaryButtonsAlignment?: "left" | "right";
+  /**
+   * Custom send button view for AI agents (only applies to @agentic users)
+   */
+  AgentSendButtonView?: React.ComponentType<{
+    isButtonDisabled: boolean;
+    composerRef: any;
+  }>;
 }
 
 export const CometChatMessageComposer = React.forwardRef(
@@ -446,7 +455,7 @@ export const CometChatMessageComposer = React.forwardRef(
       group,
       disableSoundForOutgoingMessages = true,
       customSoundForOutgoingMessage,
-      disableTypingEvents,
+      disableTypingEvents: propDisableTypingEvents,
       initialComposertext,
       HeaderView,
       onTextChange,
@@ -457,10 +466,10 @@ export const CometChatMessageComposer = React.forwardRef(
       style = {},
       onSendButtonPress,
       onError,
-      hideVoiceRecordingButton,
+      hideVoiceRecordingButton: propHideVoiceRecordingButton,
       keyboardAvoidingViewProps,
       textFormatters,
-      disableMentions,
+      disableMentions: propDisableMentions,
       imageQuality = 20,
       hideCameraOption = false,
       hideImageAttachmentOption = false,
@@ -470,19 +479,45 @@ export const CometChatMessageComposer = React.forwardRef(
       hidePollsAttachmentOption = false,
       hideCollaborativeDocumentOption = false,
       hideCollaborativeWhiteboardOption = false,
-      hideAttachmentButton = false,
-      hideStickersButton = false,
+      hideAttachmentButton: propHideAttachmentButton = false,
+      hideStickersButton: propHideStickersButton = false,
       hideSendButton = false,
       hideAuxiliaryButtons = false,
       addAttachmentOptions,
       auxiliaryButtonsAlignment = "left",
+      AgentSendButtonView,
     } = props;
 
+    // Helper function to check if user is agentic
+    const isAgenticUser = useCallback(() => {
+      return user?.getRole?.() === '@agentic';
+    }, [user]);
+
+    // Apply automatic hiding for @agentic users
+    const disableTypingEvents = isAgenticUser() ? true : propDisableTypingEvents;
+    const disableMentions = isAgenticUser() ? true : propDisableMentions;
+    const hideAttachmentButton = isAgenticUser() ? true : propHideAttachmentButton;
+    const hideStickersButton = isAgenticUser() ? true : propHideStickersButton;
+    const hideVoiceRecordingButton = isAgenticUser() ? true : propHideVoiceRecordingButton;
+
     const composerIdMap = new Map().set("parentMessageId", parentMessageId);
+    const parentMessageIdRef = useRef<string | null>(null);
 
     const mergedComposerStyle: CometChatTheme["messageComposerStyles"] = useMemo(() => {
-      return deepMerge(theme.messageComposerStyles, style);
-    }, [theme, style]);
+      const mergedStyle = deepMerge(theme.messageComposerStyles, style);
+      if (isAgenticUser()) {
+        return {
+          ...mergedStyle,
+          messageInputStyles: {
+            ...mergedStyle.messageInputStyles,
+            dividerStyle: {
+              display: 'none'
+            }
+          }
+        };
+      }
+      return mergedStyle;
+    }, [theme, style, isAgenticUser]);
 
     const defaultAuxiliaryButtonOptions = useMemo(() => {
       if (hideAuxiliaryButtons) return [];
@@ -515,6 +550,15 @@ export const CometChatMessageComposer = React.forwardRef(
     const [inputMessage, setInputMessage] = React.useState<string | JSX.Element>(
       initialComposertext || ""
     );
+    const [isStreaming, setIsStreaming] = React.useState(false);
+
+    useEffect(() => {
+      const sub = streamingState$.subscribe((streaming) => {
+        setIsStreaming(streaming);
+        if (!streaming) setShowStopButton(false);
+      });
+      return () => sub.unsubscribe();
+    }, []);
     const [showActionSheet, setShowActionSheet] = React.useState(false);
     const [showRecordAudio, setShowRecordAudio] = React.useState(false);
     const [actionSheetItems, setActionSheetItems] = React.useState<any[]>([]);
@@ -533,9 +577,15 @@ export const CometChatMessageComposer = React.forwardRef(
     const [originalText, setOriginalText] = React.useState<string>("");
     const [hasEdited, setHasEdited] = React.useState<boolean>(false);
     const [plainText, setPlainText] = React.useState(initialComposertext ?? "");
-
     const bottomSheetRef = React.useRef<any>(null);
-
+    const [showStopButton, setShowStopButton] = React.useState(false);
+    
+    // Reset streaming state when component mounts 
+    useEffect(() => {
+      setShowStopButton(false);
+      setIsStreaming(false);
+    }, []);
+    
     useLayoutEffect(() => {
       if (Platform.OS === "ios") {
         if (Number.isInteger(commonVars.safeAreaInsets.top)) {
@@ -559,6 +609,18 @@ export const CometChatMessageComposer = React.forwardRef(
      */
     React.useImperativeHandle(ref, () => ({
       previewMessageForEdit: previewMessage,
+      sendTextMessage,
+      getText: () => messageInputRef.current?.getText?.() ?? "",
+      clear: () => messageInputRef.current?.clear?.(),
+      resetStreaming: () => {
+        setShowStopButton(false);
+        setIsStreaming(false);
+        try {
+          stopStreamingForRunId();
+        } catch (error) {
+          console.log(error);
+        }
+      }
     }));
 
     useLayoutEffect(() => {
@@ -741,6 +803,7 @@ export const CometChatMessageComposer = React.forwardRef(
     };
 
     const sendTextMessage = () => {
+        setShowStopButton(true);
       //ignore sending new message
       if (messagePreview != null) {
         editMessage(messagePreview.message);
@@ -748,10 +811,8 @@ export const CometChatMessageComposer = React.forwardRef(
       }
 
       let finalTextInput = getRegexString(plainTextInput.current);
-      // Trim the trailing spaces and store in a variable
       let trimmedTextInput = finalTextInput.trim();
 
-      // Create the text message with the trimmed text
       let textMessage = new CometChat.TextMessage(
         chatWithId.current,
         trimmedTextInput,
@@ -763,7 +824,11 @@ export const CometChatMessageComposer = React.forwardRef(
       // Use the trimmed text here as well
       textMessage.setText(trimmedTextInput);
       textMessage.setMuid(String(getUnixTimestampInMilliseconds()));
-      parentMessageId && textMessage.setParentMessageId(parentMessageId as number);
+      const currentParentId = parentMessageId || (isAgenticUser() ? parentMessageIdRef.current : null);
+
+      if (currentParentId) {
+        textMessage.setParentMessageId(currentParentId as number);
+      }
 
       allFormatters.current.forEach((item) => {
         textMessage = item.handlePreMessageSend(textMessage);
@@ -792,6 +857,16 @@ export const CometChatMessageComposer = React.forwardRef(
 
       CometChat.sendMessage(textMessage)
         .then((message: any) => {
+          if (isAgenticUser() && !parentMessageId && message?.getId) {
+            const messageId = typeof message.getId() === 'string' ? Number(message.getId()) : message.getId();
+            if (!isNaN(messageId) && !parentMessageIdRef.current) {
+              parentMessageIdRef.current = messageId;
+            }
+            if (messageId && !isNaN(messageId)) {
+              startStreamingForRunId(String(messageId));
+            }
+          }
+
           CometChatUIEventHandler.emitMessageEvent(MessageEvents.ccMessageSent, {
             message: message,
             status: messageStatus.success,
@@ -1019,18 +1094,27 @@ export const CometChatMessageComposer = React.forwardRef(
     };
 
     const voiceRecoringButtonElem = useMemo(() => {
-      return hideVoiceRecordingButton ? undefined : (
+      const isAgenticUser = user?.getRole?.() === '@agentic';
+      
+      return (hideVoiceRecordingButton || isAgenticUser) ? undefined : (
         <RecordAudioButtonView
           icon={mergedComposerStyle.voiceRecordingIcon as ImageSourcePropType | JSX.Element}
           iconStyle={mergedComposerStyle.voiceRecordingIconStyle as ImageStyle}
         />
       );
-    }, [hideVoiceRecordingButton, mergedComposerStyle]);
+    }, [hideVoiceRecordingButton, mergedComposerStyle, user]);
 
     const AuxiliaryButtonViewElem = useCallback(() => {
+      const isAgenticUser = user?.getRole?.() === '@agentic';
+      
       if (AuxiliaryButtonView)
         return <AuxiliaryButtonView user={user} group={group} composerId={id!} />;
-      else if (defaultAuxiliaryButtonOptions)
+      
+      if (isAgenticUser) {
+        return <></>;
+      }
+      
+      if (defaultAuxiliaryButtonOptions)
         return (
           <View
             style={{
@@ -1044,12 +1128,44 @@ export const CometChatMessageComposer = React.forwardRef(
         );
 
       return <></>;
-    }, [defaultAuxiliaryButtonOptions]);
+    }, [defaultAuxiliaryButtonOptions, user, AuxiliaryButtonView, group, id, theme]);
+
+    const DefaultAgentSendButtonView = useCallback(
+      ({ isButtonDisabled, composerRef }: { isButtonDisabled: boolean; composerRef: any }) => (
+        <CometChatSendButtonView
+          isButtonDisabled={isButtonDisabled}
+          composerRef={composerRef}
+          isStreaming={isStreaming}
+          showStopButton={showStopButton}
+          setShowStopButton={setShowStopButton}
+        />
+      ),
+      [isStreaming, showStopButton]
+    );
 
     const SendButtonViewElem = useCallback(() => {
       if (hideSendButton) return <></>;
+      
+      const isAgenticUserCheck = isAgenticUser();
+      
+      if (isAgenticUserCheck) {
+        const disabled = isStreaming || plainText.trim().length === 0 || (messagePreview && !hasEdited);
+        const SendButtonComponent =  DefaultAgentSendButtonView;
+        // Create a ref-like object that matches what CometChatSendButtonView expects
+        const composerRef = {
+          current: {
+            sendTextMessage: () => {
+              if (!disabled) {
+                sendTextMessage();
+              }
+            }
+          }
+        };
+        return <SendButtonComponent isButtonDisabled={disabled} composerRef={composerRef} />;
+      }
+      
       if (SendButtonView) return <SendButtonView user={user} group={group} composerId={id!} />;
-      const disabled = plainText.trim().length === 0 || (messagePreview && !hasEdited);
+      const disabled = isStreaming || plainText.trim().length === 0 || (messagePreview && !hasEdited);
       return (
         <TouchableOpacity
           onPress={sendTextMessage}
@@ -1076,7 +1192,7 @@ export const CometChatMessageComposer = React.forwardRef(
           />
         </TouchableOpacity>
       );
-    }, [mergedComposerStyle, inputMessage, plainText, messagePreview, hasEdited]);
+    }, [mergedComposerStyle, inputMessage, plainText, messagePreview, hasEdited, isStreaming, DefaultAgentSendButtonView, user, isAgenticUser, sendTextMessage, hideSendButton, SendButtonView]);
 
     //fetch logged in user
     useEffect(() => {
@@ -1278,6 +1394,8 @@ export const CometChatMessageComposer = React.forwardRef(
 
           inputValueRef.current = text?.text;
           setInputMessage(text?.text);
+          plainTextInput.current = text?.text || "";
+          setPlainText(text?.text || "");
         },
         ccSuggestionData(item: { id: string | number; data: Array<SuggestionItem> }) {
           if (activeCharacter.current && id === item?.id) {
@@ -1964,7 +2082,7 @@ export const CometChatMessageComposer = React.forwardRef(
             <CometChatMessageInput
               messageInputRef={messageInputRef}
               text={inputMessage as string}
-              placeHolderText={t("ENTER_YOUR_MESSAGE_HERE")}
+              placeHolderText={isAgenticUser()? t("ASK_ANYTHING") : t("ENTER_YOUR_MESSAGE_HERE")}
               style={mergedComposerStyle.messageInputStyles}
               onSelectionChange={({ nativeEvent: { selection } }) => {
                 setSelectionPosition(selection);

@@ -157,6 +157,8 @@ export const MessageCategoryConstants = {
   action: CometChat.CATEGORY_ACTION,
   call: CometChat.CATEGORY_CALL,
   interactive: CometChat.CATEGORY_INTERACTIVE,
+  agentic: CometChat.CATEGORY_AGENTIC,
+  stream: "stream_message",
 };
 
 export const DefaultActionSheetItems = {
@@ -190,7 +192,22 @@ export const MessageTypeConstants = {
   form: "form",
   card: "card",
   customInteractive: "customInteractive",
+  assistant: CometChat.MESSAGE_TYPE.ASSISTANT,
+  toolArguments: CometChat.MESSAGE_TYPE.TOOL_ARGUMENTS,
+  toolResults: CometChat.MESSAGE_TYPE.TOOL_RESULT,
 };
+
+export const streamMessageTypes = {
+  run_started: CometChat.AI_ASSISTANT_EVENTS.RUN_STARTED,
+  text_message_start: CometChat.AI_ASSISTANT_EVENTS.TEXT_MESSAGE_START,
+  text_message_content: CometChat.AI_ASSISTANT_EVENTS.TEXT_MESSAGE_CONTENT,
+  text_message_end: CometChat.AI_ASSISTANT_EVENTS.TEXT_MESSAGE_END,
+  run_finished: CometChat.AI_ASSISTANT_EVENTS.RUN_FINISHED,
+  tool_call_start: CometChat.AI_ASSISTANT_EVENTS.TOOL_CALL_STARTED,
+  tool_call_end: CometChat.AI_ASSISTANT_EVENTS.TOOL_CALL_ENDED,
+  tool_call_args: CometChat.AI_ASSISTANT_EVENTS.TOOL_CALL_ARGUMENT,
+  tool_call_result: CometChat.AI_ASSISTANT_EVENTS.TOOL_CALL_RESULT
+}
 
 export const ReceiverTypeConstants = {
   user: CometChat.RECEIVER_TYPE.USER,

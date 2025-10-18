@@ -452,5 +452,11 @@
     "MESSAGE_LIST_ACTION_UNBANNED": "${byName}님이 ${onName}님의 차단을 해제했습니다",
     "MESSAGE_LIST_ACTION_SCOPE_CHANGED": "${byName}님이 ${onName}님을 ${role} 역할로 설정했습니다",
     "YOU_DONT_HAVE_STICKERS_YET": "아직 스티커가 없습니다.",
-    "meeting": "회의"
+    "meeting": "회의",
+    "NO_CONVERSATION_HISTORY_FOUND": "대화 기록이 없습니다",
+    "SOMETHING_WENT_WRONG_ON_OUR_END": "우리 측에서 문제가 발생했습니다. 다시 시도해주세요",
+    "START_A_CHAT": "'새로운 채팅' 버튼을 눌러 채팅을 시작하세요",
+    "CHAT_HISTORY": "채팅 기록",
+    "ASK_ANYTHING": "무엇이든 물어보세요...",
+    "AI_ASSISTANT": "AI 어시스턴트"
 }

@@ -83,6 +83,11 @@ import {
   getCurrentLanguage,
 } from "./shared";
 
+import { stopStreamingForRunId, startStreamingForRunId, streamingState$, getStreamSpeed, setAIAssistantTools, setQueueCompletionCallback, removeQueueCompletionCallback, IStreamData,QueueCompletionCallback,checkAndTriggerQueueCompletion, getAIAssistantTools, handleWebsocketMessage, messageStream, notifyStreamRenderComplete, onConnected, onConnectionError, onDisconnected, setStreamSpeed, storeAIAssistantMessage, streamConnection$ } from "./shared/services/stream-message.service";
+
+import  { StreamMessage}  from "./shared/modals/StreamMessage";
+import {CometChatAIAssistantTools} from "./shared/modals/CometChatAIAssistantTools";
+
 import {
   CometChatUsers,
   CometChatUsersActionsInterface,
@@ -113,6 +118,8 @@ import {
   CometChatMessageComposer,
   CometChatMessageComposerInterface,
 } from "./CometChatMessageComposer";
+
+import { CometChatAIAssistantChatHistory } from "./CometChatAIAssistantChatHistory";
 
 import { CometChatThreadHeader, CometChatThreadHeaderInterface } from "./CometChatThreadHeader";
 
@@ -196,6 +203,7 @@ export {
   CometChatGroups,
   CometChatGroupsEvents,
   CometChatGroupMembers,
+  CometChatAIAssistantChatHistory,
   CometChatImageBubble,
   CometChatIncomingCall,
   //
@@ -252,7 +260,29 @@ export {
   messageStatus,
   Icon,
   getCometChatTranslation,
-  getCurrentLanguage
+  getCurrentLanguage,
+  CometChatAIAssistantTools,
+  StreamMessage,
+  stopStreamingForRunId,
+  startStreamingForRunId,
+  streamingState$,
+  getStreamSpeed,
+  setAIAssistantTools,
+  setQueueCompletionCallback,
+  removeQueueCompletionCallback,
+  IStreamData,
+  QueueCompletionCallback,
+  checkAndTriggerQueueCompletion,
+  getAIAssistantTools,
+  handleWebsocketMessage,
+  messageStream,
+  notifyStreamRenderComplete,
+  onConnected,
+  onConnectionError,
+  onDisconnected,
+  setStreamSpeed,
+  storeAIAssistantMessage,
+  streamConnection$
 };
 export { CometChatThemeProvider, useTheme } from "./theme";
 

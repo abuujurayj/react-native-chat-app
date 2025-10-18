@@ -109,7 +109,8 @@ export interface DataSource {
     theme: CometChatTheme
   ): JSX.Element;
   getGroupActionBubble(message: CometChat.BaseMessage, theme: CometChatTheme): JSX.Element | null;
-
+  getAgentAssistantMessageBubble: (message: CometChat.BaseMessage, theme: CometChatTheme) => JSX.Element;
+  getAgentAssistantMessageTemplate: (theme: CometChatTheme, additionalParams?: AdditionalParams) => CometChatMessageTemplate;
   //content views
   getTextMessageContentView(
     message: CometChat.BaseMessage,
@@ -167,7 +168,8 @@ export interface DataSource {
     messageType: string,
     MessageCategory: string,
     theme: CometChatTheme,
-    additionalParams?: AdditionalParams
+    additionalParams?: AdditionalParams,
+    message?: CometChat.BaseMessage
   ): CometChatMessageTemplate | null;
   getGroupActionTemplate(
     theme: CometChatTheme,

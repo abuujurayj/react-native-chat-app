@@ -158,6 +158,13 @@ export class DataSourceDecorator implements DataSource {
     return this.dataSource.getGroupActionBubble(message, theme);
   }
 
+    getAgentAssistantMessageBubble(message: CometChat.BaseMessage, theme: CometChatTheme): JSX.Element {
+    return this.dataSource.getAgentAssistantMessageBubble(message, theme);
+  }
+  getAgentAssistantMessageTemplate(theme: CometChatTheme, additionalParams?: AdditionalParams): CometChatMessageTemplate {
+    return this.dataSource.getAgentAssistantMessageTemplate(theme, additionalParams);
+  }
+
   getTextMessageContentView(
     message: CometChat.BaseMessage,
     alignment: MessageBubbleAlignmentType,
@@ -245,9 +252,10 @@ export class DataSourceDecorator implements DataSource {
     messageType: string,
     MessageCategory: string,
     theme: CometChatTheme,
-    additionalParams?: AdditionalParams
+    additionalParams?: AdditionalParams,
+    message?: CometChat.BaseMessage
   ): CometChatMessageTemplate | null {
-    return this.dataSource.getMessageTemplate(messageType, MessageCategory, theme, additionalParams);
+    return this.dataSource.getMessageTemplate(messageType, MessageCategory, theme, additionalParams, message);
   }
 
   getGroupActionTemplate(theme: CometChatTheme): CometChatMessageTemplate {

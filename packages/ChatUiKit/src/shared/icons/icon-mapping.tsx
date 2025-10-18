@@ -255,6 +255,7 @@ import SubdirectoryArrowLeft from "./components/subdirectory-arrow-left";
 import SubdirectoryArrowLeftFill from "./components/subdirectory-arrow-left-fill";
 import SubdirectoryArrowRight from "./components/subdirectory-arrow-right";
 import SubdirectoryArrowRightFill from "./components/subdirectory-arrow-right-fill";
+import rightArrow from "./components/right-arrow";
 import Sunny from "./components/sunny";
 import SunnyFill from "./components/sunny-fill";
 import Symbols from "./components/symbols";
@@ -305,6 +306,11 @@ import TextFileType from "./components/text-file-type";
 import UnknownFileType from "./components/unknown-file-type";
 import VideoFileType from "./components/video-file-type";
 import ZipFileType from "./components/zip-file-type";
+import AISendButton from "./components/ai-send-button";
+import AINewChatButton from "./components/ai-new-chat";
+import AIChatHistory from "./components/ai-chat-history";
+import AICopyOption from "./components/ai-copy-option";
+
 
 /**************************************** */
 
@@ -556,6 +562,7 @@ export const ICONS = {
   "subdirectory-arrow-left-fill": SubdirectoryArrowLeftFill,
   "subdirectory-arrow-right": SubdirectoryArrowRight,
   "subdirectory-arrow-right-fill": SubdirectoryArrowRightFill,
+  "right-arrow": rightArrow,
   sunny: Sunny,
   "sunny-fill": SunnyFill,
   "thumb-down": ThumbDown,
@@ -617,4 +624,11 @@ export const ICONS = {
   "document-file-type": DocumentFileType,
   "zip-file-type": ZipFileType,
   /***************************************/
+
+  /******AI Agent Icons******/
+  "ai-send-button": AISendButton,
+  "ai-new-chat": AINewChatButton,
+  "ai-chat-history": AIChatHistory,
+  "ai-copy-option": AICopyOption,
+
 } as const;

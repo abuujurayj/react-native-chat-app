@@ -452,5 +452,11 @@
     "MESSAGE_LIST_ACTION_UNBANNED": "${byName}が${onName}の禁止を解除しました",
     "MESSAGE_LIST_ACTION_SCOPE_CHANGED": "${byName}が${onName}を${role}にしました",
     "YOU_DONT_HAVE_STICKERS_YET": "まだスタンプがありません。",
-    "meeting": "ミーティング"
+    "meeting": "ミーティング",
+    "NO_CONVERSATION_HISTORY_FOUND": "チャット履歴が見つかりません",
+    "SOMETHING_WENT_WRONG_ON_OUR_END": "当社側で問題が発生しました。もう一度試してください",
+    "START_A_CHAT": "'新しいチャット' ボタンをタップしてチャットを開始します",
+    "CHAT_HISTORY": "チャット履歴",
+    "ASK_ANYTHING": "何でも聞いてください...",
+    "AI_ASSISTANT": "AIアシスタント"
 }

@@ -61,7 +61,7 @@ export const Icon = (props: IconProps) => {
       return (
         <View style={[containerStyle]}>
           <IconComponent
-            color={color}
+            color={color as any}
             height={typeof height === "number" ? height : (size as number)}
             width={typeof width === "number" ? width : (size as number)}
           />

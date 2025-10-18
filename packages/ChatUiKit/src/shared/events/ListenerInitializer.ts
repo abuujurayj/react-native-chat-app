@@ -2,11 +2,13 @@ import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { MessageTypeConstants } from "../constants/UIKitConstants";
 import { CometChatUIEventHandler } from "./CometChatUIEventHandler/CometChatUIEventHandler";
 import { MessageEvents } from "./messages";
+import * as CometChatUIKitConstants from '../constants/UIKitConstants';
 
 export class ListenerInitializer {
   private static messageListenerId = `ListenerInitializer_listener`;
+    static streamListenerId: string = "agent_" + new Date().getTime();
 
-  public static attachListeners() {
+  public static attachListeners(user?: CometChat.User) {
     CometChat.addMessageListener(this.messageListenerId, this.getMessageListenerObject());
   }
 
@@ -83,6 +85,9 @@ export class ListenerInitializer {
       onMessageReactionRemoved: (message: CometChat.ReactionEvent) => {
         CometChatUIEventHandler.emitMessageEvent(MessageEvents.onMessageReactionRemoved, message);
       },
+      onAIAssistantMessageReceived: (message: CometChat.AIAssistantMessage) => {
+        CometChatUIEventHandler.emitMessageEvent(MessageEvents.onAIAssistantMessageReceived, message);
+      }
     });
   }
 }

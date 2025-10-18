@@ -453,5 +453,11 @@
 	"YOU_DONT_HAVE_STICKERS_YET": "Jūs dar neturite jokių lipdukų.",
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "Hai avviato una chiamata audio",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "Hai avviato una videochiamata",
-	"meeting": "Susitikimas"
+	"meeting": "Susitikimas",
+	"NO_CONVERSATION_HISTORY_FOUND": "Pokalbių istorija nerasta",
+    "SOMETHING_WENT_WRONG_ON_OUR_END": "Kažkas nepavyko iš mūsų pusės. Pabandykite dar kartą.",
+    "START_A_CHAT": "Pradėkite pokalbį paspaudę „Naujas pokalbis“ mygtuką",
+	"CHAT_HISTORY": "Pokalbių istorija",
+	"ASK_ANYTHING": "Klauskite bet ko...",
+	"AI_ASSISTANT": "AI asistentas"
 }

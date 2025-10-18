@@ -1,10 +1,11 @@
 import React, { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View, Modal, ScrollView } from "react-native";
 import { ChatConfigurator, getLastSeenTime } from "../shared";
 import { listners } from "./listners";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import { GroupTypeConstants, UserStatusConstants } from "../shared/constants/UIKitConstants";
 import { CometChatUIEventHandler } from "../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
+import { CometChatUIEvents } from "../shared/events/CometChatUIEvents";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import { Icon } from "../shared/icons/Icon";
 import { CometChatAvatar } from "../shared/views/CometChatAvatar";
@@ -14,6 +15,7 @@ import { MessageHeaderStyle } from "./styles";
 import { CommonUtils } from "../shared/utils/CommonUtils";
 import { DeepPartial } from "../shared/helper/types";
 import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
+import { CometChatAIAssistantChatHistory } from "../CometChatAIAssistantChatHistory/CometChatAIAssistantChatHistory";
 
 export type CometChatMessageHeaderInterface = {
   /**
@@ -100,6 +102,22 @@ export type CometChatMessageHeaderInterface = {
    * toggle visibilty of user status.
    */
   usersStatusVisibility?: boolean;
+  /**
+   * Flag to hide the new chat button for AI agents (only applies to @agentic users)
+   */
+  hideNewChatButton?: boolean;
+  /**
+   * Flag to hide the chat history button for AI agents (only applies to @agentic users)
+   */
+  hideChatHistoryButton?: boolean;
+  /**
+   * Callback when agent new chat button is clicked (only applies to @agentic users)
+   */
+  onNewChatButtonClick?: () => void;
+  /**
+   * Callback when agent chat history button is clicked (only applies to @agentic users)
+   */
+  onChatHistoryButtonClick?: () => void;
 };
 
 interface Translations {
@@ -132,15 +150,26 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
     hideVoiceCallButton = false,
     hideVideoCallButton = false,
     usersStatusVisibility = true,
+    hideNewChatButton = false,
+    hideChatHistoryButton = false,
+    onNewChatButtonClick,
+    onChatHistoryButtonClick,
   } = props;
 
   const [groupObj, setGroupObj] = useState(group);
   const [userObj, setUserObj] = useState<CometChat.User | undefined>(user);
   const [userStatus, setUserStatus] = useState(user && user.getStatus ? user.getStatus() : "");
   const [typingText, setTypingText] = useState("");
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const receiverTypeRef = useRef(
     user ? CometChat.RECEIVER_TYPE.USER : group ? CometChat.RECEIVER_TYPE.GROUP : null
   );
+
+  // Helper function to check if user is agentic
+  const isAgenticUser = useCallback(() => {
+    return userObj?.getRole?.() === '@agentic';
+  }, [userObj]);
+
 
   useEffect(() => {
     setGroupObj(group);
@@ -209,14 +238,6 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
             }
             name={(userObj?.getName() ?? groupObj?.getName())!}
           />
-          {groupObj ? (
-            <CometChatStatusIndicator type={statusIndicatorType} />
-          ) : (
-            usersStatusVisibility &&
-            !(userObj?.getBlockedByMe() || userObj?.getHasBlockedMe()) && (
-              <CometChatStatusIndicator type={statusIndicatorType} />
-            )
-          )}
         </View>
       );
     } catch (e) {
@@ -399,6 +420,60 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
     };
   }, []);
 
+  /**
+   * Renders AI agent auxiliary buttons (new chat, history, close)
+   */
+  const renderAgentAuxiliaryView = () => {
+    const iconSecondary = theme.color.iconSecondary;
+
+    const handleNewChat = () => {
+      if (onNewChatButtonClick) {
+        onNewChatButtonClick();
+      }
+    };
+
+    const handleChatHistory = () => {
+      if (onChatHistoryButtonClick) {
+        onChatHistoryButtonClick();
+      }
+    };
+
+    return (
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        {!hideNewChatButton && (
+          <TouchableOpacity
+            style={{
+              borderRadius: 12,
+              padding: 8,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+            }}
+            onPress={handleNewChat}
+          >
+            <Icon name="ai-new-chat" width={24} height={24} color={iconSecondary} />
+          </TouchableOpacity>
+        )}
+
+        {!hideChatHistoryButton && (
+          <TouchableOpacity
+            style={{
+              borderRadius: 12,
+              padding: 8,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+            }}
+            onPress={handleChatHistory}
+          >
+            <Icon name="ai-chat-history" width={24} height={24} color={iconSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
+
   return (
     <>
       {ItemView ? (
@@ -421,20 +496,33 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
             )}
             {SubtitleView ? SubtitleView({ user: userObj, group }) : <SubtitleViewFnc />}
           </View>
-          <View style={{ flex: 1, flexDirection: "row" }}>
+          <View style={{ 
+            flex: isAgenticUser() ? 0 : 1, 
+            flexDirection: "row",
+            alignItems: "center"
+          }}>
             <View style={{ marginLeft: "auto", flexDirection: "row" }}>
-              {AuxiliaryButtonView
-                ? AuxiliaryButtonView({ user: userObj, group })
-                : ChatConfigurator.getDataSource().getAuxiliaryHeaderAppbarOptions(userObj, group, {
-                    callButtonStyle: messageHeaderStyles.callButtonStyle,
-                    hideVideoCallButton,
-                    hideVoiceCallButton,
-                  })}
-              {TrailingView && <>{TrailingView({ user: userObj, group })}</>}
+              {(() => {
+                const isAgenticUser = userObj?.getRole?.() === '@agentic';
+                
+                if (isAgenticUser && !AuxiliaryButtonView) {
+                  return renderAgentAuxiliaryView();
+                }
+                
+                return AuxiliaryButtonView
+                  ? AuxiliaryButtonView({ user: userObj, group })
+                  : ChatConfigurator.getDataSource().getAuxiliaryHeaderAppbarOptions(userObj, group, {
+                      callButtonStyle: messageHeaderStyles.callButtonStyle,
+                      hideVideoCallButton,
+                      hideVoiceCallButton,
+                    });
+              })()}
+              {TrailingView && !isAgenticUser() && <>{TrailingView({ user: userObj, group })}</>}
             </View>
           </View>
         </View>
       )}
+
     </>
   );
 };

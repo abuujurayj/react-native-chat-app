@@ -452,5 +452,11 @@
     "MESSAGE_LIST_ACTION_UNBANNED": "${byName}, ${onName} kullanıcısının yasağını kaldırdı",
     "MESSAGE_LIST_ACTION_SCOPE_CHANGED": "${byName}, ${onName} kullanıcısını ${role} yaptı",
     "YOU_DONT_HAVE_STICKERS_YET": "Henüz hiç çıkartman yok.",
-    "meeting": "Toplantı"
+    "meeting": "Toplantı",
+    "NO_CONVERSATION_HISTORY_FOUND": "Konuşma geçmişi bulunamadı.",
+    "SOMETHING_WENT_WRONG_ON_OUR_END": "Bizim tarafımızda bir sorun oluştu. Lütfen tekrar deneyin.",
+    "START_A_CHAT": "'Yeni Sohbet' butonuna tıklayarak sohbet başlatın.",
+    "CHAT_HISTORY": "Sohbet Geçmişi",
+    "ASK_ANYTHING": "Herhangi bir şey sorun...",
+    "AI_ASSISTANT": "AI Asistanı"
 }

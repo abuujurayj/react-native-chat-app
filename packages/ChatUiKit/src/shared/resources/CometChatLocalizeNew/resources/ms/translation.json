@@ -453,5 +453,11 @@
 	"YOU_DONT_HAVE_STICKERS_YET": "Anda masih belum mempunyai sebarang pelekat.",
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "Anda telah memulakan panggilan audio",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "Anda telah memulakan panggilan video",
-	"meeting": "Mesyuarat"
+	"meeting": "Mesyuarat",
+	"NO_CONVERSATION_HISTORY_FOUND": "Tiada sejarah perbualan ditemui",
+	"SOMETHING_WENT_WRONG_ON_OUR_END": "Sesuatu yang salah berlaku di pihak kami. Sila cuba lagi.",
+	"START_A_CHAT": "Mulakan perbualan dengan mengetik butang 'Sembang Baru'",
+	"CHAT_HISTORY": "Sejarah Sembang",
+	"ASK_ANYTHING": "Tanyakan apa-apa...",
+	"AI_ASSISTANT": "Pembantu AI"
 }

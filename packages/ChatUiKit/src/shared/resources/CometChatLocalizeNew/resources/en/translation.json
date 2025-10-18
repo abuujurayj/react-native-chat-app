@@ -452,5 +452,11 @@
 	"MESSAGE_LIST_ACTION_UNBANNED": "${byName} unbanned ${onName}",
 	"MESSAGE_LIST_ACTION_SCOPE_CHANGED": "${byName} made ${onName} a ${role}",
 	"YOU_DONT_HAVE_STICKERS_YET": "You don’t have any stickers yet.",
-	"meeting": "Meeting"
+	"meeting": "Meeting",
+	"NO_CONVERSATION_HISTORY_FOUND": "No conversation history found",
+    "SOMETHING_WENT_WRONG_ON_OUR_END": "Something went wrong on our end. Please try again.",
+    "START_A_CHAT": "Click the 'New Chat' button to start a chat.",
+    "CHAT_HISTORY": "Chat History",
+    "ASK_ANYTHING": "Ask anything...",
+    "AI_ASSISTANT": "AI Assistant"
 }

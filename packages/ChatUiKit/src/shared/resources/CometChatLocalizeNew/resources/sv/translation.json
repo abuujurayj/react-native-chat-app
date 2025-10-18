@@ -453,5 +453,11 @@
 	"YOU_DONT_HAVE_STICKERS_YET": "Du har inga klistermärken ännu.",
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "Du har initierat ett ljudsamtal",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "Du har initierat ett videosamtal",
-	"meeting": "Möte"
+	"meeting": "Möte",
+	"NO_CONVERSATION_HISTORY_FOUND": "Ingen konversationshistorik hittades",
+	"SOMETHING_WENT_WRONG_ON_OUR_END": "Något gick fel hos oss. Försök igen.",
+	"START_A_CHAT": "Starta en chatt genom att trycka på knappen 'Ny chatt'",
+	"CHAT_HISTORY": "Chattens historik",
+	"ASK_ANYTHING": "Fråga vad som helst...",
+	"AI_ASSISTANT": "AI-assistent"
 }

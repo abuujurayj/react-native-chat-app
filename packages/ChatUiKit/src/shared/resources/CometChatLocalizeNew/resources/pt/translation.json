@@ -453,5 +453,11 @@
 	"YOU_DONT_HAVE_STICKERS_YET": "Você ainda não tem nenhum adesivo.",
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "Você iniciou uma chamada de áudio",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "Você iniciou uma videochamada",
-	"meeting": "Reunião"
+	"meeting": "Reunião",
+	"NO_CONVERSATION_HISTORY_FOUND": "Nenhum histórico de conversa encontrado",
+	"SOMETHING_WENT_WRONG_ON_OUR_END": "Algo deu errado da nossa parte. Por favor, tente novamente.",
+	"START_A_CHAT": "Inicie um chat tocando no botão 'Nova conversa'",
+	"CHAT_HISTORY": "Histórico de chat",
+	"ASK_ANYTHING": "Pergunte qualquer coisa...",
+	"AI_ASSISTANT": "Assistente de IA"
 }

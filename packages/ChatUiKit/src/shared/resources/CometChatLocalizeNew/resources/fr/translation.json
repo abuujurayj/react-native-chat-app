@@ -453,5 +453,11 @@
   "YOU_DONT_HAVE_STICKERS_YET": "Vous n’avez pas encore d’autocollants.",
   "YOU_INITIATED_GROUP_AUDIO_CALL": "Vous avez lancé un appel audio",
   "YOU_INITIATED_GROUP_VIDEO_CALL": "Vous avez lancé un appel vidéo",
-  "meeting": "Réunion"
+  "meeting": "Réunion",
+  "NO_CONVERSATION_HISTORY_FOUND": "Aucun historique de conversation trouvé",
+  "SOMETHING_WENT_WRONG_ON_OUR_END": "Quelque chose a mal tourné de notre côté. Veuillez réessayer",
+  "START_A_CHAT": "Commencez un chat en appuyant sur le bouton 'Nouvelle conversation'",
+  "CHAT_HISTORY": "Historique des chats",
+  "ASK_ANYTHING": "Demandez n'importe quoi...",
+  "AI_ASSISTANT": "Assistant IA"
 }

@@ -22,6 +22,7 @@ import { CallLogsItemStyle, CallLogsStyle } from "../calls/CometChatCallLogs/sty
 import { DeepPartial } from "../shared/helper/types";
 import { DateSeparatorStyle } from "../shared/views/CometChatDateSeperator/styles";
 import { JSX } from "react";
+import { ChatHistoryStyle } from "../CometChatAIAssistantChatHistory/style";
 
 export type BubbleStyles = {
   containerStyle: ViewStyle;
@@ -33,6 +34,7 @@ export type BubbleStyles = {
   dateReceiptContainerStyle: ViewStyle;
   senderNameTextStyles: TextStyle;
   textBubbleStyles?: DeepPartial<CometChatTheme["textBubbleStyles"]>;
+  assistantBubbleStyles?: DeepPartial<CometChatTheme["assistantBubbleStyles"]>;
   imageBubbleStyles?: DeepPartial<CometChatTheme["imageBubbleStyles"]>;
   videoBubbleStyles?: DeepPartial<CometChatTheme["videoBubbleStyles"]>;
   audioBubbleStyles?: DeepPartial<CometChatTheme["audioBubbleStyles"]>;
@@ -93,6 +95,7 @@ export interface CometChatTheme {
   deletedBubbleStyles?: DeletedBubbleStyle;
   messageComposerStyles: DeepPartial<MessageComposerStyle>;
   userStyles: UserStyle;
+  chatHistoryStyles: ChatHistoryStyle;
   groupStyles: GroupStyle;
   groupMemberStyle: GroupMemberStyle;
   //messageOptionsStyles: ActionSheetStyle;
@@ -347,6 +350,16 @@ export interface CometChatTheme {
     translatedTextContainerStyle: ViewStyle;
     translatedTextDividerStyle: ViewStyle;
   };
+  assistantBubbleStyles?: {
+    containerStyle: ViewStyle;
+    avatarStyle: CometChatTheme["avatarStyle"];
+    textStyle: TextStyle;
+    textContainerStyle?: ViewStyle;
+    placeholderTextStyle: TextStyle;
+    copyButtonStyle: ViewStyle;
+    errorContainerStyle: ViewStyle;
+    errorTextStyle: TextStyle;
+  };
   stickerBubbleStyles?: {
     containerStyle?: ViewStyle;
     threadedMessageStyle?: CometChatTheme["threadedMessageStyles"];
@@ -425,7 +438,7 @@ export interface CometChatTheme {
     };
     dateSeparatorStyle?: DateSeparatorStyle;
     incomingMessageBubbleStyles: DeepPartial<BubbleStyles>;
-    outgoingMessageBubbleStyles: DeepPartial<BubbleStyles>;
+    outgoingMessageBubbleStyles: DeepPartial<Omit<BubbleStyles, 'assistantBubbleStyles'>>;
     groupActionBubbleStyles: DeepPartial<CometChatTheme["groupActionBubbleStyles"]>;
     callActionBubbleStyles: DeepPartial<CallActionBubbleStyles>;
     messageInformationStyles: DeepPartial<CometChatTheme["messageInformationStyles"]>;

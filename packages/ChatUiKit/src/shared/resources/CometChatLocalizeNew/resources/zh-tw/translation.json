@@ -453,5 +453,11 @@
 	"YOU_DONT_HAVE_STICKERS_YET": "你還沒有任何貼圖。",
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "您已啟動音訊通話",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "您已啟動視訊通話",
-	"meeting": "會議"
+	"meeting": "會議",
+	"NO_CONVERSATION_HISTORY_FOUND": "找不到對話歷史",
+    "SOMETHING_WENT_WRONG_ON_OUR_END": "我們這邊出了點問題，請重試",
+    "START_A_CHAT": "點擊“新聊天”按鈕開始聊天",
+	"CHAT_HISTORY": "聊天記錄",
+	"ASK_ANYTHING": "提問任何問題...",
+	"AI_ASSISTANT": "AI 助手"
 }
