@@ -24,6 +24,7 @@ import Calls from '../components/calls/Calls';
 import { CallDetails } from '../components/calls/CallDetails';
 import Users from '../components/users/Users';
 import Groups from '../components/groups/Groups';
+import AIAgents from '../components/AIAgent/AIAgents';
 
 type Props = {
   isLoggedIn: boolean;
@@ -92,6 +93,7 @@ const RootStackNavigator = ({ isLoggedIn, hasValidAppCredentials }: Props) => {
           />
           <Stack.Screen name={SCREEN_CONSTANTS.USERS} component={Users} />
           <Stack.Screen name={SCREEN_CONSTANTS.GROUPS} component={Groups} />
+          <Stack.Screen name={SCREEN_CONSTANTS.AI_AGENTS} component={AIAgents} />
 
           {/* Chat Screens */}
           <Stack.Screen

@@ -33,6 +33,8 @@ interface NotifeeData {
   receiverType?: 'user' | 'group';
   conversationId?: string;
   sender?: string;
+  messageId?: string;
+  parentId?: string;
   [key: string]: any;
 }
 
@@ -67,6 +69,36 @@ export async function displayLocalNotification(
       importance: AndroidImportance.HIGH,
     });
 
+    // Extract parent ID for agentic messages
+    let parentId: string | undefined;
+    let messageId: string | undefined;
+    
+    try {
+      if (remoteMessage.data?.message) {
+        const parsedMessage = JSON.parse(remoteMessage.data.message);
+        parentId = parsedMessage.parentId;
+        messageId = parsedMessage.id;
+      }
+      // Fallback to tag if message parsing fails
+      if (!messageId && remoteMessage.data?.tag) {
+        messageId = remoteMessage.data.tag;
+      }
+    } catch (error) {
+      console.log('Error parsing message data:', error);
+      // Use tag as fallback
+      if (remoteMessage.data?.tag) {
+        messageId = remoteMessage.data.tag;
+      }
+    }
+
+    const notificationData = {
+      receiverType: remoteMessage.data?.receiverType,
+      sender: remoteMessage.data?.sender,
+      conversationId: remoteMessage.data?.conversationId,
+      ...(messageId && { messageId }),
+      ...(parentId && { parentId }),
+    };
+
     await notifee.displayNotification({
       title: title || 'New Message',
       body: body || 'You received a new message.',
@@ -83,11 +115,7 @@ export async function displayLocalNotification(
           id: 'default',
         },
       },
-      data: {
-        receiverType: remoteMessage.data?.receiverType,
-        sender: remoteMessage.data?.sender,
-        conversationId: remoteMessage.data?.conversationId,
-      },
+      data: notificationData,
     });
   } catch (error) {
     console.error('displayLocalNotification error:', error);
@@ -140,21 +168,36 @@ export async function checkInitialNotificationIOS() {
     if (notification) {
       const data = notification.getData();
       if (data && data.type === 'chat') {
+        // Extract parent ID for agentic messages
+        let parentId: string | undefined;
+        try {
+          if (data.message) {
+            const parsedMessage = JSON.parse(data.message);
+            parentId = parsedMessage.parentId;
+          }
+        } catch (error) {
+          console.log('Error parsing iOS message data:', error);
+        }
+
         if (data.receiverType === 'group') {
           try {
             const group = await CometChat.getGroup(data.receiver);
-            navigate(SCREEN_CONSTANTS.MESSAGES, {
-              group,
-            });
+            const params: any = { group };
+            if (parentId) {
+              params.parentMessageId = parentId;
+            }
+            navigate(SCREEN_CONSTANTS.MESSAGES, params);
           } catch (error) {
             console.log('Error fetching group details:', error);
           }
         } else if (data.receiverType === 'user') {
           try {
             const user = await CometChat.getUser(data.sender);
-            navigate(SCREEN_CONSTANTS.MESSAGES, {
-              user,
-            });
+            const params: any = { user };
+            if (parentId) {
+              params.parentMessageId = parentId;
+            }
+            navigate(SCREEN_CONSTANTS.MESSAGES, params);
           } catch (error) {
             console.log('Error fetching user details:', error);
           }
@@ -175,21 +218,36 @@ export async function onRemoteNotificationIOS(notification: any) {
   if (isClicked) {
     const data = notification.getData();
     if (data && data.type === 'chat') {
+      // Extract parent ID for agentic messages
+      let parentId: string | undefined;
+      try {
+        if (data.message) {
+          const parsedMessage = JSON.parse(data.message);
+          parentId = parsedMessage.parentId;
+        }
+      } catch (error) {
+        console.log('Error parsing iOS message data:', error);
+      }
+
       if (data.receiverType === 'group') {
         try {
           const group = await CometChat.getGroup(data.receiver);
-          navigate(SCREEN_CONSTANTS.MESSAGES, {
-            group,
-          });
+          const params: any = { group };
+          if (parentId) {
+            params.parentMessageId = parentId;
+          }
+          navigate(SCREEN_CONSTANTS.MESSAGES, params);
         } catch (error) {
           console.log('Error fetching group details:', error);
         }
       } else if (data.receiverType === 'user') {
         try {
           const user = await CometChat.getUser(data.sender);
-          navigate(SCREEN_CONSTANTS.MESSAGES, {
-            user,
-          });
+          const params: any = { user };
+          if (parentId) {
+            params.parentMessageId = parentId;
+          }
+          navigate(SCREEN_CONSTANTS.MESSAGES, params);
         } catch (error) {
           console.log('Error fetching user details:', error);
         }
@@ -436,8 +494,10 @@ export async function navigateToConversation(
   navigationRef: NavigationContainerRefWithCurrent<RootStackParamList>,
   data?: NotifeeData,
 ) {
-  if (!data) return;
-  if (!navigationRef.current) return;
+  if (!data || !navigationRef.current) {
+    return;
+  }
+  
   try {
     // Handle group
     if (data.receiverType === 'group') {
@@ -447,15 +507,27 @@ export async function navigateToConversation(
           : '';
       const group = await CometChat.getGroup(extractedId);
 
-      navigationRef.current?.dispatch(StackActions.push(SCREEN_CONSTANTS.MESSAGES, {group}));
+      // Navigate with parent message ID if available (for agentic conversations)
+      const params: any = {group};
+      if (data.parentId) {
+        params.parentMessageId = data.parentId;
+      }
+
+      navigationRef.current?.dispatch(StackActions.push(SCREEN_CONSTANTS.MESSAGES, params));
     }
 
     // Handle user
     else if (data.receiverType === 'user') {
       const ccUser = await CometChat.getUser(data.sender);
 
+      // Navigate with parent message ID if available (for agentic conversations)
+      const params: any = {user: ccUser};
+      if (data.parentId) {
+        params.parentMessageId = data.parentId;
+      }
+
       navigationRef.current?.dispatch(
-        StackActions.push(SCREEN_CONSTANTS.MESSAGES, {user: ccUser}),
+        StackActions.push(SCREEN_CONSTANTS.MESSAGES, params),
       );
     }
   } catch (error) {

@@ -27,6 +27,8 @@ interface NotifeeData {
   receiverType?: 'user' | 'group';
   conversationId?: string;
   sender?: string;
+  messageId?: string;
+  parentId?: string;
   [key: string]: any;
 }
 
@@ -221,8 +223,10 @@ export async function navigateToConversation(
   navigationRef: NavigationContainerRefWithCurrent<RootStackParamList>,
   data?: NotifeeData,
 ) {
-  if (!data) return;
-  if (!navigationRef.current) return;
+  if (!data || !navigationRef.current) {
+    return;
+  }
+  
   try {
     // Handle group
     if (data.receiverType === 'group') {
@@ -232,15 +236,27 @@ export async function navigateToConversation(
           : '';
       const group = await CometChat.getGroup(extractedId);
 
-      navigationRef.current?.dispatch(StackActions.push(SCREEN_CONSTANTS.MESSAGES, {group}));
+      // Navigate with parent message ID if available (for agentic conversations)
+      const params: any = {group};
+      if (data.parentId) {
+        params.parentMessageId = data.parentId;
+      }
+
+      navigationRef.current?.dispatch(StackActions.push(SCREEN_CONSTANTS.MESSAGES, params));
     }
 
     // Handle user
     else if (data.receiverType === 'user') {
       const ccUser = await CometChat.getUser(data.sender);
 
+      // Navigate with parent message ID if available (for agentic conversations)
+      const params: any = {user: ccUser};
+      if (data.parentId) {
+        params.parentMessageId = data.parentId;
+      }
+
       navigationRef.current?.dispatch(
-        StackActions.push(SCREEN_CONSTANTS.MESSAGES, {user: ccUser}),
+        StackActions.push(SCREEN_CONSTANTS.MESSAGES, params),
       );
     }
   } catch (error) {

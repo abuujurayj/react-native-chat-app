@@ -22,7 +22,8 @@ import AddComment from '../../../assets/icons/AddComment';
 import InfoIcon from '../../../assets/icons/InfoIcon';
 import Logout from '../../../assets/icons/Logout';
 import {navigate, navigationRef} from '../../../navigation/NavigationService';
-import {AppConstants} from '../../../utils/AppConstants';
+import {AppConstants, SCREEN_CONSTANTS} from '../../../utils/AppConstants';
+import AiIcon from '../../../assets/icons/AiIcon';
 
 type ChatNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -195,6 +196,20 @@ const Conversations: React.FC<{}> = ({}) => {
                   height={24}
                   width={24}
                   color={theme.color.textPrimary}></AddComment>
+              ),
+              textColor: theme.color.textPrimary,
+              iconColor: theme.color.textPrimary,
+            },
+            {
+              text: 'AI Assistants',
+              onPress: () => {
+                navigation.navigate(SCREEN_CONSTANTS.AI_AGENTS);
+              },
+              icon: (
+                <AiIcon
+                  height={24}
+                  width={24}
+                  color={theme.color.textPrimary}></AiIcon>
               ),
               textColor: theme.color.textPrimary,
               iconColor: theme.color.textPrimary,

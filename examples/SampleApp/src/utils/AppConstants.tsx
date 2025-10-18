@@ -34,4 +34,5 @@ export const SCREEN_CONSTANTS = {
   VIEW_MEMBER: 'ViewMembers',
   CALL_LOGS: 'CallLogs',
   CALL_DETAILS: 'CallDetails',
+  AI_AGENTS: 'AIAgents',
 } as const;

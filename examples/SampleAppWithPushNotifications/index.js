@@ -59,7 +59,10 @@ if (Platform.OS === 'android') {
           CometChat.getGroup(extractedId).then(
             group => {
               navigationRef.current?.dispatch(
-                StackActions.push('Messages', {group}),
+                StackActions.push('Messages', {
+                  group,
+                  parentMessageId: data.parentId,
+                }),
               );
             },
             error => console.log('Error fetching group details:', error),
@@ -68,7 +71,10 @@ if (Platform.OS === 'android') {
           CometChat.getUser(data.sender).then(
             ccUser => {
               navigationRef.current?.dispatch(
-                StackActions.push('Messages', {user: ccUser}),
+                StackActions.push('Messages', {
+                  user: ccUser,
+                  parentMessageId: data.parentId,
+                }),
               );
             },
             error => console.log('Error fetching user details:', error),

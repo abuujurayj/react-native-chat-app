@@ -13,7 +13,9 @@ export type RootStackParamList = {
     user?: CometChat.User;
     group?: CometChat.Group;
     fromMention?: boolean;
+    parentMessageId?: string;
   };
+  AIAgents: undefined;
   BannedMembers: undefined;
   UserInfo: {
     user: CometChat.User;
