@@ -3,12 +3,12 @@
   <img alt="CometChat" src="https://assets.cometchat.io/website/images/logos/banner.png">
 </p>
 
-# React Native Sample App by CometChat
+# React Native AI Agents Sample App by CometChat
 
 This is a reference application showcasing the integration of [CometChat's React Native UI Kit](https://www.cometchat.com/docs/ui-kit/react-native/5.0/overview) in a React Native project. It demonstrates how to implement real-time messaging and voice/video calling features with ease.
 
 <div style="display: flex; align-items: center; justify-content: center">
-   <img src="../../screenshots/overview_cometchat_screens.png" />
+   <img src="../../screenshots/ai-agents-overview.png" />
 </div>
 
 
@@ -37,9 +37,9 @@ Sign up for a [CometChat](https://app.cometchat.com/) account to obtain your app
    git clone https://github.com/cometchat/cometchat-uikit-react-native.git
    ```
 
-1. Change into the specific app's directory (e.g., SampleApp).
+1. Change into the specific app's directory (e.g., SampleAppAI).
    ```sh
-     cd examples/SampleApp
+     cd examples/SampleAppAI
    ```
 1. Run `npm install` to install the dependencies.
 
