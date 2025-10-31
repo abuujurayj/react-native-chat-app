@@ -40,6 +40,7 @@ const StickerButton = ({ user, group, id, stickerIconStyle, stickerIcon }: any) 
   const [keyboardOpen, setKeyboardOpen] = useState(false); // Tracks if the system keyboard is open.
   const loggedInUser = useRef<CometChat.User | null>(null); // Stores the currently logged-in user.
   const theme = useTheme(); // Retrieves theme configurations for styling.
+  const uiListenerIdRef = useRef<string>(`sticker_button_${Date.now()}`);
 
 
   /**
@@ -141,6 +142,7 @@ const StickerButton = ({ user, group, id, stickerIconStyle, stickerIcon }: any) 
     CometChatUIEventHandler.emitUIEvent(CometChatUIEvents.showPanel, {
       alignment: ViewAlignment.composerBottom,
       child: () => <CometChatStickerKeyboard onPress={sendCustomMessage} />, // Render the sticker keyboard.
+      panelId: "sticker", // tag panel so we can identify related events
     });
   }, []);
 
@@ -151,6 +153,7 @@ const StickerButton = ({ user, group, id, stickerIconStyle, stickerIcon }: any) 
     CometChatUIEventHandler.emitUIEvent(CometChatUIEvents.hidePanel, {
       alignment: ViewAlignment.composerBottom,
       child: () => null, // Hide the panel content.
+      panelId: "sticker",
     });
     setIsPanelOpen(false);
   }, []);
@@ -173,6 +176,31 @@ const StickerButton = ({ user, group, id, stickerIconStyle, stickerIcon }: any) 
       }
     }
   }, [isPanelOpen, keyboardOpen, OpenPanel, closePanel]);
+
+  /**
+   * Listen to global UI events so external navigation / programmatic panel hides
+   * correctly update the local button highlight state.
+   */
+  useEffect(() => {
+    const id = uiListenerIdRef.current;
+    CometChatUIEventHandler.addUIListener(id, {
+      hidePanel: (payload: any) => {
+        if (isPanelOpen) {
+          if (!payload || payload?.panelId === "sticker" || payload?.alignment === ViewAlignment.composerBottom) {
+            setIsPanelOpen(false);
+          }
+        }
+      },
+      showPanel: (payload: any) => {
+        if (payload?.panelId === "sticker") {
+          setIsPanelOpen(true);
+        }
+      },
+    });
+    return () => {
+      CometChatUIEventHandler.removeUIListener(id);
+    };
+  }, [isPanelOpen]);
 
   return (
     <TouchableOpacity

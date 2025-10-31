@@ -1,4 +1,4 @@
-import React, { JSX } from "react";
+import React, { JSX, useRef } from "react";
 import {
   ImageSourcePropType,
   ImageStyle,
@@ -163,6 +163,7 @@ export default function Header({
   backButtonIconContainerStyle = { marginLeft: 10 },
 }: HeaderProps) {
   const theme = useTheme();
+  const inputRef = useRef<TextInput>(null);
   return (
     <View style={[styles.listBaseHeaderStyle, containerStyle]}>
       {!hideHeader && (
@@ -272,8 +273,8 @@ export default function Header({
             icon={searchStyle?.icon}
             imageStyle={searchStyle?.iconStyle}
           />
-
           <TextInput
+            ref={inputRef}
             placeholder={searchPlaceholderText}
             placeholderTextColor={
               searchStyle?.placehodlerTextStyle?.color || theme.color.textTertiary
@@ -281,6 +282,12 @@ export default function Header({
             onChangeText={searchHandler}
             returnKeyType='search'
             value={searchInput}
+            onSubmitEditing={() => {
+              onSubmitEditing?.();
+              // optional defensive focus if a re-render briefly steals focus
+              inputRef.current?.focus();
+            }}
+            submitBehavior='submit'
             numberOfLines={1}
             style={[
               {
@@ -290,7 +297,6 @@ export default function Header({
               },
               searchStyle?.textStyle,
             ]}
-            onSubmitEditing={onSubmitEditing}
           />
         </View>
       )}

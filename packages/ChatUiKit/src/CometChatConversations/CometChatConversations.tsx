@@ -291,7 +291,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
 
   // Merge theme styles with provided style overrides.
   const theme = useTheme();
-  const {t}=useCometChatTranslation()
+  const { t } = useCometChatTranslation()
   const mergedStyles = useMemo(() => {
     return deepMerge(theme.conversationStyles, style ?? {});
   }, [theme.conversationStyles, style]);
@@ -819,7 +819,7 @@ export const CometChatConversations = (props: ConversationInterface) => {
 
     if (message.getMentionedUsers().length) {
       let mentionsFormatter = ChatConfigurator.getDataSource().getMentionsFormatter();
-      mentionsFormatter.setContext('conversation');
+      mentionsFormatter.setContext("conversation");
       mentionsFormatter.setLoggedInUser(CometChatUIKit.loggedInUser!);
       mentionsFormatter.setMentionsStyle(mergedStyles.mentionsStyles);
       mentionsFormatter.setTargetElement(MentionsTargetElement.conversation);
@@ -900,9 +900,10 @@ export const CometChatConversations = (props: ConversationInterface) => {
       if (lastMessage?.hasOwnProperty("readAt")) status = MessageReceipt.READ;
       else if (lastMessage?.hasOwnProperty("deliveredAt")) status = MessageReceipt.DELIVERED;
       else if (lastMessage?.hasOwnProperty("sentAt")) status = MessageReceipt.SENT;
-      readReceipt = !receiptsVisibility ? null : (
-        <CometChatReceipt receipt={status} style={mergedStyles.itemStyle.receiptStyles} />
-      );
+      readReceipt =
+        !receiptsVisibility || lastMessage?.getDeletedAt() ? null : (
+          <CometChatReceipt receipt={status} style={mergedStyles.itemStyle.receiptStyles} />
+        );
     }
 
     let threadView: JSX.Element | null = null;
