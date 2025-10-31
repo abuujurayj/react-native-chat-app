@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   View,
   Text,
@@ -39,6 +45,7 @@ const ThreadView = () => {
   const navigation = useNavigation<ThreadViewNavProp>(); // <-- added navigation
   const { goBack } = navigation;
   const theme = useTheme();
+  const { message, user, group } = params || {};
   const { t } = useCometChatTranslation();
 
   const loggedInUser = useRef<CometChat.User>(
@@ -88,25 +95,58 @@ const ThreadView = () => {
     };
   }, []);
 
+  useEffect(() => {
+    CometChatUIEventHandler.emitUIEvent?.(CometChatUIEvents.hidePanel, {
+      alignment: 'composerBottom',
+      child: () => null,
+      panelId: 'sticker',
+    });
+  }, []);
+
+// B) Ensure back also asks to close (already using goBack())
+const handleBack = useCallback(() => {
+  CometChatUIEventHandler.emitUIEvent?.(CometChatUIEvents.hidePanel, {
+    alignment: 'composerBottom',
+    child: () => null,
+    panelId: 'sticker',
+  });
+  navigation.goBack();
+  return true;
+}, [navigation]);
+
   useFocusEffect(
     useCallback(() => {
-      const onBackPress = () => {
-        goBack();
-        return true; // Prevent default behavior
+      // Android hardware back -> just pop
+      const sub = BackHandler.addEventListener('hardwareBackPress', handleBack);
+
+      // iOS gesture/back button -> let default POP happen, but run side-effects
+      const unsub = navigation.addListener('beforeRemove', e => {
+        const type = e?.data?.action?.type;
+        if (type === 'GO_BACK' || type === 'POP') {
+          // IMPORTANT: do NOT e.preventDefault()
+          CometChatUIEventHandler.emitUIEvent?.(CometChatUIEvents.hidePanel, {
+            alignment: 'composerBottom',
+            child: () => null,
+            panelId: 'sticker',
+          });
+        }
+      });
+
+      return () => {
+        sub.remove();
+        unsub();
       };
-
-      const subscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        onBackPress,
-      );
-
-      return () => subscription.remove();
-    }, [goBack]),
+    }, [navigation, handleBack]),
   );
 
-  const { message, user, group } = params || {};
-  if (!message) return null;
+  // Header back
+  <TouchableOpacity onPress={handleBack}>…</TouchableOpacity>;
 
+  // Keep gesture enabled
+  useLayoutEffect(() => {
+    navigation.setOptions?.({ gestureEnabled: true } as any);
+  }, [navigation]);
+  
   const unblock = async (userToUnblock: CometChat.User) => {
     try {
       const uid = userToUnblock.getUid();
@@ -158,7 +198,7 @@ const ThreadView = () => {
     <View style={{ backgroundColor: theme.color.background1, flex: 1 }}>
       {/* Custom Header */}
       <View style={styles.headerStyle}>
-        <TouchableOpacity style={styles.iconStyle} onPress={() => goBack()}>
+        <TouchableOpacity style={styles.iconStyle} onPress={handleBack}>
           <Icon
             icon={
               <ArrowBack

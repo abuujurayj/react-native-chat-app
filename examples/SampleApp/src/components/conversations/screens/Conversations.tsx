@@ -21,7 +21,7 @@ import AddComment from '../../../assets/icons/AddComment';
 import InfoIcon from '../../../assets/icons/InfoIcon';
 import Logout from '../../../assets/icons/Logout';
 import { navigate, navigationRef } from '../../../navigation/NavigationService';
-import { AppConstants } from '../../../utils/AppConstants';
+import { AppConstants, SCREEN_CONSTANTS } from '../../../utils/AppConstants';
 import AiIcon from '../../../assets/icons/AiIcon';
 
 type ChatNavigationProp = StackNavigationProp<

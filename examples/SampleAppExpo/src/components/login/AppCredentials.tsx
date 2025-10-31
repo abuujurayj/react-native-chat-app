@@ -196,10 +196,11 @@ const AppCredentials: React.FC = () => {
             {/* Header/Logo */}
             <View style={styles.logoContainer}>
               <Image
+                // NOTE: actual asset filenames are lowercase (dark.png, light.png)
                 source={
                   mode === 'dark'
-                    ? require('../../assets/icons/Dark.png')
-                    : require('../../assets/icons/Light.png')
+                    ? require('../../assets/icons/dark.png')
+                    : require('../../assets/icons/light.png')
                 }
                 style={{
                   width: width * 0.25,
@@ -253,7 +254,8 @@ const AppCredentials: React.FC = () => {
                 >
                   <View style={styles.flagInnerContainer}>
                     <Image
-                      source={require('../../assets/icons/US.png')}
+                      // us flag filename is lowercase in assets
+                      source={require('../../assets/icons/us.png')}
                       style={styles.flagImage}
                     />
                     <Text
@@ -286,7 +288,8 @@ const AppCredentials: React.FC = () => {
                 >
                   <View style={styles.flagInnerContainer}>
                     <Image
-                      source={require('../../assets/icons/EU.png')}
+                      // eu flag filename is lowercase in assets
+                      source={require('../../assets/icons/eu.png')}
                       style={styles.flagImage}
                     />
                     <Text
@@ -319,7 +322,8 @@ const AppCredentials: React.FC = () => {
                 >
                   <View style={styles.flagInnerContainer}>
                     <Image
-                      source={require('../../assets/icons/India.png')}
+                      // india flag filename appears as india.png in assets
+                      source={require('../../assets/icons/india.png')}
                       style={styles.flagImage}
                     />
                     <Text

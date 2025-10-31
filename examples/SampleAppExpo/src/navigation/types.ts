@@ -1,10 +1,12 @@
-import {NavigatorScreenParams} from '@react-navigation/native';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
+import { NavigatorScreenParams } from '@react-navigation/native';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
+
+export type CallType = 'audio' | 'video';
 
 export type RootStackParamList = {
   Login: undefined;
   BottomTabNavigator: NavigatorScreenParams<BottomTabParamList>;
-  OngoingCallScreen: {call: any};
+  OngoingCallScreen: { sessionId: string; callType?: CallType } | { call: any };
   AppCredentials: undefined;
   SampleUser: undefined;
   Conversation: undefined;
@@ -13,6 +15,7 @@ export type RootStackParamList = {
     user?: CometChat.User;
     group?: CometChat.Group;
     fromMention?: boolean;
+    fromMessagePrivately?: boolean;
     parentMessageId?: string;
   };
   AIAgents: undefined;

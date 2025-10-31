@@ -298,6 +298,7 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
             style={{
               color: theme.color.textPrimary,
               ...theme.typography.heading1.bold,
+              paddingTop: 35 - (35 * 0.75),
             }}>
             {t('CALL_DETAILS')}
           </Text>

@@ -93,14 +93,15 @@ if (Platform.OS === 'android') {
     try {
       const data = remoteMessage.data || {};
       if (data.type === 'call') {
+        await voipHandler.initialize();
         switch (data.callAction) {
           case 'initiated':
             voipHandler.msg = data;
-            voipHandler.displayCallAndroid();
+            await voipHandler.displayCallAndroid();
             break;
           case 'ended':
             CometChat.clearActiveCall();
-            voipHandler.endCall(voipHandler.callerId);
+            await voipHandler.endCall({callUUID: voipHandler.callerId});
             break;
           case 'unanswered':
             CometChat.clearActiveCall();

@@ -210,10 +210,11 @@ const LoginScreen: React.FC = () => {
           {/* App Logo */}
           <View style={styles.logoContainer}>
             <Image
+              // NOTE: actual asset filenames are lowercase (dark.png, light.png)
               source={
                 mode === 'dark'
-                  ? require('../../assets/icons/Dark.png')
-                  : require('../../assets/icons/Light.png')
+                  ? require('../../assets/icons/dark.png')
+                  : require('../../assets/icons/light.png')
               }
               style={{
                 width: width * 0.25,

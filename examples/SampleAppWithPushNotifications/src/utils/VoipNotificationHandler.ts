@@ -1,8 +1,9 @@
-import {AppState, Platform} from 'react-native';
-import notifee, {AndroidImportance, EventType} from '@notifee/react-native';
-import RNCallKeep, {IOptions} from 'react-native-callkeep';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
-import {navigate, navigationRef} from '../navigation/NavigationService';
+import { Platform } from 'react-native';
+import notifee, { AndroidImportance } from '@notifee/react-native';
+import RNCallKeep, { IOptions } from 'react-native-callkeep';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
+import { navigate, navigationRef } from '../navigation/NavigationService';
+import { setPendingAnsweredCall } from './PendingCallManager';
 import VoipPushNotification from 'react-native-voip-push-notification';
 
 /**
@@ -48,13 +49,21 @@ export class VoipNotificationHandler {
   isRinging: boolean = false;
   // Whether the call has been answered
   isAnswered: boolean = false;
+  // Whether call acceptance is deferred waiting for login/navigation
+  pendingAcceptance: boolean = false;
   // UUID of the caller
   callerId: string = '';
   // Object that holds data about the incoming message/call
   msg: any = {};
+  // initialization guard
+  initialized: boolean = false;
+  // ensures setup only runs once per process
+  private setupPromise: Promise<void> | null = null;
+  // prevents attaching duplicate listeners after reloads
+  private listenersAttached: boolean = false;
 
   constructor() {
-    this.initialize();
+    // Lazy initialization; explicit initialize() will be called from App once environment ready.
   }
 
   /**
@@ -63,12 +72,27 @@ export class VoipNotificationHandler {
    *  - The Notifee channel (on Android)
    *  - Event listeners for incoming calls and actions
    */
-  initialize() {
-    this.getPermissions();
-    if (Platform.OS === 'android') {
-      this.createNotificationChannel();
+  async initialize(): Promise<void> {
+    if (this.initialized && this.setupPromise) {
+      await this.setupPromise;
+      return;
     }
-    this.setupEventListeners();
+
+    if (!this.setupPromise) {
+      this.setupPromise = (async () => {
+        if (Platform.OS === 'android') {
+          await this.createNotificationChannel();
+        }
+        await this.getPermissions();
+        this.setupEventListeners();
+        this.initialized = true;
+      })().catch(error => {
+        this.setupPromise = null;
+        throw error;
+      });
+    }
+
+    await this.setupPromise;
   }
 
   /**
@@ -84,7 +108,13 @@ export class VoipNotificationHandler {
       RNCallKeep.setAvailable(true);
       RNCallKeep.setReachable();
       // Check if a phone account is enabled (Android-specific)
-      await RNCallKeep.checkPhoneAccountEnabled();
+      try {
+        await RNCallKeep.checkPhoneAccountEnabled();
+      } catch (err) {
+        console.log(
+          '[CallKeep] Phone account not enabled yet, will retry later.',
+        );
+      }
     } catch (err) {
       console.error('[VoipNotificationHandler] Error in getPermissions:', err);
     }
@@ -116,22 +146,52 @@ export class VoipNotificationHandler {
    * Display the native incoming call screen on Android using RNCallKeep.
    * - Called when an incoming call notification is received.
    */
-  displayCallAndroid() {
+  async displayCallAndroid(): Promise<void> {
+    if (this.isAnswered || this.pendingAcceptance) {
+      console.log(
+        '[VoipNotificationHandler] Skipping displayCallAndroid - already answered or pending acceptance',
+      );
+      return;
+    }
+
+    try {
+      await this.initialize();
+    } catch (error) {
+      console.error(
+        '[VoipNotificationHandler] Failed to initialize before displaying call:',
+        error,
+      );
+    }
+
     this.isRinging = true;
     this.callerId = generateUUID();
 
     if (this.msg) {
+      const callerName =
+        typeof this.msg.senderName === 'string' && this.msg.senderName.trim()
+          ? this.msg.senderName
+          : 'Incoming Call';
       // Display the incoming call UI with the caller's name
-      RNCallKeep.displayIncomingCall(
-        this.callerId,
-        this.msg.senderName,
-        this.msg.senderName,
-        'generic',
-      );
+      try {
+        await RNCallKeep.displayIncomingCall(
+          this.callerId,
+          callerName,
+          callerName,
+          'generic',
+        );
+      } catch (error) {
+        this.isRinging = false;
+        console.error(
+          '[VoipNotificationHandler] displayCallAndroid => displayIncomingCall failed:',
+          error,
+        );
+        throw error;
+      }
     } else {
       console.error(
         '[VoipNotificationHandler] displayCallAndroid => No call data found in this.msg!',
       );
+      this.isRinging = false;
     }
   }
 
@@ -141,7 +201,7 @@ export class VoipNotificationHandler {
    * - This sets the internal callerId if provided by iOS,
    *   and marks that we are indeed ringing.
    */
-  didDisplayIncomingCall(args: {callUUID?: string; error?: any}) {
+  didDisplayIncomingCall(args: { callUUID?: string; error?: any }) {
     if (args.callUUID && Platform.OS === 'ios') {
       this.callerId = args.callUUID;
     }
@@ -172,7 +232,7 @@ export class VoipNotificationHandler {
    *   bring the app to the foreground, accept the call via CometChat,
    *   and then navigate to our 'OngoingCallScreen'.
    */
-  onAnswerCall = async ({callUUID}: {callUUID: string}) => {
+  onAnswerCall = async ({ callUUID }: { callUUID: string }) => {
     if (this.isAnswered) {
       return; // Avoid double-answer
     }
@@ -180,42 +240,77 @@ export class VoipNotificationHandler {
     this.isRinging = false;
     this.isAnswered = true;
 
-    // Bring the app to the foreground
+    const sessionID = this.msg?.sessionId;
+    if (!sessionID) {
+      console.error(
+        '[VoipNotificationHandler] onAnswerCall => No session ID to accept call.',
+      );
+      return;
+    }
+
+    // Defer logic slightly so app/root initialization (cold start) can happen
     setTimeout(async () => {
       try {
-        const sessionID = this.msg?.sessionId;
-        if (!sessionID) {
-          console.error(
-            '[VoipNotificationHandler] onAnswerCall => No session ID to accept call.',
+        // If there is no logged in user yet OR navigation not ready, stash for later.
+        const loggedInUser = await CometChat.getLoggedinUser().catch(
+          () => null,
+        );
+        if (!loggedInUser || !navigationRef.isReady()) {
+          console.log(
+            '[VoipNotificationHandler] Deferring call acceptance until login/navigation ready',
           );
+          this.pendingAcceptance = true;
+          await setPendingAnsweredCall({
+            sessionId: sessionID,
+            raw: this.msg,
+            storedAt: Date.now(),
+          });
+          // Bring app foreground anyway
+          RNCallKeep.backToForeground();
           return;
         }
-        // Accept the call in CometChat
-        await CometChat.acceptCall(sessionID);
-        console.log('[VoipNotificationHandler] acceptCall => success');
 
-        // On Android, close the native dialer UI to avoid duplication
+        let acceptedCall: any = null;
+        try {
+          acceptedCall = await CometChat.acceptCall(sessionID);
+          console.log('[VoipNotificationHandler] acceptCall => success');
+        } catch (error: any) {
+          if (error?.code === 'ERR_CALL_USER_ALREADY_JOINED') {
+            console.log(
+              '[VoipNotificationHandler] Already joined; using active call',
+            );
+            acceptedCall = CometChat.getActiveCall();
+          } else {
+            throw error;
+          }
+        }
 
-        console.log(
-          '[VoipNotificationHandler] Is navigation ready?',
-          navigationRef.isReady(),
-        );
         if (Platform.OS === 'android') {
           RNCallKeep.endAllCalls();
         }
-        // Navigate to your call screen
-        navigate('OngoingCallScreen', {call: this.msg});
+        
+        const active = acceptedCall || CometChat.getActiveCall();
+        const callTypeForNav =
+          (typeof active?.getType === 'function'
+            ? active.getType()
+            : undefined) ??
+          (this.msg?.callType as any) ??
+          (this.msg?.type as any);
+
+        navigate('OngoingCallScreen', {
+          sessionId: sessionID,
+          callType: callTypeForNav,
+        });
       } catch (error: any) {
-        // If the call is already accepted, just navigate
-        if (error.code === 'ERR_CALL_USER_ALREADY_JOINED') {
-          navigate('OngoingCallScreen', {call: this.msg});
-        } else {
-          console.error('[VoipNotificationHandler] Accept call error:', error);
-        }
+        console.error(
+          '[VoipNotificationHandler] Accept call error (deferred path):',
+          error,
+        );
       } finally {
         RNCallKeep.backToForeground();
+        this.pendingAcceptance = false;
       }
-    }, 1000);
+    }, 600); // shorter delay – rely on deferral if not ready
   };
 
   /**
@@ -225,47 +320,43 @@ export class VoipNotificationHandler {
     RNCallKeep.endAllCalls();
   }
 
-  /**
-   * End or reject the call.
-   * - If the call was already answered (this.isAnswered) and we have a session ID,
-   *   we end the call via CometChat.
-   * - Otherwise, if it wasn't answered yet, we reject it.
-   * - Finally, we end the call in RNCallKeep and reset local state.
-   */
-  endCall = async ({callUUID}: {callUUID: string}) => {
-    // If msg indicates it's a call
+  endCall = async ({ callUUID }: { callUUID: string }) => {
     if (this.msg?.type === 'call') {
       const sessionID = this.msg.sessionId;
-      // If call was answered, end it in CometChat
       if (this.isAnswered && sessionID) {
         this.isAnswered = false;
         CometChat.endCall(sessionID);
       } else if (sessionID) {
-        // If call wasn't answered, reject the call
         try {
-          setTimeout(() => {
-            CometChat.rejectCall(sessionID, CometChat.CALL_STATUS.REJECTED);
-          }, 300);
+          const loggedInUser = await CometChat.getLoggedinUser().catch(
+            () => null,
+          );
+          if (loggedInUser) {
+            setTimeout(() => {
+              CometChat.rejectCall(sessionID, CometChat.CALL_STATUS.REJECTED);
+            }, 300);
+          } else {
+            console.log(
+              '[VoipNotificationHandler] Skipping rejectCall: user not logged in (likely cold start)',
+            );
+          }
         } catch (err) {
           console.error(
-            '[VoipNotificationHandler] endCall => Error rejecting call:',
+            '[VoipNotificationHandler] endCall => Error handling rejection logic:',
             err,
           );
         }
       }
     }
 
-    // End the call in RNCallKeep
     const callIdToEnd = callUUID || this.callerId;
     if (callIdToEnd) {
       RNCallKeep.endCall(callIdToEnd);
     }
-    // Also ensure no ongoing calls remain
     RNCallKeep.endAllCalls();
-
-    // Reset the local state tracking calls
     this.isRinging = false;
     this.isAnswered = false;
+    this.pendingAcceptance = false;
     this.callerId = '';
     this.msg = {};
   };
@@ -286,6 +377,10 @@ export class VoipNotificationHandler {
    * (on iOS) and for RNCallKeep (on both iOS and Android).
    */
   setupEventListeners() {
+    if (this.listenersAttached) {
+      return;
+    }
+
     // For iOS VOIP push notifications
     if (Platform.OS === 'ios') {
       VoipPushNotification.addEventListener(
@@ -305,7 +400,7 @@ export class VoipNotificationHandler {
           return;
         }
         for (let voipPushEvent of events) {
-          let {name, data} = voipPushEvent;
+          let { name, data } = voipPushEvent;
           if (
             name ===
             VoipPushNotification.RNVoipPushRemoteNotificationReceivedEvent
@@ -323,6 +418,8 @@ export class VoipNotificationHandler {
       'didDisplayIncomingCall',
       this.didDisplayIncomingCall.bind(this),
     );
+
+    this.listenersAttached = true;
   }
 }
 

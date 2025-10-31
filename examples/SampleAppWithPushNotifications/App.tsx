@@ -1,5 +1,5 @@
 import './gesture-handler';
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Platform,
   View,
@@ -18,10 +18,10 @@ import {
 } from '@cometchat/chat-uikit-react-native';
 
 import messaging from '@react-native-firebase/messaging';
-import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
 import RootStackNavigator from './src/navigation/RootStackNavigator';
-import {AppConstants} from './src/utils/AppConstants';
+import { AppConstants } from './src/utils/AppConstants';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import VoipPushNotification from 'react-native-voip-push-notification';
 import {
@@ -34,19 +34,20 @@ import {
   handleIosVoipToken,
   navigateToConversation,
 } from './src/utils/helper';
-import {registerPushToken} from './src/utils/PushNotification';
-import {voipHandler} from './src/utils/VoipNotificationHandler';
-import {navigationRef} from './src/navigation/NavigationService';
-import notifee, {EventType} from '@notifee/react-native';
+import { registerPushToken } from './src/utils/PushNotification';
+import { voipHandler } from './src/utils/VoipNotificationHandler';
+import { navigationRef, navigate } from './src/navigation/NavigationService';
+import notifee, { EventType } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useActiveChat} from './src/utils/ActiveChatContext';
+import { useActiveChat } from './src/utils/ActiveChatContext';
 import RNCallKeep from 'react-native-callkeep';
+import { consumePendingAnsweredCall, isPendingStale } from './src/utils/PendingCallManager';
 
 // Listener ID for registering and removing CometChat listeners.
 const listenerId = 'app';
 
 const App = (): React.ReactElement => {
-  const {activeChat} = useActiveChat();
+  const { activeChat } = useActiveChat();
   const [callReceived, setCallReceived] = useState(false);
   const incomingCall = useRef<CometChat.Call | CometChat.CustomMessage | null>(
     null,
@@ -57,8 +58,10 @@ const App = (): React.ReactElement => {
   const [currentToken, setCurrentToken] = useState('');
   const [isTokenRegistered, setIsTokenRegistered] = useState(false);
   const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
+  const [navigationReadyFlag, setNavigationReadyFlag] = useState(false);
 
   /**
+   * Initialize CometChat UIKit and configure Google Sign-In.
    * Retrieves credentials from AsyncStorage and uses fallback constants if needed.
    */
   useEffect(() => {
@@ -88,7 +91,6 @@ const App = (): React.ReactElement => {
             .SUBSCRIPTION_TYPE_ALL_USERS as UIKitSettings['subscriptionType'],
         });
 
-
         // If a user is already logged in, update the state.
         const loggedInUser = CometChatUIKit.loggedInUser;
         if (loggedInUser) {
@@ -104,6 +106,65 @@ const App = (): React.ReactElement => {
     }
     init();
   }, []);
+
+  // Track when navigation ref is ready (should be ready shortly after first render of navigator)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (navigationRef.isReady()) {
+        setNavigationReadyFlag(true);
+        clearInterval(interval);
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
+
+  // When user becomes logged in & navigation ready, check for any pending answered call
+  useEffect(() => {
+    async function maybeResumePendingCall() {
+      if (!navigationReadyFlag || !isLoggedIn) return;
+      const pending = await consumePendingAnsweredCall();
+      if (pending && !isPendingStale(pending)) {
+        try {
+          console.log(
+            '[App] Resuming pending answered call',
+            pending.sessionId,
+          );
+          // Attempt acceptance (may already be joined)
+          let acceptedCall: any = null;
+          try {
+            acceptedCall = await CometChat.acceptCall(pending.sessionId);
+          } catch (err: any) {
+            if (err?.code === 'ERR_CALL_USER_ALREADY_JOINED') {
+              acceptedCall = CometChat.getActiveCall();
+            } else {
+              throw err;
+            }
+          }
+          // Close native incoming UI now that we're resuming
+          RNCallKeep.endAllCalls();
+          const active = acceptedCall || CometChat.getActiveCall();
+          const callTypeForNav =
+            (typeof active?.getType === 'function'
+              ? active.getType()
+              : undefined) ??
+            (pending.raw?.callType as any) ??
+            (pending.raw?.type as any);
+
+          voipHandler.msg = active || pending.raw || {};
+          voipHandler.isAnswered = true;
+
+          navigate('OngoingCallScreen', {
+            sessionId: pending.sessionId,
+            callType: callTypeForNav,
+          });
+
+        } catch (e) {
+          console.log('[App] Failed resuming pending call', e);
+        }
+      }
+    }
+    maybeResumePendingCall();
+  }, [navigationReadyFlag, isLoggedIn]);
 
   /**
    * Handle incoming call events.
@@ -288,22 +349,24 @@ const App = (): React.ReactElement => {
    */
   useEffect(() => {
     if (Platform.OS === 'android') {
-      const unsubscribeNotifee = notifee.onForegroundEvent(({type, detail}) => {
-        try {
-          if (type === EventType.PRESS) {
-            const {notification} = detail;
-            // Cancel the notification after it is pressed.
-            if (notification?.id) {
-              notifee.cancelNotification(notification.id);
+      const unsubscribeNotifee = notifee.onForegroundEvent(
+        ({ type, detail }) => {
+          try {
+            if (type === EventType.PRESS) {
+              const { notification } = detail;
+              // Cancel the notification after it is pressed.
+              if (notification?.id) {
+                notifee.cancelNotification(notification.id);
+              }
+              // Retrieve notification data and navigate to the corresponding conversation.
+              const data = detail?.notification?.data || {};
+              navigateToConversation(navigationRef, data);
             }
-            // Retrieve notification data and navigate to the corresponding conversation.
-            const data = detail?.notification?.data || {};
-            navigateToConversation(navigationRef, data);
+          } catch (error) {
+            console.log('Error handling notifee foreground event:', error);
           }
-        } catch (error) {
-          console.log('Error handling notifee foreground event:', error);
-        }
-      });
+        },
+      );
       return () => unsubscribeNotifee();
     }
   }, []);
@@ -318,7 +381,7 @@ const App = (): React.ReactElement => {
         // Get the initial notification if the app was opened via a notification.
         const initialNotification = await notifee.getInitialNotification();
         if (initialNotification) {
-          const {notification} = initialNotification;
+          const { notification } = initialNotification;
           if (notification?.id) {
             // Cancel the notification.
             await notifee.cancelNotification(notification.id);
@@ -492,7 +555,6 @@ const App = (): React.ReactElement => {
     }
   }, [userLoggedIn, currentToken, isTokenRegistered]);
 
-
   // Show a blank/splash screen while the app is initializing.
   if (isInitializing) {
     return (
@@ -511,7 +573,7 @@ const App = (): React.ReactElement => {
   // Once initialization is complete, render the main app UI.
   return (
     <SafeAreaProvider>
-      <SafeAreaView edges={['top', 'bottom']} style={{flex: 1}}>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
         <CometChatThemeProvider>
           <CometChatI18nProvider>
             {/* Render the incoming call UI if the user is logged in and a call is received */}

@@ -45,7 +45,13 @@ const { width } = Dimensions.get('window');
 type Props = StackScreenProps<RootStackParamList, 'Messages'>;
 
 const Messages: React.FC<Props> = ({ route, navigation }) => {
-  const { user, group, fromMention = false, parentMessageId: routeParentMessageId } = route.params;
+  const {
+    user,
+    group,
+    fromMention = false,
+    fromMessagePrivately = false,
+    parentMessageId: routeParentMessageId,
+  } = route.params;
   const loggedInUser = useRef<CometChat.User>(
     CometChatUIKit.loggedInUser!,
   ).current;
@@ -55,18 +61,23 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
   const navigationRef = useRef(navigation);
   const routeRef = useRef(route);
   const userListenerId = 'app_messages' + new Date().getTime();
-  const openmessageListenerId = 'message_' + new Date().getTime();
+  // Stable listener id for the lifetime of this component (prevents multiple listeners)
+  const openmessageListenerIdRef = useRef('message_' + new Date().getTime());
+  const lastOpenChatRef = useRef<{ uid: string; time: number } | null>(null);
+
   const [localUser, setLocalUser] = useState<CometChat.User | undefined>(user);
   const [messageListKey, setMessageListKey] = useState(0);
   const [messageComposerKey, setMessageComposerKey] = useState(0);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
-  
+
   // Manage parentMessageId in parent component
-  const [parentMessageId, setParentMessageId] = useState<string | undefined>(routeParentMessageId);
-  
+  const [parentMessageId, setParentMessageId] = useState<string | undefined>(
+    routeParentMessageId,
+  );
+
   const { setActiveChat } = useActiveChat();
   const insets = useSafeAreaInsets();
-  
+
   // Add ref to track streaming state
   const messageComposerRef = useRef<any>(null);
 
@@ -118,7 +129,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
 
   useEffect(() => {
     const backAction = () => {
-      if (fromMention) {
+      if (fromMention || fromMessagePrivately) {
         navigation.goBack();
       } else {
         navigation.popToTop();
@@ -141,21 +152,89 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
         handleccUserUnBlocked(item),
     });
 
-    CometChatUIEventHandler.addUIListener(openmessageListenerId, {
-      openChat: ({ user }) => {
-        if (user !== undefined) {
-          navigation.push('Messages', {
-            user,
-          });
-        }
+    // Only attach the openChat listener when we are in a group context.
+    // This prevents stacking duplicate private chat screens because the group
+    // screen remains mounted underneath the user chat.
+    if (group) {
+      CometChatUIEventHandler.addUIListener(openmessageListenerIdRef.current, {
+        openChat: ({ user }) => {
+          if (!user) return;
+
+          try {
+            const uid = user.getUid();
+
+            // 1. Debounce rapid duplicate events (within 800ms for the same UID)
+            const now = Date.now();
+            if (
+              lastOpenChatRef.current &&
+              lastOpenChatRef.current.uid === uid &&
+              now - lastOpenChatRef.current.time < 800
+            ) {
+              return; // ignore duplicate
+            }
+
+            const state = navigation.getState();
+            const routes = state?.routes || [];
+            const topRoute = routes[routes.length - 1];
+
+            // If the top route already represents this user chat, skip.
+            if (
+              topRoute?.name === 'Messages' &&
+              (topRoute as any)?.params?.user?.getUid &&
+              (topRoute as any).params.user.getUid() === uid
+            ) {
+              return;
+            }
+
+            // If any existing route (beneath) already has this user chat, pop back to it instead of pushing another.
+            const existingIndex = routes.findIndex(
+              r =>
+                r.name === 'Messages' &&
+                (r as any)?.params?.user?.getUid &&
+                (r as any).params.user.getUid() === uid,
+            );
+            if (existingIndex !== -1) {
+              const popCount = routes.length - existingIndex - 1;
+              if (popCount > 0) {
+                navigation.pop(popCount);
+              }
+              return; // we're now at the existing user chat
+            }
+
+            lastOpenChatRef.current = { uid, time: now };
+            navigation.push('Messages', { user, fromMessagePrivately: true });
+          } catch (e) {
+            console.warn('openChat navigation prevented due to error', e);
+          }
       },
+      });
+    }
+
+    // Close sticker panel when screen loses focus
+    const blurSub = navigation.addListener('blur', () => {
+      CometChatUIEventHandler.emitUIEvent?.(CometChatUIEvents.hidePanel, {
+        alignment: 'composerBottom',
+        child: () => null,
+        panelId: 'sticker',
+      });
+    });
+    const focusSub = navigation.addListener('focus', () => {
+      // Force re-mount composer so auxiliary options (StickerButton) reset correctly
+      setMessageComposerKey(prev => prev + 1);
     });
 
     return () => {
       CometChatUIEventHandler.removeUserListener(userListenerId);
-      CometChatUIEventHandler.removeUIListener(openmessageListenerId);
+      if (group) {
+        CometChatUIEventHandler.removeUIListener(
+          openmessageListenerIdRef.current,
+        );
+      }
+      blurSub();
+      focusSub();
     };
-  }, [localUser]);
+    // Listener re-attached only when group context changes
+  }, [navigation, group]);
 
   const handleccUserBlocked = ({ user }: { user: CometChat.User }) => {
     setLocalUser(CommonUtils.clone(user));
@@ -188,7 +267,10 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
   /** Handle history message click */
   const handleHistoryMessageClick = useCallback(
     (message: CometChat.BaseMessage) => {
-      if (messageComposerRef.current && messageComposerRef.current.stopStreaming) {
+      if (
+        messageComposerRef.current &&
+        messageComposerRef.current.stopStreaming
+      ) {
         messageComposerRef.current.stopStreaming();
       }
       setShowHistoryModal(false);
@@ -316,9 +398,11 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
   /** Theme override for agentic outgoing bubble */
   const providerTheme = useMemo(() => {
     const defaultOutgoingBg =
-      theme?.messageListStyles?.outgoingMessageBubbleStyles?.containerStyle?.backgroundColor;
+      theme?.messageListStyles?.outgoingMessageBubbleStyles?.containerStyle
+        ?.backgroundColor;
     const defaultTextColor =
-      theme?.messageListStyles?.outgoingMessageBubbleStyles?.textBubbleStyles?.textStyle?.color;
+      theme?.messageListStyles?.outgoingMessageBubbleStyles?.textBubbleStyles
+        ?.textStyle?.color;
 
     const outgoingOverride = {
       messageComposerStyles: {
@@ -337,16 +421,12 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
           },
           textBubbleStyles: {
             textStyle: {
-              color: agentic
-                ? theme.color.textPrimary
-                : defaultTextColor,
+              color: agentic ? theme.color.textPrimary : defaultTextColor,
             },
           },
           dateStyles: {
             textStyle: {
-              color: agentic
-                ? theme.color.textSecondary
-                : defaultTextColor,
+              color: agentic ? theme.color.textSecondary : defaultTextColor,
             },
           },
         },
@@ -356,128 +436,152 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     return {
       light: outgoingOverride,
       dark: outgoingOverride,
-      mode: "auto" as "auto",
+      mode: 'auto' as 'auto',
     };
   }, [agentic, theme]);
 
   return (
     <CometChatThemeProvider theme={providerTheme}>
       <View style={styles.flexOne}>
-      <CometChatMessageHeader
-        user={localUser}
-        group={group}
-        onBack={() => {
-          if (fromMention) {
-            navigation.goBack();
-          } else {
-            navigation.popToTop();
-          }
-        }}
-        TrailingView={getTrailingView}
-        showBackButton={true}
-        hideChatHistoryButton={false}
-        hideNewChatButton={false}
-        onChatHistoryButtonClick={handleChatHistoryClick}
-        onNewChatButtonClick={handleNewChatClick}
-      />
-      <View style={styles.flexOne}>
-        <CometChatMessageList
-          key={messageListKey}
-          textFormatters={[getMentionsTap()]}
-          user={user}
+        <CometChatMessageHeader
+          user={localUser}
           group={group}
-          parentMessageId={parentMessageId}
-          // callback signature expects (messageObject, messageBubbleView)
-          onThreadRepliesPress={(messageObject, _messageBubbleView) => {
-            navigation.navigate('ThreadView', { message: messageObject, user, group });
+          onBack={() => {
+            if (fromMention || fromMessagePrivately) {
+              navigation.goBack();
+            } else {
+              navigation.popToTop();
+            }
           }}
-          aiAssistantTools={new CometChatAIAssistantTools({
-            getCurrentWeather: (args: any) => console.log('Weather args', args),
-          })}
-          streamingSpeed={10}
+          TrailingView={getTrailingView}
+          showBackButton={true}
+          hideChatHistoryButton={false}
+          hideNewChatButton={false}
+          onChatHistoryButtonClick={handleChatHistoryClick}
+          onNewChatButtonClick={handleNewChatClick}
         />
-      </View>
-
-      {/* Chat History Drawer */}
-      {agentic && (
-        <Modal visible={showHistoryModal} transparent animationType="none" onRequestClose={() => setShowHistoryModal(false)}>
-          <View style={drawerStyles.backdrop}>
-            <Animated.View
-              style={[
-                drawerStyles.drawer,
-                { 
-                  backgroundColor: theme.color.background1,
-                  paddingTop: Platform.OS === 'ios' ? insets.top : 0,
+        <View style={styles.flexOne}>
+          <CometChatMessageList
+            key={messageListKey}
+            textFormatters={[getMentionsTap()]}
+            user={user}
+            group={group}
+            parentMessageId={parentMessageId}
+            // callback signature expects (messageObject, messageBubbleView)
+            onThreadRepliesPress={(messageObject, _messageBubbleView) => {
+              CometChatUIEventHandler.emitUIEvent?.(
+                CometChatUIEvents.hidePanel,
+                {
+                  alignment: 'composerBottom',
+                  child: () => null,
                 },
-                { transform: [{ translateX: slideAnim }] },
-              ]}
-            >
-              <CometChatAIAssistantChatHistory
-                user={localUser}
-                group={group}
-                onClose={() => setShowHistoryModal(false)}
-                onMessageClicked={handleHistoryMessageClick}
-                onError={handleChatHistoryError}
-                onNewChatButtonClick={handleNewChatClick}
-              />
-            </Animated.View>
-          </View>
-        </Modal>
-      )}
+              );
+              // Removed legacy ccCloseStickerPanel event; hidePanel suffices.
 
-      {localUser?.getBlockedByMe() ? (
-        <View
-          style={[
-            styles.blockedContainer,
-            { backgroundColor: theme.color.background3 },
-          ]}
-        >
-          <Text
-            style={[
-              theme.typography.button.regular,
-              {
-                color: theme.color.textSecondary,
-                textAlign: 'center',
-                paddingBottom: 10,
-              },
-            ]}
+              navigation.navigate('ThreadView', {
+                message: messageObject,
+                user,
+                group,
+              });
+            }}
+            aiAssistantTools={
+              new CometChatAIAssistantTools({
+                getCurrentWeather: (args: any) =>
+                  console.log('Weather args', args),
+              })
+            }
+            streamingSpeed={10}
+          />
+        </View>
+
+        {/* Chat History Drawer */}
+        {agentic && (
+          <Modal
+            visible={showHistoryModal}
+            transparent
+            animationType="none"
+            onRequestClose={() => setShowHistoryModal(false)}
           >
-            {t('BLOCKED_USER_DESC')}
-          </Text>
-          <TouchableOpacity
-            onPress={() => unblock(localUser)}
-            style={[styles.button, { borderColor: theme.color.borderDefault }]}
+            <View style={drawerStyles.backdrop}>
+              <Animated.View
+                style={[
+                  drawerStyles.drawer,
+                  {
+                    backgroundColor: theme.color.background1,
+                    paddingTop: Platform.OS === 'ios' ? insets.top : 0,
+                  },
+                  { transform: [{ translateX: slideAnim }] },
+                ]}
+              >
+                <CometChatAIAssistantChatHistory
+                  user={localUser}
+                  group={group}
+                  onClose={() => setShowHistoryModal(false)}
+                  onMessageClicked={handleHistoryMessageClick}
+                  onError={handleChatHistoryError}
+                  onNewChatButtonClick={handleNewChatClick}
+                />
+              </Animated.View>
+            </View>
+          </Modal>
+        )}
+
+        {localUser?.getBlockedByMe() ? (
+          <View
+            style={[
+              styles.blockedContainer,
+              { backgroundColor: theme.color.background3 },
+            ]}
           >
             <Text
               style={[
-                theme.typography.button.medium,
-                styles.buttontext,
+                theme.typography.button.regular,
                 {
-                  color: theme.color.textPrimary,
+                  color: theme.color.textSecondary,
+                  textAlign: 'center',
+                  paddingBottom: 10,
                 },
               ]}
             >
-              {t('UNBLOCK')}
+              {t('BLOCKED_USER_DESC')}
             </Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <CometChatMessageComposer
-          key={messageComposerKey}
-          ref={messageComposerRef}
-          parentMessageId={parentMessageId}
-          user={localUser}
-          group={group}
-          keyboardAvoidingViewProps={{
-            ...(Platform.OS === 'android'
-              ? {}
-              : {
-                  behavior: 'padding',
-                }),
-          }}
-        />
-      )}
-    </View>
+            <TouchableOpacity
+              onPress={() => unblock(localUser)}
+              style={[
+                styles.button,
+                { borderColor: theme.color.borderDefault },
+              ]}
+            >
+              <Text
+                style={[
+                  theme.typography.button.medium,
+                  styles.buttontext,
+                  {
+                    color: theme.color.textPrimary,
+                  },
+                ]}
+              >
+                {t('UNBLOCK')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <CometChatMessageComposer
+            key={messageComposerKey}
+            ref={messageComposerRef}
+            parentMessageId={parentMessageId}
+            user={localUser}
+            group={group}
+            keyboardAvoidingViewProps={{
+              ...(Platform.OS === 'android'
+                ? {}
+                : {
+                    behavior: 'padding',
+                  }),
+            }}
+          />
+        )}
+      </View>
     </CometChatThemeProvider>
   );
 };
