@@ -1755,13 +1755,13 @@ PODS:
     - SocketRocket
   - react-native-background-timer (2.4.1):
     - React-Core
-  - react-native-cometchat-ui-kit (5.2.1):
+  - react-native-cometchat-ui-kit (5.2.2):
     - React-Core
-    - react-native-cometchat-ui-kit/Video (= 5.2.1)
-    - react-native-cometchat-ui-kit/VideoCaching (= 5.2.1)
-  - react-native-cometchat-ui-kit/Video (5.2.1):
+    - react-native-cometchat-ui-kit/Video (= 5.2.2)
+    - react-native-cometchat-ui-kit/VideoCaching (= 5.2.2)
+  - react-native-cometchat-ui-kit/Video (5.2.2):
     - React-Core
-  - react-native-cometchat-ui-kit/VideoCaching (5.2.1):
+  - react-native-cometchat-ui-kit/VideoCaching (5.2.2):
     - DVAssetLoaderDelegate (~> 0.3.1)
     - React-Core
     - react-native-cometchat-ui-kit/Video
@@ -3023,7 +3023,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 33f678ee25b6c0ee2b01b1ecec08e3e02424cefe
   React-microtasksnativemodule: 44b44a4d3cd6ffb85d928abf741acdc26722de2e
   react-native-background-timer: 17ea5e06803401a379ebf1f20505b793ac44d0fe
-  react-native-cometchat-ui-kit: 6f02b8fb10a6bb2cbe195110a63ed20cbfa33aa2
+  react-native-cometchat-ui-kit: 7cfb1dd8b98a11f0d26c942e260753dbee71e386
   react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
   react-native-safe-area-context: 6d8a7b750e496e37bda47c938320bf2c734d441f
   react-native-video: f0566c7e82ba660f656c3269436f297a3f6a02d9

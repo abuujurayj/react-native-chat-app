@@ -1,6 +1,6 @@
 {
   "name": "sample-app-with-push-notifications",
-  "version": "5.2.1",
+  "version": "5.2.2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -12,7 +12,7 @@
   "dependencies": {
     "@cometchat/calls-sdk-react-native": "^4.3.0",
     "@cometchat/chat-sdk-react-native": "^4.0.15",
-    "@cometchat/chat-uikit-react-native": "^5.2.1",
+    "@cometchat/chat-uikit-react-native": "^5.2.2",
     "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-clipboard/clipboard": "^1.16.3",
@@ -31,7 +31,7 @@
     "react": "19.1.0",
     "react-native": "0.81.4",
     "react-native-background-timer": "^2.4.1",
-    "react-native-callkeep": "cometchat/react-native-callkeep",
+    "react-native-callkeep": "github:cometchat/react-native-callkeep",
     "react-native-callstats": "^3.73.22",
     "react-native-device-info": "^14.1.1",
     "react-native-gesture-handler": "^2.28.0",

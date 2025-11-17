@@ -5,6 +5,7 @@ import {
   CometChatAvatar,
   CometChatConversations,
   CometChatUIKit,
+  useCometChatTranslation,
   useTheme,
 } from '@cometchat/chat-uikit-react-native';
 import {AuthContext} from '../../../navigation/AuthContext';
@@ -42,6 +43,7 @@ const Conversations: React.FC<{}> = ({}) => {
     CometChatUIKit.loggedInUser,
   ).current;
   const [shouldHide, setShouldHide] = React.useState(false);
+  const { t } = useCometChatTranslation();
 
   useFocusEffect(
     useCallback(() => {
@@ -177,7 +179,7 @@ const Conversations: React.FC<{}> = ({}) => {
           }}
           menuItems={[
             {
-              text: 'Create Conversation',
+              text: t('CREATE_CONVERSATION'),
               onPress: () => {
                 navigation.navigate('CreateConversation');
               },
@@ -191,7 +193,7 @@ const Conversations: React.FC<{}> = ({}) => {
               iconColor: theme.color.textPrimary,
             },
             {
-              text: 'AI Assistants',
+              text: t('AI_ASSISTANTS'),
               onPress: () => {
                 navigation.navigate(SCREEN_CONSTANTS.AI_AGENTS);
               },
@@ -219,7 +221,7 @@ const Conversations: React.FC<{}> = ({}) => {
               iconColor: theme.color.textPrimary,
             },
             {
-              text: 'Logout',
+              text: t('LOGOUT'),
               onPress: () => {
                 handleLogout();
               },
