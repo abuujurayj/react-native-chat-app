@@ -44,7 +44,7 @@ export const defaultTypography = {
     bold: {
       fontWeight: "700",
       fontSize: 24,
-      lineHeight: 28.8,
+      // lineHeight: 28.8,
     },
     medium: {
       fontWeight: "500",
@@ -66,7 +66,7 @@ export const defaultTypography = {
     medium: {
       fontWeight: "500",
       fontSize: 20,
-      lineHeight: 24,
+      // lineHeight: 24,
     },
     regular: {
       fontWeight: "400",
@@ -100,7 +100,7 @@ export const defaultTypography = {
     medium: {
       fontWeight: "500",
       fontSize: 16,
-      lineHeight: 20.8,
+      // lineHeight: 20.8,
     },
     regular: {
       fontWeight: "400",
@@ -168,7 +168,7 @@ export const defaultTypography = {
     medium: {
       fontWeight: "500",
       fontSize: 14,
-      lineHeight: 16.8,
+      // lineHeight: 16.8,
     },
     regular: {
       fontWeight: "400",

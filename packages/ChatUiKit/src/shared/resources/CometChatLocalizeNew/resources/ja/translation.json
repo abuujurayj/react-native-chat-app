@@ -458,5 +458,9 @@
     "START_A_CHAT": "'新しいチャット' ボタンをタップしてチャットを開始します",
     "CHAT_HISTORY": "チャット履歴",
     "ASK_ANYTHING": "何でも聞いてください...",
-    "AI_ASSISTANT": "AIアシスタント"
+    "AI_ASSISTANT": "AIアシスタント",
+    "START_REPORTING": "レポートを開始",
+	"LOGOUT": "ログアウト",
+	"AI_ASSISTANTS": "AIアシスタント",
+	"CREATE_CONVERSATION": "会話を作成"
 }

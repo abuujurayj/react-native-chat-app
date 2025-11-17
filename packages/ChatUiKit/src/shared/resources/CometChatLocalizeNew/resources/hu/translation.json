@@ -459,5 +459,9 @@
 	"START_A_CHAT": "Kezdje el a csevegést a 'Új csevegés' gombra kattintva",
 	"CHAT_HISTORY": "Chat előzményei",
 	"ASK_ANYTHING": "Kérdezz bármit...",
-	"AI_ASSISTANT": "AI asszisztens"
+	"AI_ASSISTANT": "AI asszisztens",
+	"START_REPORTING": "Jelentés indítása",
+	"LOGOUT": "Kijelentkezés",
+	"AI_ASSISTANTS": "AI asszisztensek",
+	"CREATE_CONVERSATION": "Beszélgetés létrehozása"
 }

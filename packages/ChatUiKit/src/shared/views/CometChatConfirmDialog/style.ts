@@ -32,6 +32,7 @@ export const getConfirmDialogStyleLight = (
     titleTextStyle: {
       color: color.textPrimary,
       marginBottom: spacing.margin.m2,
+      textAlign: "center",
       ...typography.heading2.medium,
     },
     messageTextStyle: {
@@ -55,9 +56,9 @@ export const getConfirmDialogStyleLight = (
       tintColor: color.iconPrimary,
     },
     cancelButtonStyle: {
+      flex: 1,
       borderRadius: spacing.radius.r2,
-      height: 40,
-      width: "50%",
+      height: 45,
       justifyContent: "center",
       alignItems: "center",
       borderWidth: 1,
@@ -65,20 +66,22 @@ export const getConfirmDialogStyleLight = (
     },
     cancelButtonTextStyle: {
       color: color.textPrimary,
-      //textTransform: "uppercase",
       ...typography.button.medium,
+      paddingHorizontal: 6,
+      textAlign: "center",
     },
     confirmButtonStyle: {
+      flex: 1,
       backgroundColor: color.error,
       borderRadius: spacing.radius.r2,
-      height: 40,
-      width: "50%",
+      height: 45,
       justifyContent: "center",
       alignItems: "center",
     },
     confirmButtonTextStyle: {
       color: color.primaryButtonIcon,
-      //textTransform: "uppercase",
+      paddingHorizontal: 6,
+      textAlign: "center",
       ...typography.button.medium,
     },
   });

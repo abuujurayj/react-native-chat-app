@@ -458,5 +458,9 @@
     "START_A_CHAT": "'새로운 채팅' 버튼을 눌러 채팅을 시작하세요",
     "CHAT_HISTORY": "채팅 기록",
     "ASK_ANYTHING": "무엇이든 물어보세요...",
-    "AI_ASSISTANT": "AI 어시스턴트"
+    "AI_ASSISTANT": "AI 어시스턴트",
+    "START_REPORTING": "보고 시작",
+	"LOGOUT": "로그아웃",
+	"AI_ASSISTANTS": "AI 도우미",
+	"CREATE_CONVERSATION": "대화 생성"
 }

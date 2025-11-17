@@ -47,19 +47,28 @@ export const CometChatOngoingCall = (props: CometChatOngoingCallInterface): JSX.
     // Fetch the logged-in user and generate a token for the ongoing call session.
     CometChat.getLoggedinUser()
       .then((user) => {
-        const authToken = user!.getAuthToken();
-        CometChatCalls.generateToken(sessionID, authToken)
-          .then((token: any) => {
-            setToken(token.token);
-          })
-          .catch((rej: CometChat.CometChatException) => {
-            setToken(undefined);
-            onError && onError(rej);
-          });
+        if (!user) {
+          throw new Error('No logged in user found');
+        }
+        
+        const authToken = user.getAuthToken();
+        console.log('[CometChatOngoingCall] Got auth token, generating call token...');
+        
+        return CometChatCalls.generateToken(sessionID, authToken);
       })
-      .catch((rej) => {
-        console.log("Error", rej);
-        onError && onError(rej);
+      .then((token: any) => {
+        console.log('[CometChatOngoingCall] Successfully generated call token');
+        setToken(token.token);
+      })
+      .catch((rej: CometChat.CometChatException | Error) => {
+        console.error('[CometChatOngoingCall] Failed to generate token for session:', sessionID, rej);
+        setToken(undefined);
+        onError && onError(rej instanceof Error ? 
+          new CometChat.CometChatException({
+            code: 'TOKEN_GENERATION_FAILED',
+            message: rej.message
+          }) : rej
+        );
       });
 
     // Cleanup call settings on unmount.

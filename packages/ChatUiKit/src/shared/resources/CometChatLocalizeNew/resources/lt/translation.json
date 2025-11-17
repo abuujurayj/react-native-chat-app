@@ -459,5 +459,9 @@
     "START_A_CHAT": "Pradėkite pokalbį paspaudę „Naujas pokalbis“ mygtuką",
 	"CHAT_HISTORY": "Pokalbių istorija",
 	"ASK_ANYTHING": "Klauskite bet ko...",
-	"AI_ASSISTANT": "AI asistentas"
+	"AI_ASSISTANT": "AI asistentas",
+	"START_REPORTING": "Pradėti ataskaitą",
+	"LOGOUT": "Atsijungti",
+	"AI_ASSISTANTS": "DI asistentai",
+	"CREATE_CONVERSATION": "Sukurti pokalbį"
 }

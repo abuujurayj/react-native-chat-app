@@ -160,7 +160,7 @@ export const CometChatConfirmDialog = (props: CometChatConfirmDialogInterface) =
                 onCancel?.();
               }}
             >
-              <Text style={[theme.confirmDialogStyles.cancelButtonTextStyle, cancelButtonTextStyle]}>
+              <Text numberOfLines={1} style={[theme.confirmDialogStyles.cancelButtonTextStyle, cancelButtonTextStyle]}>
                 {cancelButtonText}
               </Text>
             </TouchableOpacity>
@@ -171,7 +171,7 @@ export const CometChatConfirmDialog = (props: CometChatConfirmDialogInterface) =
                 onConfirm?.();
               }}
             >
-              <Text style={[theme.confirmDialogStyles.confirmButtonTextStyle, confirmButtonTextStyle]}>
+              <Text numberOfLines={1} style={[theme.confirmDialogStyles.confirmButtonTextStyle, confirmButtonTextStyle]}>
                 {confirmButtonText}
               </Text>
             </TouchableOpacity>

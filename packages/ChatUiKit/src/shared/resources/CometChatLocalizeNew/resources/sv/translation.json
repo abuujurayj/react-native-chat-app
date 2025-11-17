@@ -459,5 +459,9 @@
 	"START_A_CHAT": "Starta en chatt genom att trycka på knappen 'Ny chatt'",
 	"CHAT_HISTORY": "Chattens historik",
 	"ASK_ANYTHING": "Fråga vad som helst...",
-	"AI_ASSISTANT": "AI-assistent"
+	"AI_ASSISTANT": "AI-assistent",
+	"START_REPORTING": "Starta rapportering",
+	"LOGOUT": "Logga ut",
+	"AI_ASSISTANTS": "AI-assistenter",
+	"CREATE_CONVERSATION": "Skapa konversation"
 }

@@ -459,5 +459,9 @@
     "START_A_CHAT": "點擊“新聊天”按鈕開始聊天",
 	"CHAT_HISTORY": "聊天記錄",
 	"ASK_ANYTHING": "提問任何問題...",
-	"AI_ASSISTANT": "AI 助手"
+	"AI_ASSISTANT": "AI 助手",
+	"START_REPORTING": "開始報告",
+	"LOGOUT": "登出",
+	"AI_ASSISTANTS": "AI 助手",
+	"CREATE_CONVERSATION": "建立對話"
 }

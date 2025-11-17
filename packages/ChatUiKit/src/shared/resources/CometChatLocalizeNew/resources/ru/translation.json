@@ -459,5 +459,9 @@
 	"START_A_CHAT": "Начните чат, нажав кнопку 'Новый чат'",
 	"CHAT_HISTORY": "История чатов",
 	"ASK_ANYTHING": "Спрашивайте все...",
-	"AI_ASSISTANT": "AI ассистент"
+	"AI_ASSISTANT": "AI ассистент",
+	"START_REPORTING": "Начать отчет",
+	"LOGOUT": "Выйти",
+	"AI_ASSISTANTS": "ИИ ассистенты",
+	"CREATE_CONVERSATION": "Создать разговор"
 }

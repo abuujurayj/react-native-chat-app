@@ -459,5 +459,9 @@
 	"START_A_CHAT": "通过点击“新聊天”按钮开始聊天",
 	"CHAT_HISTORY": "聊天记录",
 	"ASK_ANYTHING": "提问任何问题...",
-	"AI_ASSISTANT": "AI 助手"
+	"AI_ASSISTANT": "AI 助手",
+	"START_REPORTING": "开始报告",
+	"LOGOUT": "退出登录",
+	"AI_ASSISTANTS": "AI 助手",
+	"CREATE_CONVERSATION": "创建对话"
 }

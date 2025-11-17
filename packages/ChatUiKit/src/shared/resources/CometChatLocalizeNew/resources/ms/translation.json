@@ -459,5 +459,9 @@
 	"START_A_CHAT": "Mulakan perbualan dengan mengetik butang 'Sembang Baru'",
 	"CHAT_HISTORY": "Sejarah Sembang",
 	"ASK_ANYTHING": "Tanyakan apa-apa...",
-	"AI_ASSISTANT": "Pembantu AI"
+	"AI_ASSISTANT": "Pembantu AI",
+	"START_REPORTING": "Mulakan Laporan",
+	"LOGOUT": "Log keluar",
+	"AI_ASSISTANTS": "Pembantu AI",
+	"CREATE_CONVERSATION": "Buat Perbualan"
 }

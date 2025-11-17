@@ -459,5 +459,9 @@
   "START_A_CHAT": "Commencez un chat en appuyant sur le bouton 'Nouvelle conversation'",
   "CHAT_HISTORY": "Historique des chats",
   "ASK_ANYTHING": "Demandez n'importe quoi...",
-  "AI_ASSISTANT": "Assistant IA"
+  "AI_ASSISTANT": "Assistant IA",
+  "START_REPORTING": "Commencer le rapport",
+	"LOGOUT": "Se déconnecter",
+	"AI_ASSISTANTS": "Assistants IA",
+	"CREATE_CONVERSATION": "Créer une conversation"
 }

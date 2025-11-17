@@ -227,7 +227,11 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
       : theme.messageListStyles.incomingMessageBubbleStyles?.meetCallBubbleStyles;
 
     const sentAt = message?.getSentAt() ? message.getSentAt() * 1000 : Date.now();
+    const customData = message.getCustomData() as any;
     const callType = (message.getCustomData() as any).callType;
+
+    // Extract session ID with cross-platform compatibility
+    const sessionId = customData.sessionId || customData.sessionID;
 
     const BubbleIcon = (() => {
       if (isSentByMe) {
@@ -251,7 +255,7 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
           icon={BubbleIcon}
           onClick={() =>
             this.startDirectCall(
-              (message.getCustomData() as any)["sessionId"],
+              sessionId,
               message,
               theme,
               callType
@@ -281,9 +285,27 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
     theme?: CometChatTheme,
     callType?: string
   ) {
-    if (!(await permissionUtil.startResourceBasedTask(["mic", "camera"]))) {
+    // Validate session ID
+    if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
+      console.error('[CallingExtensionDecorator] Invalid session ID provided:', sessionId);
       return;
     }
+    
+    // Request only the necessary permissions based on call type.
+    try {
+      const resources: ("mic" | "camera")[] = callType === "audio" ? ["mic"] : ["mic", "camera"];
+      const allowed = await permissionUtil.startResourceBasedTask(resources);
+      if (!allowed) {
+        console.warn(
+          `[CallingExtensionDecorator] Permission check failed for resources: ${resources.join(",")}. Aborting join.`
+        );
+        return;
+      }
+    } catch (e) {
+      console.error("[CallingExtensionDecorator] Unexpected error while requesting permissions", e);
+      return;
+    }
+    
     const callSettingsBuilder = (
       this.configuration?.groupCallSettingsBuilder
         ? this.configuration?.groupCallSettingsBuilder(
@@ -300,6 +322,7 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
           });
         },
         onError: (error: CometChat.CometChatException) => {
+          console.error("[CallingExtensionDecorator] OngoingCallListener onError while joining", error);
           CometChatUIEventHandler.emitCallEvent(CallUIEvents.ccShowOngoingCall, {
             child: null,
           });
@@ -313,6 +336,7 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
           sessionID={sessionId}
           callSettingsBuilder={callSettingsBuilder}
           onError={(e) => {
+            console.error("[CallingExtensionDecorator] CometChatOngoingCall onError for session", sessionId, e);
             CometChatUIEventHandler.emitCallEvent(CallUIEvents.ccShowOngoingCall, {
               child: null,
             });
@@ -375,8 +399,9 @@ export class CallingExtensionDecorator extends DataSourceDecorator {
         }
         return <></>;
       },
-      options: (loggedInUser, messageObject, group) => {
-        return super.getCommonOptions(loggedInUser, messageObject, group);
+      // Pass theme explicitly so common options (e.g. Message Privately) validate group context correctly.
+      options: (loggedInUser, messageObject, _theme, group) => {
+        return super.getCommonOptions(loggedInUser, messageObject, _theme, group);
       },
     });
   };

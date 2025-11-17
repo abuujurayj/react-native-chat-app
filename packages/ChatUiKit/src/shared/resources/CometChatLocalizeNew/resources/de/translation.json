@@ -459,5 +459,9 @@
 	"START_A_CHAT": "Beginnen Sie einen Chat, indem Sie auf die Schaltfläche 'Neuer Chat' tippen",
 	"CHAT_HISTORY": "Chat-Verlauf",
 	"ASK_ANYTHING": "Frag etwas...",
-	"AI_ASSISTANT": "AI-Assistent"
+	"AI_ASSISTANT": "AI-Assistent",
+	"START_REPORTING": "Bericht starten",
+	"LOGOUT": "Abmelden",
+	"AI_ASSISTANTS": "KI-Assistenten",
+	"CREATE_CONVERSATION": "Konversation erstellen"
 }

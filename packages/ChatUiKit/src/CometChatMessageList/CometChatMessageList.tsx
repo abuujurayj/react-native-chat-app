@@ -1364,6 +1364,35 @@ export const CometChatMessageList = memo(
           conversationId.current = newMessage.getConversationId();
         }
 
+        // ----------------------------------------------------------------------------------
+        // De-duplication / in-place update logic
+        // ----------------------------------------------------------------------------------
+        // Fix: Before inserting, check for an existing message with matching id OR muid.
+        // If found, update it in place instead of inserting again.
+        try {
+          const incomingId = (newMessage as any)?.getId?.();
+          const incomingMuid = (newMessage as any)?.muid || (newMessage as any)?.getMuid?.();
+          const existingIndex = messagesContentListRef.current.findIndex((m: any) => {
+            const mid = m?.getId?.();
+            const mmuid = m?.muid || m?.getMuid?.();
+            return (
+              (incomingId && mid && String(mid) === String(incomingId)) ||
+              (incomingMuid && mmuid && String(mmuid) === String(incomingMuid))
+            );
+          });
+          if (existingIndex !== -1) {
+            // Update existing message instead of duplicating.
+            const updatedList = [...messagesContentListRef.current];
+            updatedList[existingIndex] = CommonUtils.clone(newMessage);
+            messagesContentListRef.current = updatedList;
+            onLoad && onLoad([...messagesContentListRef.current].reverse());
+            setMessagesList(updatedList);
+            return; // prevent duplicate insert
+          }
+        } catch (e) {
+          console.log('Error in message de-duplication:', e);
+        }
+
         const isStreamMessage = (newMessage as any).isStreamMessage;
         const targetMessageId = (newMessage as any).targetMessageId;
         if (isStreamMessage && targetMessageId) {
@@ -2587,6 +2616,9 @@ export const CometChatMessageList = memo(
             if (hasTemplate?.BubbleView) return hasTemplate?.BubbleView(message);
 
             const onLongPress = useCallback(() => {
+              // Ensure the keyboard is dismissed before showing options so the action sheet / menu isn't obscured
+              Keyboard.dismiss();
+
               if (message.getDeletedBy() != null) return;
 
               if (!message.getId()) {

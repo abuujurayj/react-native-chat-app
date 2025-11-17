@@ -458,5 +458,9 @@
     "START_A_CHAT": "Inizia una chat toccando il pulsante 'Nuova conversazione'",
     "CHAT_HISTORY": "Cronologia delle conversazioni",
     "ASK_ANYTHING": "Chiedi qualsiasi cosa...",
-    "AI_ASSISTANT": "Assistente AI"
+    "AI_ASSISTANT": "Assistente AI",
+    "START_REPORTING": "Avvia report",
+	"LOGOUT": "Esci",
+	"AI_ASSISTANTS": "Assistenti AI",
+	"CREATE_CONVERSATION": "Crea conversazione"
 }

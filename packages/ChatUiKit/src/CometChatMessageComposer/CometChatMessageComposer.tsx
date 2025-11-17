@@ -1495,7 +1495,9 @@ export const CometChatMessageComposer = React.forwardRef(
         if (shouldOpenList(selection, searchString, tracker)) {
           activeCharacter.current = tracker;
           searchStringRef.current = searchString;
+          // Show the suggestion list immediately (even while data is loading) to avoid layout jumps
           setShowMentionList(true);
+          setSuggestionListLoader(true);
 
           let formatter = allFormatters.current.get(tracker);
           if (formatter instanceof CometChatMentionsFormatter) {
@@ -1514,6 +1516,7 @@ export const CometChatMessageComposer = React.forwardRef(
           searchStringRef.current = "";
           setShowMentionList(false);
           setMentionsSearchData([]);
+          setSuggestionListLoader(false);
         }
       }, 100);
     };
@@ -1701,7 +1704,6 @@ export const CometChatMessageComposer = React.forwardRef(
     };
 
     const textChangeHandler = (txt: string) => {
-      setPlainText(txt);
       if (messagePreview) {
         setHasEdited(txt.trim() !== originalText.trim());
       }
@@ -1726,7 +1728,9 @@ export const CometChatMessageComposer = React.forwardRef(
       let decr = 0;
 
       plainTextInput.current = newText;
-      setPlainText(newText);
+      if (!(oldText.length > newText.length)) {
+        setPlainText(newText);
+      }
 
       const newMentionMap: Map<string, SuggestionItem> = new Map(mentionMap.current);
 
@@ -1995,7 +1999,6 @@ export const CometChatMessageComposer = React.forwardRef(
           {CustomView && CustomView}
         </Modal>
         <KeyboardAvoidingView
-          key={id}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.select({ ios: kbOffset })}
           {...keyboardAvoidingViewProps}
@@ -2034,11 +2037,12 @@ export const CometChatMessageComposer = React.forwardRef(
               mediaRecorderStyle={mergedComposerStyle.mediaRecorderStyle}
             />
 
-            {mentionsSearchData.length > 0 && (plainTextInput.current?.length ?? 0) > 0 && (
+            {showMentionList && (plainTextInput.current?.length ?? 0) > 0 && (
               <View
                 style={[
                   theme.mentionsListStyle.containerStyle,
-                  messagePreview ? { maxHeight: Dimensions.get("window").height * 0.2 } : {},
+                  // Keep height stable to reduce flicker when list data loads/empties
+                  { maxHeight: Dimensions.get("window").height * (messagePreview ? 0.2 : (Platform.OS === "ios" ? 0.15 : 0.22)) },
                 ]}
               >
                 <CometChatSuggestionList

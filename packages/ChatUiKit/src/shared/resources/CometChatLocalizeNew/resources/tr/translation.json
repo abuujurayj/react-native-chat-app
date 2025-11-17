@@ -458,5 +458,9 @@
     "START_A_CHAT": "'Yeni Sohbet' butonuna tıklayarak sohbet başlatın.",
     "CHAT_HISTORY": "Sohbet Geçmişi",
     "ASK_ANYTHING": "Herhangi bir şey sorun...",
-    "AI_ASSISTANT": "AI Asistanı"
+    "AI_ASSISTANT": "AI Asistanı",
+    "START_REPORTING": "Raporlamayı başlat",
+	"LOGOUT": "Çıkış Yap",
+	"AI_ASSISTANTS": "Yapay Zekâ Asistanları",
+	"CREATE_CONVERSATION": "Konuşma oluştur"
 }

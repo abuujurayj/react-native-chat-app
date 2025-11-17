@@ -458,5 +458,9 @@
     "START_A_CHAT": "Start een chat door op de knop 'Nieuwe chat' te tikken",
     "CHAT_HISTORY": "Chatgeschiedenis",
     "ASK_ANYTHING": "Vraag iets...",
-    "AI_ASSISTANT": "AI-assistent"
+    "AI_ASSISTANT": "AI-assistent",
+    "START_REPORTING": "Rapportage starten",
+	"LOGOUT": "Uitloggen",
+	"AI_ASSISTANTS": "AI-assistenten",
+	"CREATE_CONVERSATION": "Gesprek maken"
 }
