@@ -454,14 +454,16 @@
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "Hanghívást kezdeményezett",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "Videohívást kezdeményezett",
 	"meeting": "Találkozó",
+	"START_REPORTING": "Jelentés indítása",
+	"LOGOUT": "Kijelentkezés",
+	"AI_ASSISTANTS": "AI asszisztensek",
+	"CREATE_CONVERSATION": "Beszélgetés létrehozása",
+	"EDIT_MODERATION": "Szerkesztés sikertelen. Üzenetét moderálási irányelvek miatt blokkolták.",
+	"BLOCKED_MODERATION":"Üzenetét moderálási",
 	"NO_CONVERSATION_HISTORY_FOUND": "Nincs beszélgetési előzmény",
 	"SOMETHING_WENT_WRONG_ON_OUR_END": "Valami hiba történt nálunk. Kérjük, próbálja újra",
 	"START_A_CHAT": "Kezdje el a csevegést a 'Új csevegés' gombra kattintva",
 	"CHAT_HISTORY": "Chat előzményei",
 	"ASK_ANYTHING": "Kérdezz bármit...",
-	"AI_ASSISTANT": "AI asszisztens",
-	"START_REPORTING": "Jelentés indítása",
-	"LOGOUT": "Kijelentkezés",
-	"AI_ASSISTANTS": "AI asszisztensek",
-	"CREATE_CONVERSATION": "Beszélgetés létrehozása"
+	"AI_ASSISTANT": "AI asszisztens"
 }

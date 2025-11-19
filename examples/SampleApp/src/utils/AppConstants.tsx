@@ -5,7 +5,7 @@ export const AppConstants = {
   appId: '',
   region: '',
   subscriptionType: 'ALL_USERS',
-  versionNumber: 'V5.2.2',
+  versionNumber: 'V5.2.3',
   webClientId:
     '',
   iosClientId:
@@ -34,5 +34,6 @@ export const SCREEN_CONSTANTS = {
   VIEW_MEMBER: 'ViewMembers',
   CALL_LOGS: 'CallLogs',
   CALL_DETAILS: 'CallDetails',
+  QR_SCREEN: 'QRScreen',
   AI_AGENTS: 'AIAgents',
 } as const;

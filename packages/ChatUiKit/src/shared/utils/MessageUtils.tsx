@@ -12,11 +12,13 @@ import { ChatConfigurator } from "../framework";
 import { Icon, IconName } from "../icons/Icon";
 import { CometChatMessageTemplate } from "../modals";
 import { CometChatMessageBubble } from "../views/CometChatMessageBubble";
-import { BubbleStyles, CometChatTheme } from "../../theme/type";
+import { BubbleStyles, CometChatTheme, OutgoingBubbleStyles } from "../../theme/type";
 import { CometChatUIKit } from "../CometChatUiKit";
 import { deepMerge } from "../helper/helperFunctions";
 import { CometChatDate } from "../views/CometChatDate";
 import { CometChatAvatar, CometChatReceipt } from "../views";
+import { useCometChatTranslation } from "../resources/CometChatLocalizeNew";
+import { useTheme } from "../../theme";
 
 type MessageViewParamsType = {
   message: CometChat.BaseMessage;
@@ -282,6 +284,8 @@ export const MessageUtils = {
       avatarVisibility,
     } = params;
     const templatesMap = getTemplatesMap(templates!);
+    const baseStyle = getBubbleStyle(message, theme);
+    
     let hasTemplate = templatesMap.get(`${message.getCategory()}_${message.getType()}`);
     if (templates!.length > 0) {
       let customTemplate = templates!.find(
@@ -291,7 +295,24 @@ export const MessageUtils = {
       if (customTemplate) hasTemplate = customTemplate;
     }
 
-    const style = getBubbleStyle(message, theme);
+    // Only show moderation bottom view for outgoing disapproved messages
+    const moderationStatus = getModerationStatus(message);
+    const isOutgoing = message.getSender()?.getUid() === CometChatUIKit.loggedInUser?.getUid();
+    const styleForThisMessage =
+      isOutgoing && moderationStatus === "disapproved"
+        ? deepMerge(baseStyle, {
+            containerStyle: {
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+              overflow: "hidden",
+            },
+          })
+        : baseStyle;
+
+    const DefaultModerationBottomView =
+      isOutgoing && moderationStatus === "disapproved" ? (
+        <ModerationBottomView status={moderationStatus} />
+      ) : undefined;
 
     return (
       <CometChatMessageBubble
@@ -309,12 +330,15 @@ export const MessageUtils = {
         HeaderView={
           message.getReceiverType() === "group" ? getHeaderView(message, theme) : undefined
         }
-        BottomView={hasTemplate?.BottomView && hasTemplate?.BottomView(message, alignment!)}
+        BottomView={
+          DefaultModerationBottomView ||
+          (hasTemplate?.BottomView && hasTemplate?.BottomView(message, alignment!))
+        }
         StatusInfoView={
           (hasTemplate?.StatusInfoView && hasTemplate!.StatusInfoView(message, alignment!)) ||
           getStatusInfoView(message, theme, receiptsVisibility, datePattern)
         }
-        style={style}
+        style={styleForThisMessage}
       />
     );
   },
@@ -349,3 +373,82 @@ export const getMessagePreviewInternal = (
     </>
   );
 };
+
+export const getModerationStatus = (message: CometChat.BaseMessage | any): string => {
+  if (message?.getModerationStatus) {
+    try {
+      return message.getModerationStatus();
+    } catch (e) {
+      console.log("🚀 ~ getModerationStatus ~ e:", e);
+    }
+  }
+  const rawStatus =
+    message?.getData?.()?.moderation?.status ||
+    message?.getData?.()?.metaData?.moderation?.status ||
+    message?.data?.moderation?.status ||
+    message?.data?.metaData?.moderation?.status ||
+    message?.moderationStatus;
+  if (!rawStatus) return "unmoderated";
+  return String(rawStatus);
+};
+
+export const ModerationBottomView = ({
+  status,
+  moderationStyle,
+}: {
+  status: string;
+  moderationStyle?: OutgoingBubbleStyles["moderationStyle"];
+}) => {
+  const { t } = useCometChatTranslation();
+  const theme = useTheme();
+  if (status !== "disapproved") return null;
+
+  const bubblePadH =
+  theme.messageListStyles.outgoingMessageBubbleStyles?.containerStyle?.paddingHorizontal ??
+  theme.spacing?.spacing?.s3 ?? 12;
+
+  const bubblePadB =
+  theme.messageListStyles.outgoingMessageBubbleStyles?.containerStyle?.paddingBottom ?? 0;
+
+  const bubbleRadius =
+    theme.messageListStyles.outgoingMessageBubbleStyles?.containerStyle?.borderRadius ?? 8;
+
+  const themeModerationStyle =
+    theme.messageListStyles.outgoingMessageBubbleStyles.moderationStyle || {};
+
+  const effective = deepMerge(themeModerationStyle, moderationStyle || {});
+
+  return (
+    <View
+      style={[
+        {
+        marginHorizontal: -bubblePadH,
+        marginBottom: -bubblePadB,
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomLeftRadius: bubbleRadius,
+        borderBottomRightRadius: bubbleRadius,
+        flexDirection: "row",
+        alignItems: "center",
+      },
+        effective?.containerStyle,
+      ]}
+    >
+      <Icon
+        name="message-blocked"
+        color={effective?.iconTintColor}
+        containerStyle={{ paddingLeft: 12, paddingRight: 4, alignSelf: "stretch" }}
+      />
+      <Text
+        numberOfLines={2}
+        style={[
+          effective?.textStyle,
+        ]}
+      >
+        {t("BLOCKED_MODERATION")}
+      </Text>
+    </View>
+  );
+};
+
+

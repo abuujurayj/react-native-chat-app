@@ -10,6 +10,7 @@ import {
 import {
   CometChatI18nProvider,
   CometChatIncomingCall,
+  CometChatTheme,
   CometChatThemeProvider,
   CometChatUIEventHandler,
   CometChatUIEvents,
@@ -42,6 +43,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useActiveChat } from './src/utils/ActiveChatContext';
 import RNCallKeep from 'react-native-callkeep';
 import { consumePendingAnsweredCall, isPendingStale } from './src/utils/PendingCallManager';
+import { useConfig } from './src/config/store';
+import { DeepPartial } from '@cometchat/chat-uikit-react-native/src/shared/helper/types';
+import { createTypography } from './src/utils/themeTypography';
 
 // Listener ID for registering and removing CometChat listeners.
 const listenerId = 'app';
@@ -59,6 +63,26 @@ const App = (): React.ReactElement => {
   const [isTokenRegistered, setIsTokenRegistered] = useState(false);
   const [hasValidAppCredentials, setHasValidAppCredentials] = useState(false);
   const [navigationReadyFlag, setNavigationReadyFlag] = useState(false);
+  const styleConfig = useConfig(state => state?.settings?.style);
+
+  const theme : { light:  DeepPartial<CometChatTheme>; dark: DeepPartial<CometChatTheme> } = {
+  light: {
+    color: {
+      primary: styleConfig.color.brandColor,
+      textPrimary: styleConfig.color.primaryTextLight,
+      textSecondary: styleConfig.color.secondaryTextLight,
+    },
+    typography: createTypography(styleConfig.typography.font),
+  },
+  dark: {
+    color: {
+      primary: styleConfig.color.brandColor,
+      textPrimary: styleConfig.color.primaryTextDark,
+      textSecondary: styleConfig.color.secondaryTextDark,
+    },
+    typography: createTypography(styleConfig.typography.font),
+  },
+};
 
   /**
    * Initialize CometChat UIKit and configure Google Sign-In.
@@ -574,7 +598,7 @@ const App = (): React.ReactElement => {
   return (
     <SafeAreaProvider>
       <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
-        <CometChatThemeProvider>
+        <CometChatThemeProvider theme={theme}>
           <CometChatI18nProvider>
             {/* Render the incoming call UI if the user is logged in and a call is received */}
             {isLoggedIn && callReceived && incomingCall.current ? (

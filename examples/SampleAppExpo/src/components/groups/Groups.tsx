@@ -19,6 +19,7 @@ import {
   JoinGroupBottomSheet,
 } from './GroupHelper';
 import { SCREEN_CONSTANTS } from '../../utils/AppConstants';
+import { useConfig } from '../../config/store';
 
 type GroupNavigationProp = StackNavigationProp<RootStackParamList, 'Groups'>;
 
@@ -26,7 +27,10 @@ interface GroupsProps {
   hideHeader?: boolean;
 }
 
-const Groups: React.FC<GroupsProps> = ({ hideHeader = false }) => {
+const Groups: React.FC<GroupsProps> = ({hideHeader = false}) => {
+  const createGroup = useConfig(
+    (state) => state.settings.chatFeatures.groupManagement.createGroup
+  );
   const theme = useTheme();
   const navigation = useNavigation<GroupNavigationProp>();
   const [pendingChat, setPendingChat] = useState<CometChat.Group | null>(null);
@@ -126,11 +130,15 @@ const Groups: React.FC<GroupsProps> = ({ hideHeader = false }) => {
     >
       {/* CometChatGroups list component */}
       <CometChatGroups
-        AppBarOptions={() => (
-          <GroupScreenAppBarOptions
-            onPress={() => setCreateGroupSheetVisible(true)}
-          />
-        )}
+        AppBarOptions={
+          createGroup
+            ? () => (
+              <GroupScreenAppBarOptions
+                onPress={() => setCreateGroupSheetVisible(true)}
+              />
+            )
+            : undefined
+        }
         onItemPress={handleGroupItemPress}
         hideHeader={hideHeader}
       />

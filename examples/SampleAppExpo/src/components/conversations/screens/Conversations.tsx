@@ -23,6 +23,10 @@ import InfoIcon from '../../../assets/icons/InfoIcon';
 import Logout from '../../../assets/icons/Logout';
 import {navigate, navigationRef} from '../../../navigation/NavigationService';
 import {AppConstants, SCREEN_CONSTANTS} from '../../../utils/AppConstants';
+import Builder from '../../../assets/icons/Builder';
+import { useConfig, useConfigStore } from '../../../config/store'; // adjust import if needed
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Reset from '../../../assets/icons/Reset';
 import AiIcon from '../../../assets/icons/AiIcon';
 
 type ChatNavigationProp = StackNavigationProp<
@@ -45,9 +49,18 @@ const Conversations: React.FC<{}> = ({}) => {
   const [shouldHide, setShouldHide] = React.useState(false);
   const { t } = useCometChatTranslation();
 
+  const [isConfigUpdated, setIsConfigUpdated] = useState(false);
+  const messageDeliveryAndReadReceipts = useConfig(
+        (state) => state.settings.chatFeatures.coreMessagingExperience.messageDeliveryAndReadReceipts
+  );
+
   useFocusEffect(
     useCallback(() => {
       setShouldHide(false);
+      // Check config updated flag
+      AsyncStorage.getItem('@config_updated').then(val => {
+        setIsConfigUpdated(val === 'true');
+      });
       return () => {
         setShouldHide(true);
         setTooltipVisible(false);
@@ -55,6 +68,15 @@ const Conversations: React.FC<{}> = ({}) => {
     }, []),
   );
 
+  const handleResetConfig = async () => {
+    useConfigStore.getState().resetConfig();
+    await AsyncStorage.removeItem('@config_updated');
+    setIsConfigUpdated(false);
+  };
+  const userAndFriendsPresence = useConfig(
+      (state) => state.settings.chatFeatures.coreMessagingExperience.userAndFriendsPresence
+    );
+    
   const openMessagesFor = (item: CometChat.Conversation) => {
     // Determine if it's a user or group conversation
     const isUser = item.getConversationType() === 'user';
@@ -156,6 +178,8 @@ const Conversations: React.FC<{}> = ({}) => {
           {..._conversationsConfig}
           AppBarOptions={NewConversation}
           selectionMode="none"
+          usersStatusVisibility={userAndFriendsPresence}
+          receiptsVisibility={messageDeliveryAndReadReceipts}
         />
       </View>
 
@@ -244,6 +268,35 @@ const Conversations: React.FC<{}> = ({}) => {
                   color={theme.color.textPrimary}></InfoIcon>
               ),
             },
+            isConfigUpdated
+              ? {
+                text: 'Reset to Default',
+                onPress: handleResetConfig,
+                icon: (
+                  <Reset
+                    height={24}
+                    width={24}
+                    color={theme.color.textPrimary}
+                  />
+                ),
+                textColor: theme.color.textPrimary,
+                iconColor: theme.color.textPrimary,
+              }
+              : {
+                text: 'Builder Live Preview',
+                onPress: () => {
+                  navigation.navigate(SCREEN_CONSTANTS.QR_SCREEN);
+                },
+                icon: (
+                  <Builder
+                    height={24}
+                    width={24}
+                    color={theme.color.textPrimary}
+                  />
+                ),
+                textColor: theme.color.textPrimary,
+                iconColor: theme.color.textPrimary,
+              },
           ]}
         />
       </View>

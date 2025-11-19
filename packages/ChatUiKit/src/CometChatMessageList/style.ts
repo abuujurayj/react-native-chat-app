@@ -392,6 +392,26 @@ export const getMessageListStylesLight = (
         borderRadius: spacing.radius.r3,
         minWidth: 90,
       },
+      moderationStyle: {
+        containerStyle: {
+          backgroundColor: "#F9EAEF",
+          paddingVertical: 6,
+          borderBottomLeftRadius: 8,
+          borderBottomRightRadius: 8,
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+          flexDirection: "row",
+          alignItems: "center",
+        },
+        textStyle: {
+          color: color?.error,
+          ...typography?.body?.regular,
+          flexShrink: 1,
+          paddingHorizontal: 2,
+          alignSelf: "center",
+        },
+        iconTintColor: color?.error,
+      },
       dateStyles: {
         containerStyle: {
           paddingTop: spacing.padding.p2,
@@ -469,6 +489,7 @@ export const getMessageListStylesLight = (
           padding: spacing.padding.p1,
           paddingBottom: spacing.padding.p0,
           borderRadius: spacing.radius.r3,
+          overflow: "hidden",
         },
         imageStyle: {
           borderRadius: spacing.radius.r2,
@@ -874,6 +895,27 @@ export const getMessageListStylesDark = (
         borderRadius: spacing.radius.r3,
         minWidth: 90,
       },
+      moderationStyle: {
+        containerStyle: {
+          backgroundColor: "#3A0C05",
+          paddingVertical: 6,
+          borderBottomLeftRadius: 8,
+          borderBottomRightRadius: 8,
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+          flexDirection: "row",
+          alignItems: "center",
+          overflow: 'hidden',
+        },
+        textStyle: {
+          color: color?.error,
+          ...typography?.body?.regular,
+          flexShrink: 1,
+          paddingHorizontal: 2,
+          alignSelf: "center",
+        },
+        iconTintColor: color?.error,
+      },
       dateStyles: {
         containerStyle: {
           paddingTop: spacing.padding.p2,
@@ -951,6 +993,7 @@ export const getMessageListStylesDark = (
           padding: spacing.padding.p1,
           paddingBottom: spacing.padding.p0,
           borderRadius: spacing.radius.r3,
+          overflow: "hidden",
         },
         imageStyle: {
           borderRadius: spacing.radius.r2,

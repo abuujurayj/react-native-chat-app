@@ -454,14 +454,16 @@
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "Hai avviato una chiamata audio",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "Hai avviato una videochiamata",
 	"meeting": "Susitikimas",
+	"START_REPORTING": "Pradėti ataskaitą",
+	"LOGOUT": "Atsijungti",
+	"AI_ASSISTANTS": "DI asistentai",
+	"CREATE_CONVERSATION": "Sukurti pokalbį",
+	"EDIT_MODERATION": "Redagavimas nepavyko. Jūsų pranešimas buvo užblokuotas dėl moderavimo politikos.",
+	"BLOCKED_MODERATION": "Jūsų pranešimas buvo užblokuotas dėl moderavimo politikos.",
 	"NO_CONVERSATION_HISTORY_FOUND": "Pokalbių istorija nerasta",
     "SOMETHING_WENT_WRONG_ON_OUR_END": "Kažkas nepavyko iš mūsų pusės. Pabandykite dar kartą.",
     "START_A_CHAT": "Pradėkite pokalbį paspaudę „Naujas pokalbis“ mygtuką",
 	"CHAT_HISTORY": "Pokalbių istorija",
 	"ASK_ANYTHING": "Klauskite bet ko...",
-	"AI_ASSISTANT": "AI asistentas",
-	"START_REPORTING": "Pradėti ataskaitą",
-	"LOGOUT": "Atsijungti",
-	"AI_ASSISTANTS": "DI asistentai",
-	"CREATE_CONVERSATION": "Sukurti pokalbį"
+	"AI_ASSISTANT": "AI asistentas"
 }

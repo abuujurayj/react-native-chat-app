@@ -25,6 +25,7 @@ import Calls from '../components/calls/Calls';
 import Users from '../components/users/Users';
 import Groups from '../components/groups/Groups';
 import {BottomTabParamList} from './types';
+import { useConfig } from '../config/store';
 
 // Create the tab navigator.
 const Tab = createBottomTabNavigator<BottomTabParamList>();
@@ -55,7 +56,16 @@ const CustomTabBarButton = ({children, onPress}: BottomTabBarButtonProps) => (
 
 const BottomTabNavigator = () => {
   const theme = useTheme();
+  const tabs = useConfig(state => state.settings.layout.tabs);
   const { t } = useCometChatTranslation();
+
+  // Map tab keys to screen names and components
+  const TAB_COMPONENTS: Record<string, { name: string; component: React.ComponentType<any> }> = {
+    chats: { name: SCREEN_CONSTANTS.CHATS, component: Conversations },
+    calls: { name: SCREEN_CONSTANTS.CALLS, component: Calls },
+    users: { name: SCREEN_CONSTANTS.USERS, component: Users },
+    groups: { name: SCREEN_CONSTANTS.GROUPS, component: Groups },
+  };
 
   return (
     <Tab.Navigator
@@ -89,8 +99,15 @@ const BottomTabNavigator = () => {
         tabBarLabel: ({focused}) => 
           focused ? (
             <View>
-              <Text style={[styles.tabLabel, {color: theme.color.primary}]}>
-                {/* Used t() for fixing Bottom Tabs Localization */}
+              <Text
+                style={[
+                  styles.tabLabel,
+                  {
+                    color: theme.color.primary,
+                    fontFamily: theme.typography.heading1.bold.fontFamily,
+                  },
+                ]}
+              >
                 {t(route.name.toUpperCase())}
               </Text>
             </View>
@@ -100,10 +117,16 @@ const BottomTabNavigator = () => {
           <View style={{backgroundColor: theme.color.background1, flex: 1}} />
         ),
       })}>
-      <Tab.Screen name={SCREEN_CONSTANTS.CHATS} component={Conversations} />
-      <Tab.Screen name={SCREEN_CONSTANTS.CALLS} component={Calls} />
-      <Tab.Screen name={SCREEN_CONSTANTS.USERS} component={Users} />
-      <Tab.Screen name={SCREEN_CONSTANTS.GROUPS} component={Groups} />
+      {tabs.map(tabKey => {
+        const tab = TAB_COMPONENTS[tabKey.toLowerCase()];
+        return tab ? (
+          <Tab.Screen
+            key={tab.name}
+            name={tab.name as keyof BottomTabParamList}
+            component={tab.component}
+          />
+        ) : null;
+      })}
     </Tab.Navigator>
   );
 };

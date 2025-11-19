@@ -11,12 +11,26 @@ import {
   useFocusEffect,
 } from '@react-navigation/native';
 import { RootStackParamList } from '../../../navigation/types';
+import { useConfig } from '../../../config/store';
 
 const ViewMembers: React.FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'ViewMembers'>>();
   const navigation = useNavigation();
   const { group } = route.params;
   const theme = useTheme();
+
+  const kickUsers =  useConfig(
+    (state) => state.settings.chatFeatures.moderatorControls.kickUsers
+  );
+  const banUsers =  useConfig(
+    (state) => state.settings.chatFeatures.moderatorControls.banUsers
+  );
+  const promoteDemoteMembers =  useConfig(
+    (state) => state.settings.chatFeatures.moderatorControls.promoteDemoteMembers
+  );
+  const userAndFriendsPresence = useConfig(
+      (state) => state.settings.chatFeatures.coreMessagingExperience.userAndFriendsPresence
+   );
 
   useFocusEffect(
     React.useCallback(() => {
@@ -44,6 +58,10 @@ const ViewMembers: React.FC = () => {
         }}
         selectionMode="none"
         showBackButton={true}
+        hideKickMemberOption={!kickUsers}
+        hideBanMemberOption={!banUsers}
+        hideScopeChangeOption={!promoteDemoteMembers}
+        usersStatusVisibility={userAndFriendsPresence}
       />
     </View>
   );

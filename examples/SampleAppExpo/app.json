@@ -2,7 +2,7 @@
   "expo": {
     "name": "SampleAppExpo",
     "slug": "SampleAppExpo",
-    "version": "5.2.2",
+    "version": "5.2.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "newArchEnabled": true,
@@ -39,6 +39,24 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/inter_regular.ttf",
+            "./assets/fonts/inter_medium.ttf",
+            "./assets/fonts/inter_bold.ttf",
+            "./assets/fonts/roboto_regular.ttf",
+            "./assets/fonts/roboto_medium.ttf",
+            "./assets/fonts/roboto_bold.ttf",
+            "./assets/fonts/times_new_roman_regular.ttf",
+            "./assets/fonts/times_new_roman_medium.ttf",
+            "./assets/fonts/times_new_roman_bold.ttf"
+          ]
+        }
+      ]
+    ]
   }
 }

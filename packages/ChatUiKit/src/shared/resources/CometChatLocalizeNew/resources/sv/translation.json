@@ -454,14 +454,16 @@
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "Du har initierat ett ljudsamtal",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "Du har initierat ett videosamtal",
 	"meeting": "Möte",
+	"START_REPORTING": "Starta rapportering",
+	"LOGOUT": "Logga ut",
+	"AI_ASSISTANTS": "AI-assistenter",
+	"CREATE_CONVERSATION": "Skapa konversation",
+	"EDIT_MODERATION": "Redigering misslyckades. Ditt meddelande blockerades på grund av modereringspolicyer.",
+	"BLOCKED_MODERATION": "Ditt meddelande blockerades på grund av modereringspolicyer.",
 	"NO_CONVERSATION_HISTORY_FOUND": "Ingen konversationshistorik hittades",
 	"SOMETHING_WENT_WRONG_ON_OUR_END": "Något gick fel hos oss. Försök igen.",
 	"START_A_CHAT": "Starta en chatt genom att trycka på knappen 'Ny chatt'",
 	"CHAT_HISTORY": "Chattens historik",
 	"ASK_ANYTHING": "Fråga vad som helst...",
-	"AI_ASSISTANT": "AI-assistent",
-	"START_REPORTING": "Starta rapportering",
-	"LOGOUT": "Logga ut",
-	"AI_ASSISTANTS": "AI-assistenter",
-	"CREATE_CONVERSATION": "Skapa konversation"
+	"AI_ASSISTANT": "AI-assistent"
 }

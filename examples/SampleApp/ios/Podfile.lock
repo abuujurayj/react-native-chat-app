@@ -1,6 +1,6 @@
 PODS:
   - boost (1.84.0)
-  - cometchat-calls-sdk-react-native (4.3.0):
+  - cometchat-calls-sdk-react-native (4.4.0):
     - React-Core
     - react-native-webrtc
   - DoubleConversion (1.1.6)
@@ -1755,13 +1755,13 @@ PODS:
     - SocketRocket
   - react-native-background-timer (2.4.1):
     - React-Core
-  - react-native-cometchat-ui-kit (5.2.2):
+  - react-native-cometchat-ui-kit (5.2.3):
     - React-Core
-    - react-native-cometchat-ui-kit/Video (= 5.2.2)
-    - react-native-cometchat-ui-kit/VideoCaching (= 5.2.2)
-  - react-native-cometchat-ui-kit/Video (5.2.2):
+    - react-native-cometchat-ui-kit/Video (= 5.2.3)
+    - react-native-cometchat-ui-kit/VideoCaching (= 5.2.3)
+  - react-native-cometchat-ui-kit/Video (5.2.3):
     - React-Core
-  - react-native-cometchat-ui-kit/VideoCaching (5.2.2):
+  - react-native-cometchat-ui-kit/VideoCaching (5.2.3):
     - DVAssetLoaderDelegate (~> 0.3.1)
     - React-Core
     - react-native-cometchat-ui-kit/Video
@@ -2707,6 +2707,12 @@ PODS:
     - Yoga
   - SocketRocket (0.7.1)
   - SPTPersistentCache (1.1.0)
+  - VisionCamera (4.7.3):
+    - VisionCamera/Core (= 4.7.3)
+    - VisionCamera/React (= 4.7.3)
+  - VisionCamera/Core (4.7.3)
+  - VisionCamera/React (4.7.3):
+    - React-Core
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2796,6 +2802,7 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - SocketRocket (~> 0.7.1)
+  - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2975,12 +2982,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSVG:
     :path: "../node_modules/react-native-svg"
+  VisionCamera:
+    :path: "../node_modules/react-native-vision-camera"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
-  cometchat-calls-sdk-react-native: 400054f5091cbbdae44a263a28ca015749a6b0c7
+  cometchat-calls-sdk-react-native: d75eacd80086547da273216d743c36a3af2da0bb
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   DVAssetLoaderDelegate: 0caec20e4e08b8560b691131539e9180024d4bce
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
@@ -3023,7 +3032,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 33f678ee25b6c0ee2b01b1ecec08e3e02424cefe
   React-microtasksnativemodule: 44b44a4d3cd6ffb85d928abf741acdc26722de2e
   react-native-background-timer: 17ea5e06803401a379ebf1f20505b793ac44d0fe
-  react-native-cometchat-ui-kit: 7cfb1dd8b98a11f0d26c942e260753dbee71e386
+  react-native-cometchat-ui-kit: c067f21597c8a398d63838f8e833778e7f066522
   react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
   react-native-safe-area-context: 6d8a7b750e496e37bda47c938320bf2c734d441f
   react-native-video: f0566c7e82ba660f656c3269436f297a3f6a02d9
@@ -3067,6 +3076,7 @@ SPEC CHECKSUMS:
   RNSVG: eca4f6bb09bcaf582c4f082f3989a6b8513b3e93
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   SPTPersistentCache: df36ea46762d7cf026502bbb86a8b79d0080dff4
+  VisionCamera: 3ea10c46a5c612f5f89fb46a54bef4a0de8b58a7
   Yoga: a3ed390a19db0459bd6839823a6ac6d9c6db198d
 
 PODFILE CHECKSUM: 27725f514c2c45c569a1570bf595433d9f2c9e6f

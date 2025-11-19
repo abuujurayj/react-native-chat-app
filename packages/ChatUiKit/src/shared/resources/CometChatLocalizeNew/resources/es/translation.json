@@ -454,14 +454,16 @@
 	"MESSAGE_LIST_ACTION_SCOPE_CHANGED": "${byName} hizo a ${onName} ${role}",
 	"YOU_DONT_HAVE_STICKERS_YET": "Aún no tienes ningún sticker.",
 	"meeting": "Reunión",
+	"START_REPORTING": "Iniciar informe",
+	"LOGOUT": "Cerrar sesión",
+	"AI_ASSISTANTS": "Asistentes de IA",
+	"CREATE_CONVERSATION": "Crear conversación",
+	"EDIT_MODERATION": "Edición fallida. Tu mensaje fue bloqueado debido a las políticas de moderación.",
+	"BLOCKED_MODERATION":"Tu mensaje fue bloqueado debido a las políticas de moderación.",
 	"NO_CONVERSATION_HISTORY_FOUND": "No se encontró el historial de conversaciones",
 	"SOMETHING_WENT_WRONG_ON_OUR_END": "Algo salió mal de nuestro lado. Por favor, intenta de nuevo.",
 	"START_A_CHAT": "Comienza un chat tocando el botón 'Nueva conversación'",
 	"CHAT_HISTORY": "Historial de chat",
 	"ASK_ANYTHING": "Pregunta lo que sea...",
-	"AI_ASSISTANT": "Asistente AI",
-	"START_REPORTING": "Iniciar informe",
-	"LOGOUT": "Cerrar sesión",
-	"AI_ASSISTANTS": "Asistentes de IA",
-	"CREATE_CONVERSATION": "Crear conversación"
+	"AI_ASSISTANT": "Asistente AI"
 }

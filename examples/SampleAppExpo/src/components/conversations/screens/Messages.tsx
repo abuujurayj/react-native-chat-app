@@ -38,6 +38,7 @@ import InfoIcon from '../../../assets/icons/InfoIcon';
 import { CommonUtils } from '../../../utils/CommonUtils';
 import Info from '../../../assets/icons/Info';
 import { useActiveChat } from '../../../utils/ActiveChatContext';
+import { useConfig } from '../../../config/store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -45,13 +46,90 @@ const { width } = Dimensions.get('window');
 type Props = StackScreenProps<RootStackParamList, 'Messages'>;
 
 const Messages: React.FC<Props> = ({ route, navigation }) => {
-  const {
-    user,
-    group,
-    fromMention = false,
+  const { 
+    user, 
+    group, 
+    fromMention = false, 
     fromMessagePrivately = false,
-    parentMessageId: routeParentMessageId,
+    parentMessageId: routeParentMessageId 
   } = route.params;
+
+  const typingIndicator = useConfig(
+    (state) => state.settings.chatFeatures.coreMessagingExperience.typingIndicator
+  );
+  const threadConversationAndReplies = useConfig(
+    (state) => state.settings.chatFeatures.coreMessagingExperience.threadConversationAndReplies
+  );
+  const photosSharing = useConfig(
+    (state) => state.settings.chatFeatures.coreMessagingExperience.photosSharing
+  );
+  const videoSharing = useConfig(
+    (state) => state.settings.chatFeatures.coreMessagingExperience.videoSharing
+  );
+  const audioSharing = useConfig(
+    (state) => state.settings.chatFeatures.coreMessagingExperience.audioSharing
+  );
+  const fileSharing = useConfig(
+    (state) => state.settings.chatFeatures.coreMessagingExperience.fileSharing
+  );
+  const editMessage = useConfig(
+    (state) => state.settings.chatFeatures.coreMessagingExperience.editMessage
+  );
+  const deleteMessage = useConfig(
+    (state) => state.settings.chatFeatures.coreMessagingExperience.deleteMessage
+  );
+  const messageDeliveryAndReadReceipts = useConfig(
+    (state) => state.settings.chatFeatures.coreMessagingExperience.messageDeliveryAndReadReceipts
+  );
+  const userAndFriendsPresence = useConfig(
+    (state) => state.settings.chatFeatures.coreMessagingExperience.userAndFriendsPresence
+  );
+  const mentions = useConfig(
+    (state) => state.settings.chatFeatures.deeperUserEngagement.mentions
+  );
+  const reactions = useConfig(
+    (state) => state.settings.chatFeatures.deeperUserEngagement.reactions
+  );
+  const messageTranslation = useConfig(
+    (state) => state.settings.chatFeatures.deeperUserEngagement.messageTranslation
+  );
+  const polls = useConfig(
+    (state) => state.settings.chatFeatures.deeperUserEngagement.polls
+  );
+  const collaborativeWhiteboard = useConfig(
+    (state) => state.settings.chatFeatures.deeperUserEngagement.collaborativeWhiteboard
+  );
+  const collaborativeDocument = useConfig(
+    (state) => state.settings.chatFeatures.deeperUserEngagement.collaborativeDocument
+  );
+  const voiceNotes = useConfig(
+    (state) => state.settings.chatFeatures.deeperUserEngagement.voiceNotes
+  );
+  const stickers = useConfig(
+    (state) => state.settings.chatFeatures.deeperUserEngagement.stickers
+  );
+  const userInfo = useConfig(
+    (state) => state.settings.chatFeatures.deeperUserEngagement.userInfo
+  );
+  const groupInfo = useConfig(
+    (state) => state.settings.chatFeatures.deeperUserEngagement.groupInfo
+  );
+  const sendPrivateMessageToGroupMembers = useConfig(
+    (state) => state.settings.chatFeatures.privateMessagingWithinGroups.sendPrivateMessageToGroupMembers
+  );
+  const oneOnOneVoiceCalling = useConfig(
+    (state) => state.settings.callFeatures.voiceAndVideoCalling.oneOnOneVoiceCalling
+  );
+  const oneOnOneVideoCalling = useConfig(
+    (state) => state.settings.callFeatures.voiceAndVideoCalling.oneOnOneVideoCalling
+  );
+  const groupVideoConference = useConfig(
+    (state) => state.settings.callFeatures.voiceAndVideoCalling.groupVideoConference
+  );
+  const groupVoiceConference = useConfig(
+    (state) => state.settings.callFeatures.voiceAndVideoCalling.groupVoiceConference
+  );
+
   const loggedInUser = useRef<CometChat.User>(
     CometChatUIKit.loggedInUser!,
   ).current;
@@ -71,9 +149,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   // Manage parentMessageId in parent component
-  const [parentMessageId, setParentMessageId] = useState<string | undefined>(
-    routeParentMessageId,
-  );
+  const [parentMessageId, setParentMessageId] = useState<string | undefined>(routeParentMessageId);
 
   const { setActiveChat } = useActiveChat();
   const insets = useSafeAreaInsets();
@@ -142,7 +218,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
       backAction,
     );
     return () => backHandler.remove();
-  }, [navigation]);
+  }, [navigation, fromMention, fromMessagePrivately]);
 
   useEffect(() => {
     CometChatUIEventHandler.addUserListener(userListenerId, {
@@ -155,13 +231,14 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     // Only attach the openChat listener when we are in a group context.
     // This prevents stacking duplicate private chat screens because the group
     // screen remains mounted underneath the user chat.
+    const currentListenerId = openmessageListenerIdRef.current;
     if (group) {
-      CometChatUIEventHandler.addUIListener(openmessageListenerIdRef.current, {
-        openChat: ({ user }) => {
-          if (!user) return;
+      CometChatUIEventHandler.addUIListener(currentListenerId, {
+        openChat: ({ user: chatUser }) => {
+          if (!chatUser) return;
 
           try {
-            const uid = user.getUid();
+            const uid = chatUser.getUid();
 
             // 1. Debounce rapid duplicate events (within 800ms for the same UID)
             const now = Date.now();
@@ -202,7 +279,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
             }
 
             lastOpenChatRef.current = { uid, time: now };
-            navigation.push('Messages', { user, fromMessagePrivately: true });
+            navigation.push('Messages', { user: chatUser, fromMessagePrivately: true });
           } catch (e) {
             console.warn('openChat navigation prevented due to error', e);
           }
@@ -226,22 +303,20 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     return () => {
       CometChatUIEventHandler.removeUserListener(userListenerId);
       if (group) {
-        CometChatUIEventHandler.removeUIListener(
-          openmessageListenerIdRef.current,
-        );
+        CometChatUIEventHandler.removeUIListener(currentListenerId);
       }
       blurSub();
       focusSub();
     };
     // Listener re-attached only when group context changes
-  }, [navigation, group]);
+  }, [navigation, group, userListenerId]);
 
-  const handleccUserBlocked = ({ user }: { user: CometChat.User }) => {
-    setLocalUser(CommonUtils.clone(user));
+  const handleccUserBlocked = ({ user: blockedUser }: { user: CometChat.User }) => {
+    setLocalUser(CommonUtils.clone(blockedUser));
   };
 
-  const handleccUserUnBlocked = ({ user }: { user: CometChat.User }) => {
-    setLocalUser(CommonUtils.clone(user));
+  const handleccUserUnBlocked = ({ user: unblockedUser }: { user: CometChat.User }) => {
+    setLocalUser(CommonUtils.clone(unblockedUser));
   };
 
   /** Reset messages */
@@ -267,10 +342,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
   /** Handle history message click */
   const handleHistoryMessageClick = useCallback(
     (message: CometChat.BaseMessage) => {
-      if (
-        messageComposerRef.current &&
-        messageComposerRef.current.stopStreaming
-      ) {
+      if (messageComposerRef.current && messageComposerRef.current.stopStreaming) {
         messageComposerRef.current.stopStreaming();
       }
       setShowHistoryModal(false);
@@ -310,13 +382,13 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
 
   // Define app bar options
   const getTrailingView = ({
-    user,
-    group,
+    user: currentUser,
+    group: currentGroup,
   }: {
     user?: CometChat.User;
     group?: CometChat.Group;
   }) => {
-    if (group) {
+    if (currentGroup) {
       if (!loggedInUser) {
         return <></>;
       }
@@ -325,7 +397,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('GroupInfo', {
-                group: group,
+                group: currentGroup,
               });
             }}
           >
@@ -339,13 +411,13 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
       );
     }
 
-    if (user && !user.getBlockedByMe()) {
+    if (currentUser && !currentUser.getBlockedByMe()) {
       return (
         <View style={styles.appBarContainer}>
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('UserInfo', {
-                user: user,
+                user: currentUser,
               });
             }}
           >
@@ -398,11 +470,9 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
   /** Theme override for agentic outgoing bubble */
   const providerTheme = useMemo(() => {
     const defaultOutgoingBg =
-      theme?.messageListStyles?.outgoingMessageBubbleStyles?.containerStyle
-        ?.backgroundColor;
+      theme?.messageListStyles?.outgoingMessageBubbleStyles?.containerStyle?.backgroundColor;
     const defaultTextColor =
-      theme?.messageListStyles?.outgoingMessageBubbleStyles?.textBubbleStyles
-        ?.textStyle?.color;
+      theme?.messageListStyles?.outgoingMessageBubbleStyles?.textBubbleStyles?.textStyle?.color;
 
     const outgoingOverride = {
       messageComposerStyles: {
@@ -445,143 +515,152 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
       <View style={styles.flexOne}>
         <CometChatMessageHeader
           user={localUser}
+        group={group}
+        onBack={() => {
+          if (fromMention || fromMessagePrivately) {
+            navigation.goBack();
+          } else {
+            navigation.popToTop();
+          }
+        }}
+        TrailingView={getTrailingView}
+        showBackButton={true}
+        usersStatusVisibility={userAndFriendsPresence}
+        hideVoiceCallButton={
+          (user && !oneOnOneVoiceCalling) || (group && !groupVoiceConference)
+        }
+        hideVideoCallButton={
+          (user && !oneOnOneVideoCalling) || (group && !groupVideoConference)
+        }
+        hideChatHistoryButton={false}
+        hideNewChatButton={false}
+        onChatHistoryButtonClick={handleChatHistoryClick}
+        onNewChatButtonClick={handleNewChatClick}
+      />
+      <View style={styles.flexOne}>
+        <CometChatMessageList
+          key={messageListKey}
+          textFormatters={[getMentionsTap()]}
+          user={user}
           group={group}
-          onBack={() => {
-            if (fromMention || fromMessagePrivately) {
-              navigation.goBack();
-            } else {
-              navigation.popToTop();
-            }
+          parentMessageId={parentMessageId}
+          // callback signature expects (messageObject, messageBubbleView)
+          onThreadRepliesPress={(messageObject, _messageBubbleView) => {
+            CometChatUIEventHandler.emitUIEvent?.(
+              CometChatUIEvents.hidePanel,
+              {
+                alignment: 'composerBottom',
+                child: () => null,
+              },
+            );
+            navigation.navigate('ThreadView', { message: messageObject, user, group });
           }}
-          TrailingView={getTrailingView}
-          showBackButton={true}
-          hideChatHistoryButton={false}
-          hideNewChatButton={false}
-          onChatHistoryButtonClick={handleChatHistoryClick}
-          onNewChatButtonClick={handleNewChatClick}
+          hideReplyInThreadOption={!threadConversationAndReplies}
+          hideEditMessageOption={!editMessage}
+          hideDeleteMessageOption={!deleteMessage}
+          receiptsVisibility={messageDeliveryAndReadReceipts}
+          hideTranslateMessageOption={!messageTranslation}
+          hideReactionOption={!reactions}
+          hideMessagePrivatelyOption={!sendPrivateMessageToGroupMembers}
+          aiAssistantTools={new CometChatAIAssistantTools({
+            getCurrentWeather: (args: any) => console.log('Weather args', args),
+          })}
+          streamingSpeed={10}
         />
-        <View style={styles.flexOne}>
-          <CometChatMessageList
-            key={messageListKey}
-            textFormatters={[getMentionsTap()]}
-            user={user}
-            group={group}
-            parentMessageId={parentMessageId}
-            // callback signature expects (messageObject, messageBubbleView)
-            onThreadRepliesPress={(messageObject, _messageBubbleView) => {
-              CometChatUIEventHandler.emitUIEvent?.(
-                CometChatUIEvents.hidePanel,
-                {
-                  alignment: 'composerBottom',
-                  child: () => null,
-                },
-              );
-              // Removed legacy ccCloseStickerPanel event; hidePanel suffices.
-
-              navigation.navigate('ThreadView', {
-                message: messageObject,
-                user,
-                group,
-              });
-            }}
-            aiAssistantTools={
-              new CometChatAIAssistantTools({
-                getCurrentWeather: (args: any) =>
-                  console.log('Weather args', args),
-              })
-            }
-            streamingSpeed={10}
-          />
-        </View>
+      </View>
 
         {/* Chat History Drawer */}
-        {agentic && (
-          <Modal
-            visible={showHistoryModal}
-            transparent
-            animationType="none"
-            onRequestClose={() => setShowHistoryModal(false)}
-          >
-            <View style={drawerStyles.backdrop}>
-              <Animated.View
-                style={[
-                  drawerStyles.drawer,
-                  {
-                    backgroundColor: theme.color.background1,
-                    paddingTop: Platform.OS === 'ios' ? insets.top : 0,
-                  },
-                  { transform: [{ translateX: slideAnim }] },
-                ]}
-              >
-                <CometChatAIAssistantChatHistory
-                  user={localUser}
-                  group={group}
-                  onClose={() => setShowHistoryModal(false)}
-                  onMessageClicked={handleHistoryMessageClick}
-                  onError={handleChatHistoryError}
-                  onNewChatButtonClick={handleNewChatClick}
-                />
-              </Animated.View>
-            </View>
-          </Modal>
-        )}
+      {agentic && (
+        <Modal visible={showHistoryModal} transparent animationType="none" onRequestClose={() => setShowHistoryModal(false)}>
+          <View style={drawerStyles.backdrop}>
+            <Animated.View
+              style={[
+                drawerStyles.drawer,
+                { 
+                  backgroundColor: theme.color.background1,
+                  paddingTop: Platform.OS === 'ios' ? insets.top : 0,
+                },
+                { transform: [{ translateX: slideAnim }] },
+              ]}
+            >
+              <CometChatAIAssistantChatHistory
+                user={localUser}
+                group={group}
+                onClose={() => setShowHistoryModal(false)}
+                onMessageClicked={handleHistoryMessageClick}
+                onError={handleChatHistoryError}
+                onNewChatButtonClick={handleNewChatClick}
+              />
+            </Animated.View>
+          </View>
+        </Modal>
+      )}
 
-        {localUser?.getBlockedByMe() ? (
-          <View
+      {localUser?.getBlockedByMe() ? (
+        <View
+          style={[
+            styles.blockedContainer,
+            { backgroundColor: theme.color.background3 },
+          ]}
+        >
+          <Text
             style={[
-              styles.blockedContainer,
-              { backgroundColor: theme.color.background3 },
+              theme.typography.button.regular,
+              {
+                color: theme.color.textSecondary,
+                textAlign: 'center',
+                paddingBottom: 10,
+              },
             ]}
+          >
+            {t('BLOCKED_USER_DESC')}
+          </Text>
+          <TouchableOpacity
+            onPress={() => unblock(localUser)}
+            style={[styles.button, { borderColor: theme.color.borderDefault }]}
           >
             <Text
               style={[
-                theme.typography.button.regular,
+                theme.typography.button.medium,
+                styles.buttontext,
                 {
-                  color: theme.color.textSecondary,
-                  textAlign: 'center',
-                  paddingBottom: 10,
+                  color: theme.color.textPrimary,
                 },
               ]}
             >
-              {t('BLOCKED_USER_DESC')}
+              {t('UNBLOCK')}
             </Text>
-            <TouchableOpacity
-              onPress={() => unblock(localUser)}
-              style={[
-                styles.button,
-                { borderColor: theme.color.borderDefault },
-              ]}
-            >
-              <Text
-                style={[
-                  theme.typography.button.medium,
-                  styles.buttontext,
-                  {
-                    color: theme.color.textPrimary,
-                  },
-                ]}
-              >
-                {t('UNBLOCK')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <CometChatMessageComposer
-            key={messageComposerKey}
-            ref={messageComposerRef}
-            parentMessageId={parentMessageId}
-            user={localUser}
-            group={group}
-            keyboardAvoidingViewProps={{
-              ...(Platform.OS === 'android'
-                ? {}
-                : {
-                    behavior: 'padding',
-                  }),
-            }}
-          />
-        )}
-      </View>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <CometChatMessageComposer
+          key={messageComposerKey}
+          ref={messageComposerRef}
+          parentMessageId={parentMessageId}
+          user={localUser}
+          group={group}
+          keyboardAvoidingViewProps={{
+            ...(Platform.OS === 'android'
+              ? {}
+              : {
+                  behavior: 'padding',
+                }),
+          }}
+          disableTypingEvents={!typingIndicator}
+          hideImageAttachmentOption={!photosSharing}
+          hideVideoAttachmentOption={!videoSharing}
+          hideAudioAttachmentOption={!audioSharing}
+          hideFileAttachmentOption={!fileSharing}
+          hideCameraOption={!photosSharing}
+          disableMentions={!mentions}
+          hideStickersButton={!stickers}
+          hideCollaborativeDocumentOption={!collaborativeDocument}
+          hideCollaborativeWhiteboardOption={!collaborativeWhiteboard}
+          hidePollsAttachmentOption={!polls}
+          hideVoiceRecordingButton={!voiceNotes}
+        />
+      )}
+    </View>
     </CometChatThemeProvider>
   );
 };

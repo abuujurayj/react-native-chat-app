@@ -35,13 +35,26 @@ import PersonAdd from '../../../assets/icons/PersonAdd';
 import PersonOff from '../../../assets/icons/PersonOff';
 import Block from '../../../assets/icons/Block';
 import Delete from '../../../assets/icons/Delete';
+import { useConfig } from '../../../config/store';
 
 type GroupInfoProps = {
   route: RouteProp<RootStackParamList, 'GroupInfo'>;
   navigation: StackNavigationProp<RootStackParamList, 'GroupInfo'>;
 };
 
-const GroupInfo: React.FC<GroupInfoProps> = ({ route, navigation }) => {
+const GroupInfo: React.FC<GroupInfoProps> = ({route, navigation}) => {
+  const addMembersToGroups = useConfig(
+    (state) => state.settings.chatFeatures.groupManagement.addMembersToGroups
+  );
+  const joinLeaveGroup = useConfig(
+    (state) => state.settings.chatFeatures.groupManagement.joinLeaveGroup
+  );
+  const deleteGroup = useConfig(
+    (state) => state.settings.chatFeatures.groupManagement.deleteGroup
+  );
+  const viewGroupMembers = useConfig(
+    (state) => state.settings.chatFeatures.groupManagement.viewGroupMembers
+  );
   const { group } = route.params;
   const theme = useTheme();
   const { t } = useCometChatTranslation();
@@ -291,42 +304,39 @@ const GroupInfo: React.FC<GroupInfoProps> = ({ route, navigation }) => {
         {/* Action Boxes: Add Members / View Members / Banned Members */}
         <View style={styles.boxContainerRow}>
           {/* Add Members */}
-          {[
-            CometChatUiKitConstants.GroupMemberScope.owner,
-            CometChatUiKitConstants.GroupMemberScope.admin,
-          ].includes(userScope) && (
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate('AddMember', { group });
-              }}
-              style={[
-                styles.buttonContainer,
-                { borderColor: theme.color.borderDefault },
-              ]}
-            >
-              <Icon
-                icon={
-                  <PersonAdd
-                    color={theme.color.primary}
-                    height={24}
-                    width={24}
-                  />
-                }
-                containerStyle={styles.buttonIcon}
-              />
-              <Text
+          {addMembersToGroups &&
+            [CometChatUiKitConstants.GroupMemberScope.owner,
+            CometChatUiKitConstants.GroupMemberScope.admin
+            ].includes(userScope) && (
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate('AddMember', { group });
+                }}
                 style={[
-                  theme.typography.caption1.regular,
-                  styles.boxLabel,
-                  { color: theme.color.textSecondary },
+                  styles.buttonContainer,
+                  { borderColor: theme.color.borderDefault },
                 ]}
               >
-                {getLabel('ADD_MEMBERS')}
-              </Text>
-            </TouchableOpacity>
-          )}
+                <Icon
+                  icon={
+                    <PersonAdd color={theme.color.primary} height={24} width={24} />
+                  }
+                  containerStyle={styles.buttonIcon}
+                />
+                <Text
+                  style={[
+                    theme.typography.caption1.regular,
+                    styles.boxLabel,
+                    { color: theme.color.textSecondary },
+                  ]}
+                >
+                  {getLabel('ADD_MEMBERS')}
+                </Text>
+              </TouchableOpacity>
+            )}
 
           {/* View Members */}
+          {viewGroupMembers && (
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('ViewMembers', { group });
@@ -352,7 +362,7 @@ const GroupInfo: React.FC<GroupInfoProps> = ({ route, navigation }) => {
               {getLabel('VIEW_MEMBERS')}
             </Text>
           </TouchableOpacity>
-
+          )}
           {/* Banned Members */}
           {(userScope === CometChatUiKitConstants.GroupMemberScope.owner ||
             userScope === CometChatUiKitConstants.GroupMemberScope.admin ||
@@ -414,41 +424,37 @@ const GroupInfo: React.FC<GroupInfoProps> = ({ route, navigation }) => {
         </View>
         {/* If user is owner but group has multiple members => must TRANSFER ownership.
            Otherwise => normal leave.  */}
-        {data.groupDetails.getMembersCount() > 1 ||
-        userScope !== CometChatUiKitConstants.GroupMemberScope.owner ? (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              onPress={() => {
-                if (
-                  userScope === CometChatUiKitConstants.GroupMemberScope.owner
-                ) {
-                  setIsOwnerLeaveModalOpen(true);
-                } else {
-                  setIsLeaveModalOpen(true);
-                }
-              }}
-              style={styles.iconContainer}
-            >
-              <Icon
-                icon={
-                  <Block color={theme.color.error} height={24} width={24} />
-                }
-              />
-              <Text
-                style={[
-                  theme.typography.heading4.regular,
-                  styles.mL5,
-                  { color: theme.color.error },
-                ]}
+        {joinLeaveGroup &&
+          (data.groupDetails.getMembersCount() > 1 ||
+            userScope !== CometChatUiKitConstants.GroupMemberScope.owner) && (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (userScope === CometChatUiKitConstants.GroupMemberScope.owner) {
+                    setIsOwnerLeaveModalOpen(true);
+                  } else {
+                    setIsLeaveModalOpen(true);
+                  }
+                }}
+                style={styles.iconContainer}
               >
-                {t('LEAVE')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
+                <Icon icon={<Block color={theme.color.error} height={24} width={24} />} />
+                <Text
+                  style={[
+                    theme.typography.heading4.regular,
+                    styles.mL5,
+                    { color: theme.color.error },
+                  ]}
+                >
+                  {t('LEAVE')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
         {/* Delete and Exit (Group owner only) */}
-        {[
+        {deleteGroup && 
+        [
           CometChatUiKitConstants.GroupMemberScope.owner,
           CometChatUiKitConstants.GroupMemberScope.admin,
         ].includes(userScope) && (

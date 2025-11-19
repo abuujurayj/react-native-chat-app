@@ -49,6 +49,7 @@ export type RootStackParamList = {
   };
   Users: undefined;
   Groups: undefined;
+  QRScreen: undefined;
 };
 
 export type BottomTabParamList = {

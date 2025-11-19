@@ -454,14 +454,16 @@
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "Вы инициировали аудиозвонок",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "Вы инициировали видеозвонок",
 	"meeting": "Встреча",
+	"START_REPORTING": "Начать отчет",
+	"LOGOUT": "Выйти",
+	"AI_ASSISTANTS": "ИИ ассистенты",
+	"CREATE_CONVERSATION": "Создать разговор",
+	"EDIT_MODERATION": "Ошибка редактирования. Ваше сообщение было заблокировано из-за политик модерации.",
+	"BLOCKED_MODERATION": "Ваше сообщение было заблокировано из-за политик модерации.",
 	"NO_CONVERSATION_HISTORY_FOUND": "История чатов не найдена",
 	"SOMETHING_WENT_WRONG_ON_OUR_END": "Что-то пошло не так с нашей стороны. Пожалуйста, попробуйте снова.",
 	"START_A_CHAT": "Начните чат, нажав кнопку 'Новый чат'",
 	"CHAT_HISTORY": "История чатов",
 	"ASK_ANYTHING": "Спрашивайте все...",
-	"AI_ASSISTANT": "AI ассистент",
-	"START_REPORTING": "Начать отчет",
-	"LOGOUT": "Выйти",
-	"AI_ASSISTANTS": "ИИ ассистенты",
-	"CREATE_CONVERSATION": "Создать разговор"
+	"AI_ASSISTANT": "AI ассистент"
 }

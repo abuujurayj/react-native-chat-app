@@ -36,6 +36,7 @@ import { styles } from './AddMemberStyles';
 import { commonVars } from '@cometchat/chat-uikit-react-native/src/shared/base/vars';
 import ArrowBack from '../../../assets/icons/ArrowBack';
 import { RootStackParamList } from '../../../navigation/types';
+import { useConfig } from '../../../config/store';
 const { CommonUtil } = NativeModules;
 
 const AddMember: React.FC = () => {
@@ -50,6 +51,9 @@ const AddMember: React.FC = () => {
   const [errorToastMessage, setErrorToastMessage] = useState('');
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [kbOffset, setKbOffset] = React.useState(900);
+  const userAndFriendsPresence = useConfig(
+      (state) => state.settings.chatFeatures.coreMessagingExperience.userAndFriendsPresence
+    );
 
   useEffect(() => {
     return () => {
@@ -231,6 +235,7 @@ const AddMember: React.FC = () => {
           onSelection={handleUserSelection}
           showBackButton={true}
           onBack={() => navigation.goBack()}
+          usersStatusVisibility={userAndFriendsPresence}
         />
 
         {/* Add Members Button */}

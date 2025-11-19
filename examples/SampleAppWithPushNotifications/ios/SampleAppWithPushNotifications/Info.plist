@@ -72,5 +72,17 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIAppFonts</key>
+  	<array>
+		<string>inter_regular.ttf</string>
+  		<string>inter_medium.ttf</string>
+  		<string>inter_bold.ttf</string>
+  		<string>roboto_regular.ttf</string>
+  		<string>roboto_medium.ttf</string>
+  		<string>roboto_bold.ttf</string>
+  		<string>times_new_roman_regular.ttf</string>
+  		<string>times_new_roman_medium.otf</string>
+  		<string>times_new_roman_bold.ttf</string>
+  	</array>
 </dict>
 </plist>

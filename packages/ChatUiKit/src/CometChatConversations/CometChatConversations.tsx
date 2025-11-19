@@ -49,6 +49,7 @@ import { ErrorEmptyView } from "../shared/views/ErrorEmptyView/ErrorEmptyView";
 import { useTheme } from "../theme";
 import { Skeleton } from "./Skeleton";
 import { ConversationStyle, Style } from "./style";
+import MessageReceiptUtils from "../shared/utils/MessageReceiptUtils";
 import { deepMerge } from "../shared/helper/helperFunctions";
 import Delete from "../shared/icons/components/delete";
 import { DeepPartial } from "../shared/helper/types";
@@ -896,13 +897,10 @@ export const CometChatConversations = (props: ConversationInterface) => {
       lastMessage.getSender().getUid() == loggedInUser.current!.getUid() &&
       !lastMessage.getDeletedAt()
     ) {
-      let status: MessageReceipt = MessageReceipt.ERROR;
-      if (lastMessage?.hasOwnProperty("readAt")) status = MessageReceipt.READ;
-      else if (lastMessage?.hasOwnProperty("deliveredAt")) status = MessageReceipt.DELIVERED;
-      else if (lastMessage?.hasOwnProperty("sentAt")) status = MessageReceipt.SENT;
+      const status = MessageReceiptUtils.getReceiptStatus(lastMessage);
       readReceipt =
         !receiptsVisibility || lastMessage?.getDeletedAt() ? null : (
-          <CometChatReceipt receipt={status} style={mergedStyles.itemStyle.receiptStyles} />
+          <CometChatReceipt receipt={status as MessageReceipt} style={mergedStyles.itemStyle.receiptStyles} />
         );
     }
 

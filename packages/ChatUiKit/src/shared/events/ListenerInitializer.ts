@@ -87,6 +87,9 @@ export class ListenerInitializer {
       },
       onAIAssistantMessageReceived: (message: CometChat.AIAssistantMessage) => {
         CometChatUIEventHandler.emitMessageEvent(MessageEvents.onAIAssistantMessageReceived, message);
+      },
+      onMessageModerated: (message: CometChat.BaseMessage) => {
+        CometChatUIEventHandler.emitMessageEvent(MessageEvents.onMessageModerated, message);
       }
     });
   }

@@ -25,6 +25,7 @@ import Calls from '../components/calls/Calls';
 import {CallDetails} from '../components/calls/CallDetails';
 import Users from '../components/users/Users';
 import Groups from '../components/groups/Groups';
+import QRScreen from '../components/conversations/screens/qr_screen';
 import AIAgents from '../components/AIAgent/AIAgents';
 
 type Props = {
@@ -144,6 +145,7 @@ const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials}: Props) => {
             name={SCREEN_CONSTANTS.CALL_DETAILS}
             component={CallDetails}
           />
+          <Stack.Screen name={SCREEN_CONSTANTS.QR_SCREEN} component={QRScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

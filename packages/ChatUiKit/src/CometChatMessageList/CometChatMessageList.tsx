@@ -70,6 +70,7 @@ import { CometChatBadge } from "../shared/views/CometChatBadge";
 import { CometChatDate } from "../shared/views/CometChatDate";
 import { CometChatEmojiKeyboard } from "../shared/views/CometChatEmojiKeyboard";
 import { CometChatMessageBubble } from "../shared/views/CometChatMessageBubble";
+import { getModerationStatus, ModerationBottomView } from "../shared/utils/MessageUtils";
 import { CometChatQuickReactions } from "../shared/views/CometChatQuickReactions";
 import { CometChatReactionList } from "../shared/views/CometChatReactionList";
 import { CometChatReactions } from "../shared/views/CometChatReactions";
@@ -157,6 +158,10 @@ export interface CometChatMessageListProps {
    * Custom sound URL for messages.
    */
   customSoundForMessages?: string;
+  /**
+   * Hides moderation status UI (bottom view) and suppresses moderation toasts.
+   */
+  hideModerationStatus?: boolean;
   /**
    * Alignment type for the message list.
    */
@@ -459,6 +464,7 @@ export const CometChatMessageList = memo(
         receiptsVisibility = true,
         disableSoundForMessages,
         customSoundForMessages,
+        hideModerationStatus = false,
         alignment = "standard",
         avatarVisibility = true,
         datePattern,
@@ -521,6 +527,7 @@ export const CometChatMessageList = memo(
       const hideGroupActionMessages = isAgenticUser() ? true : propHideGroupActionMessages;
 
       const callListenerId = "call_" + new Date().getTime();
+      const effectiveHideModeration =  hideModerationStatus;
       const groupListenerId = "group_" + new Date().getTime();
       const uiEventListener = "uiEvent_" + new Date().getTime();
       const callEventListener = "callEvent_" + new Date().getTime();
@@ -1811,6 +1818,9 @@ export const CometChatMessageList = memo(
           onMessageEdited: (editedMessage: any) => {
             messageEdited(editedMessage);
           },
+          onMessageModerated: (moderatedMessage: any) => {
+            messageEdited(moderatedMessage);
+          },
           onFormMessageReceived: (formMessage: any) => {
             newMessage(formMessage);
           },
@@ -2223,6 +2233,8 @@ export const CometChatMessageList = memo(
           const nextItemIsDelivered =
             messagesContentListRef.current[currentIndex! - 1] &&
             messagesContentListRef.current[currentIndex! - 1].getDeliveredAt();
+          // Moderation status should override other receipt states for immediate error display
+          const moderationStatus = getModerationStatus(item);
           if (item.getReadAt() || nextItemIsRead) messageState = MessageReceipt.READ;
           else if (item.getDeliveredAt() || nextItemIsDelivered)
             messageState = MessageReceipt.DELIVERED;
@@ -2231,6 +2243,12 @@ export const CometChatMessageList = memo(
           else if (isOutgoingMessage) messageState = MessageReceipt.WAIT;
           else messageState = MessageReceipt.ERROR;
 
+          // Moderation overrides
+          if (moderationStatus === "pending") {
+            messageState = MessageReceipt.WAIT; // show wait icon until approved/disapproved
+          } else if (moderationStatus === "disapproved") {
+            messageState = MessageReceipt.ERROR;
+          }
           // Determine if message has been edited.
           // This example assumes you have a method (or property) like getEditedAt() that returns a timestamp when edited.
           const isEdited =
@@ -2339,6 +2357,11 @@ export const CometChatMessageList = memo(
             messageObject?.getReactions &&
             messageObject?.getReactions() &&
             messageObject?.getReactions().length > 0;
+          const moderationStatus = getModerationStatus(messageObject);
+          const isOutgoing = messageObject.getSender()?.getUid() === loggedInUser.current?.getUid();
+          if (isOutgoing && moderationStatus && moderationStatus !== "unmoderated") {
+            return null;
+          }
           return hasReaction
             ? (params: { maxContentWidth?: number }) => {
                 return (
@@ -2406,6 +2429,11 @@ export const CometChatMessageList = memo(
           let isThreaded = item.getReplyCount() > 0;
 
           let _style = getCurrentBubbleStyle(item);
+          const moderationStatus = getModerationStatus(item);
+          const isOutgoing = item.getSender()?.getUid() === loggedInUser.current?.getUid();
+          if (isOutgoing && moderationStatus && moderationStatus !== "unmoderated") {
+            return undefined; // hide thread view if moderated
+          }
           return !isThreaded ? undefined : (
             <TouchableOpacity
               onPress={() => openThreadView(item, null)}
@@ -2532,6 +2560,20 @@ export const CometChatMessageList = memo(
             }
             return option;
           });
+          // Restrict options for disapproved outgoing messages (only delete + copy for text)
+          const moderationStatus = getModerationStatus(item);
+          const isOutgoing = item.getSender?.()?.getUid?.() === loggedInUser.current?.getUid?.();
+          if (moderationStatus === "disapproved" && isOutgoing) {
+            optionsWithPressHandling = optionsWithPressHandling.filter((opt) => {
+              if (opt.id === MessageOptionConstants.deleteMessage) return true;
+              if (
+                opt.id === MessageOptionConstants.copyMessage &&
+                (item.getType?.() === MessageTypeConstants.text || item?.getType === MessageTypeConstants.text)
+              )
+                return true;
+              return false;
+            });
+          }
           setShowMessageOptions(optionsWithPressHandling);
         },
         [mergedTheme]
@@ -2602,8 +2644,24 @@ export const CometChatMessageList = memo(
           }, [isThreaded, message, getLeadingView, hasTemplate, bubbleAlignment]);
 
           const BottomView = useMemo(() => {
-            return hasTemplate?.BottomView && hasTemplate?.BottomView(message, bubbleAlignment);
-          }, [hasTemplate, message, bubbleAlignment]);
+            const moderationStatus = getModerationStatus(message);
+            const isOutgoing = message.getSender()?.getUid() === loggedInUser.current?.getUid();
+            if (effectiveHideModeration) {
+              return hasTemplate?.BottomView && hasTemplate?.BottomView(message, bubbleAlignment);
+            } else {
+              if (isOutgoing && moderationStatus === "disapproved") {
+                return (
+                  <ModerationBottomView
+                    status={moderationStatus}
+                    moderationStyle={
+                      mergedTheme.messageListStyles.outgoingMessageBubbleStyles.moderationStyle
+                    }
+                  />
+                );
+              }
+              return hasTemplate?.BottomView && hasTemplate?.BottomView(message, bubbleAlignment);
+            }
+          }, [hasTemplate, message, bubbleAlignment, effectiveHideModeration]);
 
           const StatusInfoView = useMemo(() => {
             return hasTemplate?.StatusInfoView &&
@@ -3310,7 +3368,8 @@ export const CometChatMessageList = memo(
               />
             ) : (
               <View style={{ flex: 1 }}>
-                {!hideReactionOption && (
+                {/* Show quick reactions for disapproved messages */}
+                {!hideReactionOption && getModerationStatus(selectedMessage) !== "disapproved" && (
                   <CometChatQuickReactions
                     quickReactions={quickReactionList}
                     onReactionPress={reactToMessage}

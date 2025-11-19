@@ -454,14 +454,16 @@
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "Anda telah memulakan panggilan audio",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "Anda telah memulakan panggilan video",
 	"meeting": "Mesyuarat",
+	"START_REPORTING": "Mulakan Laporan",
+	"LOGOUT": "Log keluar",
+	"AI_ASSISTANTS": "Pembantu AI",
+	"CREATE_CONVERSATION": "Buat Perbualan",
+	"EDIT_MODERATION": "Penyuntingan gagal. Mesej anda telah disekat kerana dasar moderasi.",
+	"BLOCKED_MODERATION": "Mesej anda telah disekat kerana dasar moderasi.",
 	"NO_CONVERSATION_HISTORY_FOUND": "Tiada sejarah perbualan ditemui",
 	"SOMETHING_WENT_WRONG_ON_OUR_END": "Sesuatu yang salah berlaku di pihak kami. Sila cuba lagi.",
 	"START_A_CHAT": "Mulakan perbualan dengan mengetik butang 'Sembang Baru'",
 	"CHAT_HISTORY": "Sejarah Sembang",
 	"ASK_ANYTHING": "Tanyakan apa-apa...",
-	"AI_ASSISTANT": "Pembantu AI",
-	"START_REPORTING": "Mulakan Laporan",
-	"LOGOUT": "Log keluar",
-	"AI_ASSISTANTS": "Pembantu AI",
-	"CREATE_CONVERSATION": "Buat Perbualan"
+	"AI_ASSISTANT": "Pembantu AI"
 }

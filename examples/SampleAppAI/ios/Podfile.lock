@@ -1,6 +1,6 @@
 PODS:
   - boost (1.84.0)
-  - cometchat-calls-sdk-react-native (4.3.0):
+  - cometchat-calls-sdk-react-native (4.4.0):
     - React-Core
     - react-native-webrtc
   - DoubleConversion (1.1.6)
@@ -1755,13 +1755,13 @@ PODS:
     - SocketRocket
   - react-native-background-timer (2.4.1):
     - React-Core
-  - react-native-cometchat-ui-kit (5.2.2):
+  - react-native-cometchat-ui-kit (5.2.3):
     - React-Core
-    - react-native-cometchat-ui-kit/Video (= 5.2.2)
-    - react-native-cometchat-ui-kit/VideoCaching (= 5.2.2)
-  - react-native-cometchat-ui-kit/Video (5.2.2):
+    - react-native-cometchat-ui-kit/Video (= 5.2.3)
+    - react-native-cometchat-ui-kit/VideoCaching (= 5.2.3)
+  - react-native-cometchat-ui-kit/Video (5.2.3):
     - React-Core
-  - react-native-cometchat-ui-kit/VideoCaching (5.2.2):
+  - react-native-cometchat-ui-kit/VideoCaching (5.2.3):
     - DVAssetLoaderDelegate (~> 0.3.1)
     - React-Core
     - react-native-cometchat-ui-kit/Video
@@ -2980,7 +2980,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
-  cometchat-calls-sdk-react-native: 400054f5091cbbdae44a263a28ca015749a6b0c7
+  cometchat-calls-sdk-react-native: d75eacd80086547da273216d743c36a3af2da0bb
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   DVAssetLoaderDelegate: 0caec20e4e08b8560b691131539e9180024d4bce
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
@@ -3023,7 +3023,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 33f678ee25b6c0ee2b01b1ecec08e3e02424cefe
   React-microtasksnativemodule: 44b44a4d3cd6ffb85d928abf741acdc26722de2e
   react-native-background-timer: 17ea5e06803401a379ebf1f20505b793ac44d0fe
-  react-native-cometchat-ui-kit: 7cfb1dd8b98a11f0d26c942e260753dbee71e386
+  react-native-cometchat-ui-kit: c067f21597c8a398d63838f8e833778e7f066522
   react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
   react-native-safe-area-context: 6d8a7b750e496e37bda47c938320bf2c734d441f
   react-native-video: 58ca400e410fec7572628df817841b7d8f376ea6

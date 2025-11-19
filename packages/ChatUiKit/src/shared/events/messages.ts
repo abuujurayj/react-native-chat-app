@@ -24,5 +24,6 @@ export enum MessageEvents {
   onCustomInteractiveMessageReceived = "onCustomInteractiveMessageReceived",
   onMessageReactionAdded = "onMessageReactionAdded",
   onMessageReactionRemoved = "onMessageReactionRemoved",
+  onMessageModerated = "onMessageModerated",
   onAIAssistantMessageReceived = "onAIAssistantMessageReceived",
 }

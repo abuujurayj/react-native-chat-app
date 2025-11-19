@@ -73,7 +73,7 @@ export const CometChatThemeProvider = ({
         mergedTheme.color as CometChatTheme["color"],
         mergedTheme.typography as CometChatTheme["typography"]
       );
-      return deepMerge(defaultLightThemeWithOverridesApplied, light);
+      return deepMerge(defaultLightThemeWithOverridesApplied, mergedTheme);
     }
     return parentProviderTheme.light;
   }, [light, parentProviderTheme.light]);
@@ -97,7 +97,7 @@ export const CometChatThemeProvider = ({
         mergedTheme.color as CometChatTheme["color"],
         mergedTheme.typography as CometChatTheme["typography"]
       );
-      return deepMerge(defaultDarkThemeWithOverridesApplied, dark);
+      return deepMerge(defaultDarkThemeWithOverridesApplied, mergedTheme);
     }
     return parentProviderTheme.dark;
   }, [dark, parentProviderTheme.dark]);

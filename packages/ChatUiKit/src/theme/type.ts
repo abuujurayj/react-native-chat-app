@@ -47,6 +47,14 @@ export type BubbleStyles = {
   linkPreviewBubbleStyles?: DeepPartial<CometChatTheme["linkPreviewBubbleStyles"]>;
 };
 
+export type OutgoingBubbleStyles = Omit<BubbleStyles, 'assistantBubbleStyles'> & {
+  moderationStyle?: {
+    containerStyle?: ViewStyle;
+    textStyle?: TextStyle;
+    iconTintColor?: ColorValue;
+  };
+};
+
 export type ActionSheetStyle = {
   optionsItemStyle: {
     containerStyle: ViewStyle;
@@ -256,6 +264,11 @@ export interface CometChatTheme {
     imageStyle: ImageStyle;
     innerContainerStyle: ViewStyle;
     dateReceiptContainerStyle: ViewStyle;
+    moderationStyle?: {
+      containerStyle?: ViewStyle;
+      textStyle?: TextStyle;
+      iconTintColor?: ColorValue;
+    };
   };
   threadHeaderStyles: {
     containerStyle: ViewStyle;
@@ -279,6 +292,11 @@ export interface CometChatTheme {
     playIconStyle?: ImageStyle;
     playIconContainerStyle?: ViewStyle;
     placeholderImage?: ImageSourcePropType;
+    moderationStyle?: {
+      containerStyle?: ViewStyle;
+      textStyle?: TextStyle;
+      iconTintColor?: ColorValue;
+    };
   };
   audioBubbleStyles?: {
     threadedMessageStyle: CometChatTheme["threadedMessageStyles"];
@@ -438,7 +456,7 @@ export interface CometChatTheme {
     };
     dateSeparatorStyle?: DateSeparatorStyle;
     incomingMessageBubbleStyles: DeepPartial<BubbleStyles>;
-    outgoingMessageBubbleStyles: DeepPartial<Omit<BubbleStyles, 'assistantBubbleStyles'>>;
+    outgoingMessageBubbleStyles: DeepPartial<OutgoingBubbleStyles>;
     groupActionBubbleStyles: DeepPartial<CometChatTheme["groupActionBubbleStyles"]>;
     callActionBubbleStyles: DeepPartial<CallActionBubbleStyles>;
     messageInformationStyles: DeepPartial<CometChatTheme["messageInformationStyles"]>;

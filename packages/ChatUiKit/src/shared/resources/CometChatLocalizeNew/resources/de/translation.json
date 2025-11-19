@@ -454,14 +454,16 @@
 	"MESSAGE_LIST_ACTION_SCOPE_CHANGED": "${byName} hat ${onName} zum ${role} ernannt",
 	"YOU_DONT_HAVE_STICKERS_YET": "Du hast noch keine Sticker.",
 	"meeting": "Besprechung",
+	"START_REPORTING": "Bericht starten",
+	"LOGOUT": "Abmelden",
+	"AI_ASSISTANTS": "KI-Assistenten",
+	"CREATE_CONVERSATION": "Konversation erstellen",
+	"EDIT_MODERATION": "Bearbeitung fehlgeschlagen. Ihre Nachricht wurde aufgrund der Moderationsrichtlinien blockiert.",
+	"BLOCKED_MODERATION":"Ihre Nachricht wurde aufgrund der Moderationsrichtlinien blockiert.",
 	"NO_CONVERSATION_HISTORY_FOUND": "Kein Gesprächsverlauf gefunden",
 	"SOMETHING_WENT_WRONG_ON_OUR_END": "Etwas ist schief gelaufen. Bitte versuchen Sie es erneut",
 	"START_A_CHAT": "Beginnen Sie einen Chat, indem Sie auf die Schaltfläche 'Neuer Chat' tippen",
 	"CHAT_HISTORY": "Chat-Verlauf",
 	"ASK_ANYTHING": "Frag etwas...",
-	"AI_ASSISTANT": "AI-Assistent",
-	"START_REPORTING": "Bericht starten",
-	"LOGOUT": "Abmelden",
-	"AI_ASSISTANTS": "KI-Assistenten",
-	"CREATE_CONVERSATION": "Konversation erstellen"
+	"AI_ASSISTANT": "AI-Assistent"
 }

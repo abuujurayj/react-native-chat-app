@@ -36,6 +36,7 @@ import ArrowBack from '../../../assets/icons/ArrowBack';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { CometChat } from '@cometchat/chat-sdk-react-native';
 import { CommonUtils } from '../../../utils/CommonUtils';
+import { useConfig } from '../../../config/store';
 
 type ThreadViewRouteProp = RouteProp<RootStackParamList, 'ThreadView'>;
 type ThreadViewNavProp = StackNavigationProp<RootStackParamList>;
@@ -47,6 +48,37 @@ const ThreadView = () => {
   const theme = useTheme();
   const { message, user, group } = params || {};
   const { t } = useCometChatTranslation();
+
+  const messageDeliveryAndReadReceipts = useConfig(
+      (state) => state.settings.chatFeatures.coreMessagingExperience.messageDeliveryAndReadReceipts
+  );
+  const hideReactionOption = useConfig(
+      (state) => state.settings.chatFeatures.deeperUserEngagement.reactions
+  );
+  const photosSharing = useConfig(
+      (state) => state.settings.chatFeatures.coreMessagingExperience.photosSharing
+  );
+  const videoSharing = useConfig(
+      (state) => state.settings.chatFeatures.coreMessagingExperience.videoSharing
+  );
+  const audioSharing = useConfig(
+      (state) => state.settings.chatFeatures.coreMessagingExperience.audioSharing
+  );
+  const fileSharing = useConfig(
+      (state) => state.settings.chatFeatures.coreMessagingExperience.fileSharing
+  );
+  const mentions = useConfig(
+      (state) => state.settings.chatFeatures.deeperUserEngagement.mentions
+  );
+  const voiceNotes = useConfig(
+      (state) => state.settings.chatFeatures.deeperUserEngagement.voiceNotes
+  );
+  const stickers = useConfig(
+      (state) => state.settings.chatFeatures.deeperUserEngagement.stickers
+  );
+  const sendPrivateMessageToGroupMembers = useConfig(
+      (state) => state.settings.chatFeatures.privateMessagingWithinGroups.sendPrivateMessageToGroupMembers
+  );
 
   const loggedInUser = useRef<CometChat.User>(
     CometChatUIKit.loggedInUser!,
@@ -235,7 +267,7 @@ const handleBack = useCallback(() => {
       </View>
 
       {/* Thread Header */}
-      <CometChatThreadHeader parentMessage={message} />
+      <CometChatThreadHeader parentMessage={message} receiptsVisibility={messageDeliveryAndReadReceipts} />
 
       {/* Threaded Message List */}
       <View style={{ flex: 1 }}>
@@ -244,6 +276,9 @@ const handleBack = useCallback(() => {
           group={group}
           parentMessageId={message.getId().toString()}
           textFormatters={[getMentionsTap()]}
+          receiptsVisibility={messageDeliveryAndReadReceipts}
+          hideReactionOption={!hideReactionOption}
+          hideMessagePrivatelyOption={!sendPrivateMessageToGroupMembers}
         />
       </View>
 
@@ -293,6 +328,14 @@ const handleBack = useCallback(() => {
           keyboardAvoidingViewProps={
             Platform.OS === 'android' ? {} : { behavior: 'padding' }
           }
+          hideImageAttachmentOption={!photosSharing}
+          hideVideoAttachmentOption={!videoSharing}
+          hideAudioAttachmentOption={!audioSharing}
+          hideFileAttachmentOption={!fileSharing}
+          hideCameraOption={!photosSharing}
+          disableMentions={!mentions}
+          hideVoiceRecordingButton={!voiceNotes}
+          hideStickersButton={!stickers}
         />
       )}
     </View>

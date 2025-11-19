@@ -36,6 +36,7 @@ type MessageUIEvents = {
   onMessageReactionRemoved?: Function;
   onMessagesDeliveredToAll?: Function;
   onMessagesReadByAll?: Function;
+  onMessageModerated?: Function;
   onAIAssistantMessageReceived?: Function;
 };
 export class MessageUIEventListener {
@@ -65,6 +66,7 @@ export class MessageUIEventListener {
   onMessageReactionRemoved?: Function = undefined;
   onMessagesDeliveredToAll?: Function = undefined;
   onMessagesReadByAll?: Function = undefined;
+  onMessageModerated?: Function = undefined;
   onAIAssistantMessageReceived?: Function = undefined;
   constructor({
     ccMessageSent,
@@ -93,6 +95,7 @@ export class MessageUIEventListener {
     onMessageReactionRemoved,
     onMessagesDeliveredToAll,
     onMessagesReadByAll,
+    onMessageModerated,
     onAIAssistantMessageReceived,
   }: MessageUIEvents) {
     if (!isFalsy(ccMessageError)) this.ccMessageError = ccMessageError;
@@ -129,6 +132,7 @@ export class MessageUIEventListener {
       this.onMessagesDeliveredToAll = onMessagesDeliveredToAll;
     if (!isFalsy(onMessagesReadByAll)) this.onMessagesReadByAll = onMessagesReadByAll;
     if (!isFalsy(onAIAssistantMessageReceived)) this.onAIAssistantMessageReceived = onAIAssistantMessageReceived;
+    if (!isFalsy(onMessageModerated)) this.onMessageModerated = onMessageModerated;
   }
 }
 

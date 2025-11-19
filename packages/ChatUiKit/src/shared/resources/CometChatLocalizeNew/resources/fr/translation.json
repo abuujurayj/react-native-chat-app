@@ -454,14 +454,16 @@
   "YOU_INITIATED_GROUP_AUDIO_CALL": "Vous avez lancé un appel audio",
   "YOU_INITIATED_GROUP_VIDEO_CALL": "Vous avez lancé un appel vidéo",
   "meeting": "Réunion",
+  "START_REPORTING": "Commencer le rapport",
+	"LOGOUT": "Se déconnecter",
+	"AI_ASSISTANTS": "Assistants IA",
+	"CREATE_CONVERSATION": "Créer une conversation",
+  "EDIT_MODERATION": "Édition échouée. Votre message a été bloqué en raison des politiques de modération",
+  "BLOCKED_MODERATION":"Votre message a été bloqué en raison des politiques de modération.",
   "NO_CONVERSATION_HISTORY_FOUND": "Aucun historique de conversation trouvé",
   "SOMETHING_WENT_WRONG_ON_OUR_END": "Quelque chose a mal tourné de notre côté. Veuillez réessayer",
   "START_A_CHAT": "Commencez un chat en appuyant sur le bouton 'Nouvelle conversation'",
   "CHAT_HISTORY": "Historique des chats",
   "ASK_ANYTHING": "Demandez n'importe quoi...",
-  "AI_ASSISTANT": "Assistant IA",
-  "START_REPORTING": "Commencer le rapport",
-	"LOGOUT": "Se déconnecter",
-	"AI_ASSISTANTS": "Assistants IA",
-	"CREATE_CONVERSATION": "Créer une conversation"
+  "AI_ASSISTANT": "Assistant IA"
 }

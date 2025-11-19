@@ -454,14 +454,16 @@
 	"YOU_INITIATED_GROUP_AUDIO_CALL": "您已啟動音訊通話",
 	"YOU_INITIATED_GROUP_VIDEO_CALL": "您已啟動視訊通話",
 	"meeting": "會議",
+	"START_REPORTING": "開始報告",
+	"LOGOUT": "登出",
+	"AI_ASSISTANTS": "AI 助手",
+	"CREATE_CONVERSATION": "建立對話",
+	"EDIT_MODERATION": "編輯失敗。您的訊息因為管理政策被封鎖。",
+	"BLOCKED_MODERATION": "您的訊息因為管理政策被封鎖。",
 	"NO_CONVERSATION_HISTORY_FOUND": "找不到對話歷史",
     "SOMETHING_WENT_WRONG_ON_OUR_END": "我們這邊出了點問題，請重試",
     "START_A_CHAT": "點擊“新聊天”按鈕開始聊天",
 	"CHAT_HISTORY": "聊天記錄",
 	"ASK_ANYTHING": "提問任何問題...",
-	"AI_ASSISTANT": "AI 助手",
-	"START_REPORTING": "開始報告",
-	"LOGOUT": "登出",
-	"AI_ASSISTANTS": "AI 助手",
-	"CREATE_CONVERSATION": "建立對話"
+	"AI_ASSISTANT": "AI 助手"
 }

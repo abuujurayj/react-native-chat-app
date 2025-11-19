@@ -310,7 +310,7 @@ import AISendButton from "./components/ai-send-button";
 import AINewChatButton from "./components/ai-new-chat";
 import AIChatHistory from "./components/ai-chat-history";
 import AICopyOption from "./components/ai-copy-option";
-
+import MessageBlocked from "./components/message-blocked";
 
 /**************************************** */
 
@@ -630,5 +630,7 @@ export const ICONS = {
   "ai-new-chat": AINewChatButton,
   "ai-chat-history": AIChatHistory,
   "ai-copy-option": AICopyOption,
+
+  "message-blocked": MessageBlocked,
 
 } as const;
