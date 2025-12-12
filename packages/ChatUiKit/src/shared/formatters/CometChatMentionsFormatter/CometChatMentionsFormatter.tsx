@@ -123,7 +123,8 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
    */
   constructor(themeOrUser?: CometChatTheme | CometChat.User, loggedInUser?: CometChat.User) {
     super();
-    this.regexPattern = /<@uid:(.*?)>/g;
+    // Support user mentions <@uid:UID> and group-wide alias mentions <@all:Alias>
+    this.regexPattern = /<@(?:uid|all):(.*?)>/g;
     this.trackCharacter = "@";
 
     const theme = isCometChatTheme(themeOrUser) ? themeOrUser : undefined;
@@ -150,6 +151,42 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
     this.conversationStyle = this.incomingBubbleStyle;
   }
 
+  /** Group-wide alias mention feature */
+  private mentionAllLabel: string = "all";
+  private disableMentionAll: boolean = false;
+
+  setMentionAllLabel(label: string) {
+    if (label && label.trim()) this.mentionAllLabel = label.trim();
+    return this;
+  }
+
+  setDisableMentionAll(disable: boolean) {
+    this.disableMentionAll = !!disable;
+    return this;
+  }
+
+  getMentionAllLabel() {
+    return this.mentionAllLabel;
+  }
+
+  isMentionAllDisabled() {
+    return this.disableMentionAll;
+  }
+
+  private buildGroupMentionItem(): SuggestionItem | null {
+    if (this.disableMentionAll) return null;
+    if (!this.group) return null; // only relevant inside a group context
+    const alias = this.mentionAllLabel || "all";
+    return new SuggestionItem({
+      id: alias, // id matches regex capture for highlighting
+      name: alias,
+      promptText: "@" + alias,
+      trackingCharacter: "@",
+      underlyingText: `<@all:${alias}>`,
+      hideLeadingIcon: false,
+    });
+  }
+
   /**
    * Sets the message object.
    *
@@ -163,6 +200,30 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
     let cometchatUIUserArray: Array<SuggestionItem> =
       this.convertCCUsersToSuggestionsItem(mentionedUsers);
 
+    // Inject alias mentions present in raw text (incoming/outgoing)
+    try {
+      const rawText = (messageObject as any)?.getText?.() || "";
+      const aliasRegex = /<@all:(.*?)>/g;
+      let m: RegExpExecArray | null;
+      while ((m = aliasRegex.exec(rawText)) !== null) {
+        const alias = m[1];
+        if (alias && !cometchatUIUserArray.find((i) => i.underlyingText === `<@all:${alias}>`)) {
+          cometchatUIUserArray.push(
+            new SuggestionItem({
+              id: alias,
+              name: alias,
+              promptText: "@" + alias,
+              trackingCharacter: "@",
+              underlyingText: `<@all:${alias}>`,
+              hideLeadingIcon: true,
+            })
+          );
+        }
+      }
+    } catch (e) {
+      console.log("🚀 ~ CometChatMentionsFormatter ~ setMessage ~ e:", e);
+    }
+
     this.setSuggestionItems(cometchatUIUserArray);
   }
 
@@ -175,19 +236,54 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
   }
 
   handlePreMessageSend(message: CometChat.TextMessage): CometChat.TextMessage {
-    let CCUsers = this.getSuggestionItems().map((item) => {
-      let user = new CometChat.User(item.id);
-      user.setAvatar(item?.leadingIconUrl!);
-      user.setName(item?.name!);
-      return user;
-    });
-    message.setMentionedUsers(CCUsers);
+    let CCUsers = this.getSuggestionItems()
+      .filter((item) => !item.underlyingText.startsWith("<@all:"))
+      .map((item) => {
+        let user = new CometChat.User(item.id);
+        user.setAvatar(item?.leadingIconUrl!);
+        user.setName(item?.name!);
+        return user;
+      });
+    if (CCUsers.length) message.setMentionedUsers(CCUsers);
     return message;
   }
 
   handleComposerPreview(message: CometChat.TextMessage): void {
-    let users = this.convertCCUsersToSuggestionsItem(message.getMentionedUsers());
-    this.setSuggestionItems(users);
+    const userItems = this.convertCCUsersToSuggestionsItem(message.getMentionedUsers());
+
+    // Preserve any existing @all alias items we discovered in setMessage
+    let aliasItems = this.SuggestionItems.filter((item) =>
+      item.underlyingText?.startsWith("<@all:")
+    );
+
+    // If alias items are missing (common on re-open edit), parse from message text
+    try {
+      const rawText = message.getText?.() || "";
+      const aliasRegex = /<@all:(.*?)>/g;
+      let m: RegExpExecArray | null;
+      while ((m = aliasRegex.exec(rawText)) !== null) {
+        const alias = m[1];
+        if (
+          alias &&
+          !aliasItems.find((i) => i.underlyingText === `<@all:${alias}>`)
+        ) {
+          const aliasItem = new SuggestionItem({
+            id: alias,
+            name: alias,
+            promptText: "@" + alias,
+            trackingCharacter: "@",
+            underlyingText: `<@all:${alias}>`,
+            hideLeadingIcon: true,
+          });
+          aliasItems.push(aliasItem);
+        }
+      }
+    } catch (e) {
+      console.log("🚀 ~ CometChatMentionsFormatter ~ handleComposerPreview ~ e:", e)
+    }
+
+    const merged = [...aliasItems, ...userItems];
+    this.setSuggestionItems(merged);
   }
 
   private convertCCUsersToSuggestionsItem(users: CometChat.User[]) {
@@ -239,8 +335,14 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
         : new CometChat.UsersRequestBuilder());
 
     this.searchRequest = requestBuilder.setLimit(10).setSearchKeyword(searchKey).build();
-
     this.searchData = [];
+    // Prepend group-wide alias suggestion if enabled and matches search
+    const groupItem = this.buildGroupMentionItem();
+    if (groupItem) {
+      const include =
+        !searchKey || groupItem.name?.toLowerCase().startsWith(searchKey.toLowerCase());
+      if (include) this.searchData.push(groupItem);
+    }
     this.fetchNext(true);
   }
 
@@ -251,8 +353,9 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
         ?.fetchNext()
         .then((users: CometChat.User[]) => {
           let structuredData = this.convertCCUsersToSuggestionsItem(users);
+          // Preserve any pre-added items (like @all alias) in searchData when freshCall
           this.searchData = freshCall
-            ? [...structuredData]
+            ? [...this.searchData, ...structuredData]
             : [...this.searchData, ...structuredData];
           this.setSearchData(this.searchData);
         })
@@ -292,7 +395,9 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
     const uniqueUserIds: Set<number | string> = new Set();
 
     // Populate the Set with user IDs from the existing user list
-    this.SuggestionItems.forEach((user) => uniqueUserIds.add(user.id));
+    this.SuggestionItems.forEach((item) => {
+      if (!item.underlyingText.startsWith("<@all:")) uniqueUserIds.add(item.id);
+    });
 
     return uniqueUserIds;
   }
@@ -428,10 +533,13 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
 
       if (this.SuggestionItems) {
         const userRegistry: { [key: string]: string } = {};
+        const aliasIdSet: Set<string> = new Set();
         for (let i = 0; i < this.SuggestionItems?.length; i++) {
-          const userUid = this.SuggestionItems[i].id;
-          const userName = this.SuggestionItems[i].promptText;
+          const item = this.SuggestionItems[i];
+          const userUid = item.id;
+          const userName = item.promptText;
           userRegistry[userUid] = userName!;
+          if (item.underlyingText.startsWith("<@all:")) aliasIdSet.add(userUid);
         }
 
         // Define the regex pattern
@@ -466,46 +574,69 @@ export class CometChatMentionsFormatter extends CometChatTextFormatter {
           if (userRegistry.hasOwnProperty(segment)) {
             let _loggedInUser = this.loggedInUser || CometChatUIKit.loggedInUser;
 
-            const isSelf = _loggedInUser?.getUid() === segment;
+            const isAlias = aliasIdSet.has(segment);
+            const isSelf = isAlias || _loggedInUser?.getUid() === segment;
+
             const isOutgoing =
               this.messageObject?.getSender()?.getUid() === _loggedInUser?.getUid();
 
             if (this.target === MentionsTargetElement.textbubble) {
-              // Only for bubbles – keep whatever was set for conversation & composer
               this.setContext(isOutgoing ? "outgoing" : "incoming");
             }
+
             const textStyle = this.resolveStyle(isSelf);
-            let onPressProp = this.temp
-              ? { onPress: (event: any) => this.onMentionClick(event, segment) }
-              : {};
+
+            let onPressProp =
+              this.temp && !isAlias
+                ? { onPress: (event: any) => this.onMentionClick(event, segment) }
+                : {}; // still suppress click for alias
 
             if (this.target === MentionsTargetElement.textbubble) {
               return (
-                // <View>
                 <Text suppressHighlighting={true} key={index} {...onPressProp} style={[textStyle]}>
                   {userRegistry[segment]}
                 </Text>
-                // </View>
               );
             }
 
-            //conv
             return (
               <Text suppressHighlighting={true} key={index} {...onPressProp} style={[textStyle]}>
                 {userRegistry[segment]}
               </Text>
             );
           } else {
+            // Handle group-wide alias formatting if present
+            const aliasItem = this.SuggestionItems.find(
+              (it) => it.underlyingText === `<@all:${segment}>`
+            );
+            if (aliasItem) {
+              const styleResolved = this.resolveStyle(true);
+              // If context is 'conversation', render @all and description inline
+              if (this.currentContext === "conversation") {
+                return (
+                  <Text suppressHighlighting={true} key={index} style={[styleResolved]}>
+                    <Text style={[styleResolved, { fontWeight: "700" }]}>
+                      @{aliasItem.promptText}
+                    </Text>
+                    <Text style={[styleResolved, { fontWeight: "normal", opacity: 0.7 }]}>
+                      {" "}
+                      {t("MESSAGE_COMPOSER_MENTION_NOTIFY_EVERYONE_LABEL")}
+                    </Text>
+                  </Text>
+                );
+              }
+              return (
+                <Text suppressHighlighting={true} key={index} style={[styleResolved]}>
+                  {aliasItem.promptText}
+                </Text>
+              );
+            }
             if (this.target === MentionsTargetElement.textbubble)
               return (
-                // <View>
                 <Text key={index} style={{ ...this.textStyle }}>
                   {segment}
                 </Text>
-                // </View>
               );
-
-            //conv
             return (
               <Text key={index} style={{ ...this.textStyle }}>
                 {segment}

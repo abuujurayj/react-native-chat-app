@@ -101,6 +101,7 @@ export const GroupMemberOptionConstants = {
 export const ConversationOptionConstants = {
   delete: "delete",
   edit: "edit",
+  reply: "reply",
 };
 
 export const ConversationTypeConstants = {
@@ -234,6 +235,7 @@ export const MessageOptionConstants = {
   // forwardMessage: "forwardMessage",
   sendMessagePrivately: "sendMessagePrivately",
   replyMessagePrivately: "replyMessagePrivately",
+  reportMessage: "reportMessage",
 };
 
 export const CometChatMessageTypes = Object.freeze({

@@ -135,6 +135,14 @@ export interface CometChatListProps {
    * Returns the final array of items currently in the list.
    */
   onListFetched?: (fetchedList: any[]) => void;
+  /**
+   * Custom search view component to display instead of the default search input.
+   */
+  SearchView?: () => JSX.Element;
+  /**
+   * Callback triggered when the search bar is clicked or focused.
+   */
+  onSearchBarClicked?: () => void;
 }
 
 let lastCall: any;
@@ -189,6 +197,8 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
       hideSubmitButton,
       statusIndicatorType,
       hideStickyHeader = false,
+      SearchView,
+      onSearchBarClicked,
     } = props;
 
     // functions which can be accessed by parents
@@ -799,6 +809,8 @@ export const CometChatList = React.forwardRef<CometChatListActionsInterface, Com
           confirmSelectionStyle={listStyle?.confirmSelectionStyle}
           searchStyle={listStyle?.searchStyle}
           selectedCount={selectedCount}
+          SearchView={SearchView}
+          onSearchBarClicked={onSearchBarClicked}
         />
         <View style={styles.container}>{getMessageContainer()}</View>
         {list.length === 0 && dataLoadingStatus.toLowerCase() === LOADING ? (

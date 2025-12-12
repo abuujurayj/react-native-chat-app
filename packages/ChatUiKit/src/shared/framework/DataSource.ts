@@ -74,6 +74,11 @@ export interface DataSource {
     message: CometChat.BaseMessage,
     alignment: MessageBubbleAlignmentType
   ): JSX.Element | null;
+  getReplyView?(
+    message: CometChat.BaseMessage,
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): JSX.Element | null;
   getDeleteMessageBubble(message: CometChat.BaseMessage, theme: CometChatTheme): JSX.Element;
   getVideoMessageBubble(
     videoUrl: string,
@@ -233,4 +238,6 @@ export interface DataSource {
     theme?: CometChatTheme
   ): CometChatMentionsFormatter;
   getUrlsFormatter(loggedInUser?: CometChat.User): CometChatUrlsFormatter;
+  
+  getMessagePreviewSubtitle(message: CometChat.BaseMessage): string;
 }

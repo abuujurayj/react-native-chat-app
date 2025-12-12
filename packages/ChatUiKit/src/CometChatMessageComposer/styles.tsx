@@ -92,7 +92,7 @@ export const getComposerStyle = (
 ): DeepPartial<MessageComposerStyle> => {
   return {
     containerStyle: {
-      backgroundColor: color.background1,
+      backgroundColor: color.background3,
       width: "100%",
     },
     messageInputStyles: {
@@ -101,6 +101,7 @@ export const getComposerStyle = (
         borderWidth: spacing.spacing.s0_5 / 2,
         borderColor: color.borderDefault,
         backgroundColor: color.background1,
+        borderTopWidth:0,
       },
       textStyle: {
         padding: spacing.padding.p3,

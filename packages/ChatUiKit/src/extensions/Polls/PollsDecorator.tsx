@@ -20,7 +20,9 @@ import { getMessagePreviewInternal } from "../../shared/utils/MessageUtils";
 import { CometChatTheme } from "../../theme/type";
 import { CometChatCreatePoll } from "./Polls";
 import { PollsBubble } from "./PollsBubble";
-import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager"
+import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager";
+import { CometChatMessageEvents } from "../../shared/events/CometChatMessageEvents";
+import { messageStatus } from "../../shared/utils/CometChatMessageHelper";
 
 const t = getCometChatTranslation();
 
@@ -163,6 +165,8 @@ export class PollsExtensionDecorator extends DataSourceDecorator {
               group={group}
               {...pollsProps}
               {...this.pollsConfiguration}
+              replyToMessage={additionalAttachmentOptionsParams?.replyToMessage}
+              closeReplyPreview={additionalAttachmentOptionsParams?.closeReplyPreview}
             />
           );
         },
@@ -197,6 +201,14 @@ export class PollsExtensionDecorator extends DataSourceDecorator {
           } else {
             return this.getPollBubble(message, _alignment, theme);
           }
+        },
+        ReplyView: (
+          message: CometChat.BaseMessage,
+          _alignment?: MessageBubbleAlignmentType,
+          onReplyViewClicked?: (messageToReply: CometChat.BaseMessage) => void
+        ) => {
+          let pollMessage: CometChat.CustomMessage = message as CometChat.CustomMessage;
+          return ChatConfigurator.dataSource.getReplyView?.(pollMessage, theme, additionalParams) || null;
         },
         options: (loggedInUser, messageObject, theme, group) =>
           ChatConfigurator.dataSource.getMessageOptions(

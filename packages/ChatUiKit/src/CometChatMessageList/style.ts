@@ -495,7 +495,8 @@ export const getMessageListStylesLight = (
           borderRadius: spacing.radius.r2,
           backgroundColor: color.background3,
           height: 232,
-          width: 232,
+          width: '100%',
+          minWidth: 232,
         },
         dateReceiptContainerStyle: {
           paddingRight: spacing.padding.p1,
@@ -999,7 +1000,8 @@ export const getMessageListStylesDark = (
           borderRadius: spacing.radius.r2,
           backgroundColor: color.background3,
           height: 232,
-          width: 232,
+          width: '100%',
+          minWidth: 232,
         },
         dateReceiptContainerStyle: {
           paddingRight: spacing.padding.p1,

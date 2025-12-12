@@ -17,6 +17,12 @@ export type RootStackParamList = {
     fromMention?: boolean;
     fromMessagePrivately?: boolean;
     parentMessageId?: string;
+    messageId?: string;
+    searchKeyword?: string;
+  };
+  SearchMessages: {
+    user?: CometChat.User;
+    group?: CometChat.Group;
   };
   AIAgents: undefined;
   BannedMembers: undefined;
@@ -30,6 +36,7 @@ export type RootStackParamList = {
     message: CometChat.BaseMessage;
     user?: CometChat.User;
     group?: CometChat.Group;
+    highlightMessageId?: string;
   };
   AddMember: {
     group: CometChat.Group;

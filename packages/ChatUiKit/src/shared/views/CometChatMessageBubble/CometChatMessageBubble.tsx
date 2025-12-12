@@ -130,11 +130,21 @@ export const CometChatMessageBubble = memo(
           {LeadingView && LeadingView}
           <View style={{ marginStart: 4, maxWidth: "80%" } as ViewProps}>
             {HeaderView && HeaderView}
-            <View style={{ ...style?.containerStyle }} onLayout={handleLayout}>
+            <View style={{ ...style?.containerStyle, padding: 0, paddingHorizontal: 0, paddingVertical: 0, paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }} onLayout={handleLayout}>
               {ReplyView && ReplyView}
-              {ContentView && ContentView}
-              {StatusInfoView && StatusInfoView}
-              {BottomView && BottomView}
+              <View style={{
+                padding: style?.containerStyle?.padding,
+                paddingHorizontal: style?.containerStyle?.paddingHorizontal,
+                paddingVertical: style?.containerStyle?.paddingVertical,
+                paddingTop: style?.containerStyle?.paddingTop,
+                paddingBottom: style?.containerStyle?.paddingBottom,
+                paddingLeft: style?.containerStyle?.paddingLeft,
+                paddingRight: style?.containerStyle?.paddingRight
+              }}>
+                {ContentView && ContentView}
+                {StatusInfoView && StatusInfoView}
+                {BottomView && BottomView}
+              </View>
             </View>
             {_width && (
               <View style={{ maxWidth: _width }}>

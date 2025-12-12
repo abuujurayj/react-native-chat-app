@@ -16,7 +16,6 @@ export const getFileBubbleStyleLight = (
         paddingBottom: spacing.padding.p0,
         borderRadius: spacing.radius.r3,
         alignSelf: "flex-start",
-        height: 74,
         width: 240,
       },
       titleStyle: {
@@ -40,7 +39,6 @@ export const getFileBubbleStyleLight = (
         paddingTop: spacing.padding.p3,
         paddingHorizontal: spacing.padding.p2,
         borderRadius: spacing.radius.r3,
-        height: 74,
         width: 240,
       },
       titleStyle: {
@@ -78,7 +76,6 @@ export const getFileBubbleStyleDark = (
         paddingBottom: spacing.padding.p0,
         borderRadius: spacing.radius.r3,
         alignSelf: "flex-start",
-        height: 74,
         width: 240,
       },
       titleStyle: {
@@ -102,7 +99,6 @@ export const getFileBubbleStyleDark = (
         paddingTop: spacing.padding.p3,
         paddingHorizontal: spacing.padding.p2,
         borderRadius: spacing.radius.r3,
-        height: 74,
         width: 240,
       },
       titleStyle: {

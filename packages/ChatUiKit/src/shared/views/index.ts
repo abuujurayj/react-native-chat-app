@@ -81,9 +81,14 @@ import {
 import { CometChatAvatar } from "./CometChatAvatar";
 import { BadgeStyle, CometChatBadge } from "./CometChatBadge";
 import { MenuItemInterface } from "./CometChatTooltipMenu";
+import {
+  CometChatReportDialog,
+  CometChatReportDialogInterface,
+} from "./CometChatReportDialog";
 
 export type {
   CometChatConfirmDialogInterface,
+  CometChatReportDialogInterface,
   CometChatDateInterface,
   CometChatFileBubbleInterface,
   CometChatImageBubbleInterface,
@@ -110,6 +115,7 @@ export {
   CometChatBadge,
   CometChatBottomSheet,
   CometChatConfirmDialog,
+  CometChatReportDialog,
   CometChatDate,
   CometChatEmojiKeyboard,
   CometChatFileBubble,

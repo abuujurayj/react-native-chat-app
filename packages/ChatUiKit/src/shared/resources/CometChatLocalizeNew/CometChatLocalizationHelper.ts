@@ -68,9 +68,9 @@ export const translate = (
     }
 
 
-    const defaultTranslation = defaultTranslations[language as SupportedLanguage];
+    const defaultTranslation: { [key: string]: string } = defaultTranslations[language as SupportedLanguage] as { [key: string]: string };
     if (defaultTranslation && key in defaultTranslation) {
-        return defaultTranslation[key as TranslationKey];
+        return defaultTranslation[key];
     }
 
 
@@ -80,9 +80,9 @@ export const translate = (
 
 
     if (language !== fallbackLanguage) {
-        const fallbackTranslation = defaultTranslations[fallbackLanguage as SupportedLanguage];
+        const fallbackTranslation: { [key: string]: string } = defaultTranslations[fallbackLanguage as SupportedLanguage] as { [key: string]: string };
         if (fallbackTranslation && key in fallbackTranslation) {
-            return fallbackTranslation[key as TranslationKey];
+            return fallbackTranslation[key];
         }
     }
 

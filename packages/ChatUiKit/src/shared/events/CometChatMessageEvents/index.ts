@@ -26,6 +26,7 @@ export class CometChatMessageEvents {
   static onMessageReaction = Symbol("onMessageReaction");
   static onViewInformation = Symbol("onViewInformation");
   static onMessageError = Symbol("onMessageError");
+  static ccReplyToMessage = Symbol("ccReplyToMessage");
 
   static onMessageReactionError = Symbol("onMessageReactionError");
   static previewMessageForEdit = Symbol("previewMessageForEdit");
@@ -34,9 +35,9 @@ export class CometChatMessageEvents {
   static onAIAssistantMessageReceived = Symbol("onAIAssistantMessageReceived");
   static onAIToolResultReceived = Symbol("onAIToolResultReceived");
   static onAIToolArgumentsReceived = Symbol("onAIToolArgumentsReceived");
-  static _triggers = {};
+  static _triggers: { [event: string]: { [id: string]: (params: any) => void } } = {};
 
-  static emit = (...args) => {
+  static emit = (...args: any[]) => {
     let event, params;
     if (args.length === 2) {
       [event, params] = args;
@@ -47,9 +48,9 @@ export class CometChatMessageEvents {
       throw new Error("Invalid arguments");
     }
 
-    if (CometChatMessageEvents._triggers[event]) {
-      for (const i in CometChatMessageEvents._triggers[event]) {
-        CometChatMessageEvents._triggers[event][i](params);
+    if (CometChatMessageEvents._triggers[event as string]) {
+      for (const i in CometChatMessageEvents._triggers[event as string]) {
+        CometChatMessageEvents._triggers[event as string][i](params);
       }
     }
   };
@@ -58,7 +59,7 @@ export class CometChatMessageEvents {
    * @param {string} event
    * @param {string} id
    */
-  static removeListener = (...args) => {
+  static removeListener = (...args: any[]) => {
     let event, id;
     if (args.length === 2) {
       [event, id] = args;
@@ -79,7 +80,7 @@ export class CometChatMessageEvents {
    * @param {string} id
    * @param {func} callback
    */
-  static addListener = (...args) => {
+  static addListener = (...args: any[]) => {
     let event, id, callback;
     if (args.length === 3) {
       [event, id, callback] = args;

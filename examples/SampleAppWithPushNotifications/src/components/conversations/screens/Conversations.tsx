@@ -188,6 +188,10 @@ const Conversations: React.FC<{}> = ({}) => {
           {..._conversationsConfig}
           AppBarOptions={NewConversation}
           selectionMode="none"
+          showSearchBar={true}
+          onSearchBarClicked={() => {
+            navigate(SCREEN_CONSTANTS.SEARCH_MESSAGES);
+          }}
           usersStatusVisibility={userAndFriendsPresence}
           receiptsVisibility={messageDeliveryAndReadReceipts}
         />

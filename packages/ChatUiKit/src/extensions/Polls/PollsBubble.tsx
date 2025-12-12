@@ -162,14 +162,16 @@ export const PollsBubble = (props: PollsBubbleInterface) => {
 
   useEffect(() => {
     let allOptions: Array<{ id: any; value: any }> = [];
-    for (const [key, value] of Object.entries(options!)) {
-      allOptions.push({ id: key, value });
+    if (options) {
+      for (const [key, value] of Object.entries(options)) {
+        allOptions.push({ id: key, value });
+      }
     }
     setOptionsList(allOptions);
     if (metadata) {
       setOptionsMetaData(metadata);
     }
-    const optionsFromResult = metadata!.results.options;
+    const optionsFromResult = metadata?.results?.options ?? {};
 
     for (const key in optionsFromResult) {
       if (
@@ -177,7 +179,7 @@ export const PollsBubble = (props: PollsBubbleInterface) => {
         optionsFromResult[key].voters &&
         Object.keys(optionsFromResult[key].voters).length
       ) {
-        if (optionsFromResult[key].voters[loggedInUser!.getUid()]) {
+        if (loggedInUser && optionsFromResult[key].voters[loggedInUser.getUid()]) {
           setSelectedVote(key);
         }
       }
@@ -230,6 +232,8 @@ export const PollsBubble = (props: PollsBubbleInterface) => {
     if (thirdavatarStyle && thirdavatarStyle.containerStyle) {
       thirdavatarStyle.containerStyle.marginLeft = -10;
     }
+    // Ensure value is a string for rendering
+    let optionText = typeof value === 'string' ? value : (value && value.value ? value.value : String(value));
     return (
       <Pressable
         style={{ flexDirection: "row", marginBottom: 15, gap: 10 }}
@@ -262,10 +266,10 @@ export const PollsBubble = (props: PollsBubbleInterface) => {
 
         <View style={{ gap: 5, width: "100%", flex: 1 }}>
           <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between" }}>
-            <Text style={optionTextStyle}>{value}</Text>
+            <Text style={optionTextStyle}>{optionText}</Text>
             <View style={{ flexDirection: "row", gap: theme.spacing.spacing.s1 }}>
               <View style={{ left: 0, flexDirection: "row" }}>
-                {optionsMetaData.results.options[id].voters &&
+                {optionsMetaData?.results?.options?.[id]?.voters &&
                   Object.keys(optionsMetaData.results.options[id].voters)
                     .slice(0, 3)
                     .map((key, index) => {
@@ -288,7 +292,7 @@ export const PollsBubble = (props: PollsBubbleInterface) => {
               </View>
 
               <Text style={voteCountTextStyle}>
-                {optionsMetaData.results.options[id].count}
+                {optionsMetaData?.results?.options?.[id]?.count ?? 0}
               </Text>
             </View>
           </View>
@@ -299,7 +303,7 @@ export const PollsBubble = (props: PollsBubbleInterface) => {
                 {
                   backgroundColor: activeProgressBarTint,
                   width: getSliderWidth(
-                    optionsMetaData.results.options[id].voters
+                    optionsMetaData?.results?.options?.[id]?.voters
                       ? Object.keys(optionsMetaData.results.options[id].voters).length
                       : 0
                   ),
@@ -320,7 +324,7 @@ export const PollsBubble = (props: PollsBubbleInterface) => {
    */
   const getSliderWidth = useCallback(
     (voters: number) => {
-      const totalVotes = (metadata as any).results!.total;
+      const totalVotes = metadata?.results?.total ?? 0;
       return totalVotes ? (((voters / totalVotes) * 100 + "%") as DimensionValue) : "0%";
     },
     [metadata]

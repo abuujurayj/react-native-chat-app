@@ -56,6 +56,7 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
     selectedItemTextStyle: TextStyle;
   }>();
   const BackIcon = ICONS['arrow-back'];
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('CALL RECEIVER: ', call);
@@ -181,6 +182,28 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
     [call],
   );
 
+  /** Busy call toast: only when attempting a call and target is busy */
+  useEffect(() => {
+    const callListener = new CometChat.CallListener({
+      onOutgoingCallRejected: (rejectedCall: any) => {
+        try {
+          const status = rejectedCall?.getStatus?.() || rejectedCall?.status;
+          if (
+            status &&
+            status.toLowerCase() === CometChat.CALL_STATUS.BUSY.toLowerCase()
+          ) {
+            setToastMessage(t('CALL_BUSY'));
+            setTimeout(() => setToastMessage(null), 3000);
+          }
+        } catch {}
+      },
+    });
+    CometChat.addCallListener(listenerId, callListener);
+    return () => {
+      CometChat.removeCallListener(listenerId);
+    };
+  }, [t]);
+
   const _style = useMemo(() => {
     return {
       headerContainerStyle: {
@@ -265,6 +288,35 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
       ),
     [callTypeAndStatus, theme],
   );
+
+  /** Local toast view component (shows only when toastMessage set; auto hides after 3s from effect) */
+  const ToastView = () => {
+    if (!toastMessage) return null;
+    return (
+      <View
+        style={{
+          alignSelf: 'center',
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderRadius: 24,
+          backgroundColor: 'rgba(255,59,48,0.10)',
+          paddingVertical: theme.spacing.padding.p1,
+          paddingHorizontal: theme.spacing.padding.p2,
+          marginBottom: theme.spacing.margin.m3,
+          maxWidth: '80%',
+        }}>
+        <Icon name="info" color={theme.color.error} size={18} />
+        <Text
+          style={[
+            theme.typography.caption1.bold,
+            {color: theme.color.error, marginLeft: theme.spacing.margin.m1},
+          ]}
+          accessibilityRole="alert">
+          {toastMessage}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{flex: 1, backgroundColor: theme.color.background1}}>
@@ -390,6 +442,9 @@ export const CallDetails: React.FC<Props> = ({route, navigation}) => {
               )}
           </View>
         )}
+      </View>
+      <View style={{width: '100%', paddingBottom: theme.spacing.padding.p3}}>
+        <ToastView />
       </View>
     </View>
   );

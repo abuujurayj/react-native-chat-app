@@ -5,7 +5,7 @@ export const AppConstants = {
   appId: '',
   region: '',
   subscriptionType: 'ALL_USERS',
-  versionNumber: 'V5.2.3',
+  versionNumber: 'V5.2.5',
   webClientId:
     '',
   iosClientId:
@@ -25,6 +25,7 @@ export const SCREEN_CONSTANTS = {
   CONVERSATION: 'Conversation',
   CREATE_CONVERSATION: 'CreateConversation',
   MESSAGES: 'Messages',
+  SEARCH_MESSAGES: 'SearchMessages',
   THREAD_VIEW: 'ThreadView',
   USER_INFO: 'UserInfo',
   GROUP_INFO: 'GroupInfo',

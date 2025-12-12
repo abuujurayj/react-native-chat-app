@@ -126,6 +126,14 @@ interface HeaderProps {
    * If true, hides the entire header.
    */
   hideHeader?: boolean;
+  /**
+   * Custom search view component to display instead of the default search input.
+   */
+  SearchView?: () => JSX.Element;
+  /**
+   * Callback triggered when the search bar is clicked or focused.
+   */
+  onSearchBarClicked?: () => void;
 }
 
 /**
@@ -161,13 +169,16 @@ export default function Header({
   searchStyle,
   hideHeader = false,
   backButtonIconContainerStyle = { marginLeft: 10 },
+  SearchView,
+  onSearchBarClicked,
 }: HeaderProps) {
   const theme = useTheme();
   const inputRef = useRef<TextInput>(null);
   return (
-    <View style={[styles.listBaseHeaderStyle, containerStyle]}>
+    <View style={[styles.listBaseHeaderStyle, { width: '100%' }]}>
+      {/* Header section with border */}
       {!hideHeader && (
-        <View style={styles.upperContainer}>
+        <View style={[styles.upperContainer, containerStyle]}>
           <View style={{ flexDirection: "row", ...titleSeparatorStyle }}>
             {/* Render back button and title if not in selection mode */}
             {!shouldSelect && (!hideBackButton || title.length !== 0) && (
@@ -250,54 +261,73 @@ export default function Header({
         </View>
       )}
 
-      {/* Render search box */}
+      {/* Render search box without border */}
       {!hideSearch && (
-        <View
-          style={[
-            {
-              backgroundColor: theme.color.background3,
-              borderRadius: theme.spacing.radius.max,
-              paddingHorizontal: theme.spacing.spacing.s3,
-              marginVertical: theme.spacing.spacing.s2,
-              gap: theme.spacing.spacing.s1,
-            },
-            searchStyle?.containerStyle,
-          ]}
-        >
-          <Icon
-            name='search-fill'
-            size={searchStyle?.iconStyle?.width || 24}
-            height={searchStyle?.iconStyle?.height || 24}
-            width={searchStyle?.iconStyle?.width || 24}
-            color={searchStyle?.iconStyle?.tintColor || theme.color.iconSecondary}
-            icon={searchStyle?.icon}
-            imageStyle={searchStyle?.iconStyle}
-          />
-          <TextInput
-            ref={inputRef}
-            placeholder={searchPlaceholderText}
-            placeholderTextColor={
-              searchStyle?.placehodlerTextStyle?.color || theme.color.textTertiary
-            }
-            onChangeText={searchHandler}
-            returnKeyType='search'
-            value={searchInput}
-            onSubmitEditing={() => {
-              onSubmitEditing?.();
-              // optional defensive focus if a re-render briefly steals focus
-              inputRef.current?.focus();
-            }}
-            submitBehavior='submit'
-            numberOfLines={1}
-            style={[
-              {
-                flex: 1,
-                color: theme.color.textPrimary,
-                ...theme.typography.heading4.regular,
-              },
-              searchStyle?.textStyle,
-            ]}
-          />
+        <View style={{
+          alignSelf: 'stretch',
+          width: '100%',
+          paddingVertical: theme.spacing.spacing.s3
+        }}>
+          {SearchView ? (
+            <View >
+              <SearchView />
+            </View>
+          ) : (
+            <View
+              style={[
+                {
+                  backgroundColor: theme.color.background3,
+                  borderRadius: theme.spacing.radius.max,
+                  paddingHorizontal: theme.spacing.spacing.s3,
+                  paddingVertical: theme.spacing.spacing.s3,
+                  marginTop: theme.spacing.spacing.s2,
+                  flexDirection: 'row' as const,
+                  alignItems: 'center' as const,
+                  gap: theme.spacing.spacing.s2,
+                  height: 48,
+                  alignSelf: 'stretch',
+                },
+                searchStyle?.containerStyle,
+              ]}
+            >
+              <Icon
+                name='search-fill'
+                size={searchStyle?.iconStyle?.width || 24}
+                height={searchStyle?.iconStyle?.height || 24}
+                width={searchStyle?.iconStyle?.width || 24}
+                color={searchStyle?.iconStyle?.tintColor || theme.color.iconSecondary}
+                icon={searchStyle?.icon}
+                imageStyle={searchStyle?.iconStyle}
+              />
+              <TextInput
+                ref={inputRef}
+                placeholder={searchPlaceholderText}
+                placeholderTextColor={
+                  searchStyle?.placehodlerTextStyle?.color || theme.color.textTertiary
+                }
+                onChangeText={searchHandler}
+                onFocus={onSearchBarClicked}
+                returnKeyType='search'
+                value={searchInput}
+                onSubmitEditing={() => {
+                  onSubmitEditing?.();
+                  inputRef.current?.focus();
+                }}
+                submitBehavior='submit'
+                numberOfLines={1}
+                style={[
+                  {
+                    flex: 1,
+                    color: theme.color.textPrimary,
+                    fontSize: 16,
+                    paddingVertical: 4, 
+                    ...theme.typography.heading4.regular,
+                  },
+                  searchStyle?.textStyle,
+                ]}
+              />
+            </View>
+          )}
         </View>
       )}
     </View>

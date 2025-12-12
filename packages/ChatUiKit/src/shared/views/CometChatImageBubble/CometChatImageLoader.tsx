@@ -146,6 +146,7 @@ export const CometChatImageLoader = (props: CometChatImageLoaderPropType) => {
           alignItems: "center",
           height: style?.height,
           width: style?.width,
+          minWidth: style?.minWidth,
         }}
       >
         {/* Render the image. It is initially hidden until loaded. */}

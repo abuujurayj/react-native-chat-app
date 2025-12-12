@@ -56,6 +56,7 @@ export const CometChatThemeProvider = ({
 
   const lightTheme = useMemo(() => {
     if (light) {
+      const isColorAvailable = light.color !== undefined;
       const updatedColors = light.color
         ? CometChatThemeHelper.updateColors(
             light.color as Partial<CometChatTheme["color"]>,
@@ -65,21 +66,27 @@ export const CometChatThemeProvider = ({
       const updatedSpacing = light.spacing
         ? CometChatThemeHelper.updateSpacing(light.spacing)
         : {} as any;
-      light.color = updatedColors;
-      light.spacing = updatedSpacing;
-      const mergedTheme = deepMerge(parentProviderTheme.light, light);
-      const defaultLightThemeWithOverridesApplied = lightThemeMaker(
+
+      // Create a new object cause react native will know the theme has changed
+      const updatedLight = {
+        ...light,
+        color: updatedColors,
+        spacing: updatedSpacing
+      };
+      const mergedTheme = deepMerge(parentProviderTheme.light, updatedLight);
+      const defaultLightThemeWithOverridesApplied = isColorAvailable ? lightThemeMaker(
         mergedTheme.spacing as CometChatTheme["spacing"],
         mergedTheme.color as CometChatTheme["color"],
         mergedTheme.typography as CometChatTheme["typography"]
-      );
-      return deepMerge(defaultLightThemeWithOverridesApplied, mergedTheme);
+      ) : mergedTheme;
+      return deepMerge(defaultLightThemeWithOverridesApplied, updatedLight);
     }
     return parentProviderTheme.light;
   }, [light, parentProviderTheme.light]);
 
   const darkTheme = useMemo(() => {
     if (dark) {
+      const isColorAvailable = dark.color !== undefined;
       const updatedColors = dark.color
         ? CometChatThemeHelper.updateColors(
             dark.color as Partial<CometChatTheme["color"]>,
@@ -89,15 +96,19 @@ export const CometChatThemeProvider = ({
       const updatedSpacing = dark.spacing
         ? CometChatThemeHelper.updateSpacing(dark.spacing)
         : {} as any;
-      dark.color = updatedColors;
-      dark.spacing = updatedSpacing;
-      const mergedTheme = deepMerge(parentProviderTheme.dark, dark);
-      const defaultDarkThemeWithOverridesApplied = darkThemeMaker(
+      // Create a new object cause react native will know the theme has changed
+      const updatedDark = {
+        ...dark,
+        color: updatedColors,
+        spacing: updatedSpacing
+      };
+      const mergedTheme = deepMerge(parentProviderTheme.dark, updatedDark);
+      const defaultDarkThemeWithOverridesApplied = isColorAvailable ? darkThemeMaker(
         mergedTheme.spacing as CometChatTheme["spacing"],
         mergedTheme.color as CometChatTheme["color"],
         mergedTheme.typography as CometChatTheme["typography"]
-      );
-      return deepMerge(defaultDarkThemeWithOverridesApplied, mergedTheme);
+      ) : mergedTheme;
+      return deepMerge(defaultDarkThemeWithOverridesApplied, updatedDark);
     }
     return parentProviderTheme.dark;
   }, [dark, parentProviderTheme.dark]);

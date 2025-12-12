@@ -51,7 +51,9 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     group, 
     fromMention = false, 
     fromMessagePrivately = false,
-    parentMessageId: routeParentMessageId 
+    parentMessageId: routeParentMessageId,
+    messageId,
+    searchKeyword
   } = route.params;
   const typingIndicator = useConfig(
     (state) => state.settings.chatFeatures.coreMessagingExperience.typingIndicator
@@ -128,7 +130,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
   const groupVoiceConference = useConfig(
     (state) => state.settings.callFeatures.voiceAndVideoCalling.groupVoiceConference
   );
-  
+
   const loggedInUser = useRef<CometChat.User>(
     CometChatUIKit.loggedInUser!,
   ).current;
@@ -141,18 +143,17 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
   // Stable listener id for the lifetime of this component (prevents multiple listeners)
   const openmessageListenerIdRef = useRef('message_' + new Date().getTime());
   const lastOpenChatRef = useRef<{ uid: string; time: number } | null>(null);
-
   const [localUser, setLocalUser] = useState<CometChat.User | undefined>(user);
   const [messageListKey, setMessageListKey] = useState(0);
   const [messageComposerKey, setMessageComposerKey] = useState(0);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
-
+  
   // Manage parentMessageId in parent component
   const [parentMessageId, setParentMessageId] = useState<string | undefined>(routeParentMessageId);
-
+  
   const { setActiveChat } = useActiveChat();
   const insets = useSafeAreaInsets();
-
+  
   // Add ref to track streaming state
   const messageComposerRef = useRef<any>(null);
 
@@ -232,7 +233,7 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     // screen remains mounted underneath the user chat.
     const currentListenerId = openmessageListenerIdRef.current;
     if (group) {
-     CometChatUIEventHandler.addUIListener(currentListenerId, {
+      CometChatUIEventHandler.addUIListener(currentListenerId, {
         openChat: ({ user: chatUser }) => {
           if (!chatUser) return;
 
@@ -379,63 +380,53 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     }
   };
 
-  // Define app bar options
-  const getTrailingView = ({
-    user: currentUser,
-    group: currentGroup,
-  }: {
-    user?: CometChat.User;
-    group?: CometChat.Group;
-  }) => {
-    if (currentGroup) {
-      if (!loggedInUser) {
-        return <></>;
+  // Options for the header menu
+  // Options for the header menu
+  const options = useMemo(() => {
+    return () => {
+      // For agentic users, don't show any options menu
+      if (agentic) {
+        return [];
       }
-      return (
-        <View style={styles.appBarContainer}>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('GroupInfo', {
-                group: currentGroup,
-              });
-            }}
-          >
-            <Icon
-              icon={
-                <Info color={theme.color.iconPrimary} height={24} width={24} />
-              }
-            />
-          </TouchableOpacity>
-        </View>
-      );
-    }
 
-    if (currentUser && !currentUser.getBlockedByMe()) {
-      return (
-        <View style={styles.appBarContainer}>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('UserInfo', {
-                user: currentUser,
-              });
-            }}
-          >
-            <Icon
-              icon={
-                <InfoIcon
-                  color={theme.color.iconPrimary}
-                  height={24}
-                  width={24}
-                />
-              }
-            />
-          </TouchableOpacity>
-        </View>
-      );
-    } else {
-      return <></>;
-    }
-  };
+      const menuOptions = [];
+
+      // Add info option first
+      if (group && loggedInUser) {
+        menuOptions.push({
+          text: 'Group Info',
+          onPress: () => {
+            navigation.navigate('GroupInfo', { group });
+          },
+          icon: <Icon name="info" width={20} height={20} color={theme.color.iconSecondary} />,
+        });
+      } else if (localUser && !localUser.getBlockedByMe()) {
+        menuOptions.push({
+          text: 'User Info',
+          onPress: () => {
+            navigation.navigate('UserInfo', { user: localUser });
+          },
+          icon: <Icon name="info" width={20} height={20} color={theme.color.iconSecondary} />,
+        });
+      }
+
+       // Then add search option
+      menuOptions.push({
+        text: 'Search',
+        onPress: () => {
+          if (group) {
+            navigation.navigate('SearchMessages', { group });
+          } else if (localUser) {
+            navigation.navigate('SearchMessages', { user: localUser });
+          }
+        },
+        icon: <Icon name="search" width={20} height={20} color={theme.color.iconSecondary} />,
+      });
+
+      return menuOptions;
+    };
+  }, [navigation, group, localUser, theme, agentic, loggedInUser]);
+
 
   const getMentionsTap = useCallback(() => {
     const mentionsFormatter =
@@ -509,14 +500,14 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
     return {
       light: outgoingOverride,
       dark: outgoingOverride,
-      mode: 'auto' as 'auto',
+      mode: "auto" as "auto",
     };
   }, [agentic, theme]);
 
   return (
     <CometChatThemeProvider theme={providerTheme}>
       <View style={styles.flexOne}>
-        <CometChatMessageHeader
+      <CometChatMessageHeader
         user={localUser}
         group={group}
         onBack={() => {
@@ -526,7 +517,6 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
             navigation.popToTop();
           }
         }}
-        TrailingView={getTrailingView}
         showBackButton={true}
         usersStatusVisibility={userAndFriendsPresence}
         hideVoiceCallButton={
@@ -539,8 +529,9 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
         hideNewChatButton={false}
         onChatHistoryButtonClick={handleChatHistoryClick}
         onNewChatButtonClick={handleNewChatClick}
+        options={options}
       />
-        <View style={styles.flexOne}>
+      <View style={styles.flexOne}>
         <CometChatMessageList
           key={messageListKey}
           textFormatters={[getMentionsTap()]}
@@ -569,11 +560,13 @@ const Messages: React.FC<Props> = ({ route, navigation }) => {
             getCurrentWeather: (args: any) => console.log('Weather args', args),
           })}
           streamingSpeed={10}
+          goToMessageId={messageId}
+          searchKeyword={searchKeyword}
         />
       </View>
 
-        {/* Chat History Drawer */}
-        {agentic && (
+      {/* Chat History Drawer */}
+      {agentic && (
         <Modal visible={showHistoryModal} transparent animationType="none" onRequestClose={() => setShowHistoryModal(false)}>
           <View style={drawerStyles.backdrop}>
             <Animated.View
@@ -689,10 +682,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     alignContent: 'center',
   },
-  appBarContainer: {
-    flexDirection: 'row',
-    marginLeft: 16,
-  },
+
 });
 
 const drawerStyles = StyleSheet.create({

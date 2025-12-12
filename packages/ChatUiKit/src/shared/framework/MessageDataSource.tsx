@@ -32,6 +32,7 @@ import { CometChatAudioBubble } from "../views/CometChatAudioBubble";
 import { CometChatDeletedBubble } from "../views/CometChatDeletedBubble";
 import { CometChatFileBubble } from "../views/CometChatFileBubble";
 import { CometChatImageBubble } from "../views/CometChatImageBubble";
+import { CometChatMessagePreview } from "../utils/CometChatMessagePreview";
 import { CometChatTextBubble } from "../views/CometChatTextBubble";
 import { CometChatVideoBubble } from "../views/CometChatVideoBubble";
 import CometChatAIAssistantMessageBubble from '../views/CometChatAIAssistantMessageBubble/CometChatAIAssistantMessageBubble';
@@ -39,9 +40,10 @@ import CometChatStreamMessageBubble from '../views/CometChatStreamMessageBubble/
 import { ChatConfigurator } from "./ChatConfigurator";
 import { DataSource } from "./DataSource";
 import { CommonUtils } from "../utils/CommonUtils";
-import { DimensionValue, TouchableOpacity, ViewStyle } from "react-native";
+import { DimensionValue, TouchableOpacity, ViewStyle, View, Text } from "react-native";
 import Clipboard from "@react-native-clipboard/clipboard";
 import { getCometChatTranslation } from "../resources/CometChatLocalizeNew/LocalizationManager";
+import { CometChatMessageEvents } from "../events/CometChatMessageEvents";
 
 const t = getCometChatTranslation();
 
@@ -233,6 +235,27 @@ export class MessageDataSource implements DataSource {
       ),
     };
   }
+
+  getReportOption(theme: CometChatTheme): CometChatMessageOption {
+    return {
+      id: MessageOptionConstants.reportMessage,
+      title: t("Message_List_Option_Flag_Message"),
+      icon: (
+        <Icon
+          name='info'
+          color={
+            theme.messageListStyles.messageOptionsStyles?.optionsItemStyle?.iconStyle?.tintColor
+          }
+          height={theme.messageListStyles.messageOptionsStyles?.optionsItemStyle?.iconStyle?.height}
+          width={theme.messageListStyles.messageOptionsStyles?.optionsItemStyle?.iconStyle?.width}
+          containerStyle={
+            theme.messageListStyles.messageOptionsStyles?.optionsItemStyle?.iconContainerStyle
+          }
+        ></Icon>
+      ),
+    };
+  }
+
   getShareOption(theme: CometChatTheme): CometChatMessageOption {
     return {
       id: MessageOptionConstants.shareMessage,
@@ -329,6 +352,17 @@ export class MessageDataSource implements DataSource {
     let messageOptionList: CometChatMessageOption[] = [];
 
     if (isDeletedMessage(messageObject)) return messageOptionList;
+    if (
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.replyMessage,
+        group,
+        additionalParams
+      )
+    ) {
+      messageOptionList.push(this.getReplyOption(theme));
+    }
 
     if (
       this.validateOption(
@@ -400,6 +434,18 @@ export class MessageDataSource implements DataSource {
       )
     ) {
       messageOptionList.push(this.getDeleteOption(theme));
+    }
+
+     if (
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.reportMessage,
+        group,
+        additionalParams
+      )
+    ) {
+      messageOptionList.push(this.getReportOption(theme));
     }
 
     if (
@@ -590,6 +636,13 @@ export class MessageDataSource implements DataSource {
     additionalParams?: AdditionalParams
   ): boolean {
     if (
+      MessageOptionConstants.replyMessage === optionId &&
+      !additionalParams?.hideReplyOption
+    ) {
+      return true;
+    }
+
+    if (
       MessageOptionConstants.replyInThread === optionId &&
       (!messageObject.getParentMessageId() || messageObject.getParentMessageId() === 0) &&
       !additionalParams?.hideReplyInThreadOption
@@ -655,6 +708,14 @@ export class MessageDataSource implements DataSource {
       return true;
     }
 
+    if (
+      MessageOptionConstants.reportMessage === optionId &&
+      !isSentByMe &&
+      !additionalParams?.hideReportMessageOption
+    ) {
+      return true;
+    }
+
     return false;
   }
 
@@ -668,6 +729,17 @@ export class MessageDataSource implements DataSource {
     let messageOptionList: CometChatMessageOption[] = [];
 
     if (isDeletedMessage(messageObject)) return messageOptionList;
+    if (
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.replyMessage,
+        group,
+        additionalParams
+      )
+    ) {
+      messageOptionList.push(this.getReplyOption(theme));
+    }
 
     if (
       this.validateOption(
@@ -715,6 +787,18 @@ export class MessageDataSource implements DataSource {
       )
     ) {
       messageOptionList.push(this.getDeleteOption(theme));
+    }
+
+    if (
+      this.validateOption(
+        loggedInUser,
+        messageObject,
+        MessageOptionConstants.reportMessage,
+        group,
+        additionalParams
+      )
+    ) {
+      messageOptionList.push(this.getReportOption(theme));
     }
 
     if (
@@ -867,6 +951,75 @@ export class MessageDataSource implements DataSource {
     alignment: MessageBubbleAlignmentType
   ): JSX.Element | null {
     return null;
+  }
+
+  getReplyView(
+    message: CometChat.BaseMessage,
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): JSX.Element | null {
+    const hasQuotedMessage = message.getQuotedMessage();
+    
+    if (!hasQuotedMessage || 
+        message instanceof CometChat.Action || 
+        message.getDeletedAt()) {
+      return null;
+    }
+
+    // Check if the original message is outgoing to determine styling
+    const loggedInUser = CometChatUIKit.loggedInUser;
+    const isOutgoingMessage = loggedInUser && message.getSender().getUid() === loggedInUser.getUid();
+    
+    const isQuotedMessageDeleted = hasQuotedMessage.getDeletedBy() != null;
+    
+    // Create custom theme with overridden colors for reply view
+    const replyTheme = {
+      ...theme,
+      color: {
+        ...theme.color,
+        textPrimary: isOutgoingMessage ? theme.color.staticWhite : theme.color.textHighlight,
+        textSecondary: isOutgoingMessage ? theme.color.staticWhite : theme.color.textSecondary,
+      }
+    };
+
+    // Handle click to navigate to quoted message
+    const handleReplyClick = () => {
+      if (!isQuotedMessageDeleted) {
+        const messageId = String(hasQuotedMessage.getId());
+        if (additionalParams?.onReplyClick) {
+          additionalParams.onReplyClick(messageId);
+        }
+      }
+    };
+
+    const previewComponent = (
+      <CometChatMessagePreview
+        message={hasQuotedMessage}
+        theme={replyTheme}
+        style={{
+          backgroundColor: isOutgoingMessage ? theme.color.extendedPrimary800 : theme.color.neutral400,
+          borderRadius: 8,
+          borderWidth: 0,
+          borderLeftWidth: 3,
+          borderLeftColor: isOutgoingMessage ? theme.color.staticWhite : theme.color.borderHighlight,
+          margin:2,
+          width:"98%"
+        }}
+        showCloseIcon={false}
+        isDeletedMessage={isQuotedMessageDeleted}
+      />
+    );
+
+    // Wrap with TouchableOpacity for click handling
+    if (additionalParams?.onReplyClick && !isQuotedMessageDeleted) {
+      return (
+        <TouchableOpacity onPress={handleReplyClick} activeOpacity={0.7}>
+          {previewComponent}
+        </TouchableOpacity>
+      );
+    }
+
+    return previewComponent;
   }
 
   getDeleteMessageBubble(message: CometChat.BaseMessage, theme: CometChatTheme): JSX.Element {
@@ -1192,6 +1345,10 @@ export class MessageDataSource implements DataSource {
           group,
           additionalParams
         ),
+      ReplyView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
+        const replyView = ChatConfigurator.dataSource.getReplyView?.(message, theme, additionalParams) || null;
+        return replyView;
+      },
       BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
         return ChatConfigurator.dataSource.getBottomView(message, alignment);
       },
@@ -1219,6 +1376,9 @@ export class MessageDataSource implements DataSource {
           group,
           additionalParams
         ),
+      ReplyView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
+        return ChatConfigurator.dataSource.getReplyView?.(message, theme, additionalParams) || null;
+      },
       BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
         return ChatConfigurator.dataSource.getBottomView(message, alignment);
       },
@@ -1245,6 +1405,9 @@ export class MessageDataSource implements DataSource {
           group,
           additionalParams
         ),
+      ReplyView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
+        return ChatConfigurator.dataSource.getReplyView?.(message, theme, additionalParams) || null;
+      },
       BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
         return ChatConfigurator.dataSource.getBottomView(message, alignment);
       },
@@ -1271,6 +1434,9 @@ export class MessageDataSource implements DataSource {
           group,
           additionalParams
         ),
+      ReplyView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
+        return ChatConfigurator.dataSource.getReplyView?.(message, theme, additionalParams) || null;
+      },
       BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
         return ChatConfigurator.dataSource.getBottomView(message, alignment);
       },
@@ -1297,6 +1463,9 @@ export class MessageDataSource implements DataSource {
           group,
           additionalParams
         ),
+      ReplyView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
+        return ChatConfigurator.dataSource.getReplyView?.(message, theme, additionalParams) || null;
+      },
       BottomView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
         return ChatConfigurator.dataSource.getBottomView(message, alignment);
       },
@@ -1838,6 +2007,18 @@ export class MessageDataSource implements DataSource {
 
   getUrlsFormatter(loggedInUser?: CometChat.User): CometChatUrlsFormatter {
     return new CometChatUrlsFormatter(loggedInUser);
+  }
+
+  getMessagePreviewSubtitle(message: CometChat.BaseMessage): string {
+    if (message instanceof CometChat.TextMessage) {
+      return message.getText() || "";
+    } else if (message instanceof CometChat.MediaMessage) {
+      const data = message.getData() as any;
+      return data?.name || message.getType() || "";
+    } else if (message.getType() === "groupMember") {
+      return "Group action";
+    }
+    return message.getType() || "";
   }
 }
 //for internal use only

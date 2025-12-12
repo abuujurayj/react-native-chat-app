@@ -310,6 +310,10 @@ import AISendButton from "./components/ai-send-button";
 import AINewChatButton from "./components/ai-new-chat";
 import AIChatHistory from "./components/ai-chat-history";
 import AICopyOption from "./components/ai-copy-option";
+import EmptySearch from "./components/empty-search";
+import Unread from "./components/unread";
+import DocumentIcon from "./components/documents";
+
 import MessageBlocked from "./components/message-blocked";
 
 /**************************************** */
@@ -631,6 +635,9 @@ export const ICONS = {
   "ai-chat-history": AIChatHistory,
   "ai-copy-option": AICopyOption,
 
+  "empty-search": EmptySearch,
+  "unread":Unread,
+  "documents":DocumentIcon,
   "message-blocked": MessageBlocked,
 
 } as const;

@@ -1,5 +1,5 @@
 import React, { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Text, TouchableOpacity, View, Modal, ScrollView } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { ChatConfigurator, getLastSeenTime } from "../shared";
 import { listners } from "./listners";
 import { CometChat } from "@cometchat/chat-sdk-react-native";
@@ -16,6 +16,7 @@ import { CommonUtils } from "../shared/utils/CommonUtils";
 import { DeepPartial } from "../shared/helper/types";
 import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
 import { CometChatAIAssistantChatHistory } from "../CometChatAIAssistantChatHistory/CometChatAIAssistantChatHistory";
+import { CometChatTooltipMenu, MenuItemInterface } from "../shared/views/CometChatTooltipMenu";
 
 export type CometChatMessageHeaderInterface = {
   /**
@@ -118,6 +119,10 @@ export type CometChatMessageHeaderInterface = {
    * Callback when agent chat history button is clicked (only applies to @agentic users)
    */
   onChatHistoryButtonClick?: () => void;
+  /**
+   * A function to **replace** the default menu items entirely.
+   */
+  options?: ({ user, group }: { user?: CometChat.User; group?: CometChat.Group }) => MenuItemInterface[];
 };
 
 interface Translations {
@@ -154,6 +159,7 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
     hideChatHistoryButton = false,
     onNewChatButtonClick,
     onChatHistoryButtonClick,
+    options,
   } = props;
 
   const [groupObj, setGroupObj] = useState(group);
@@ -161,6 +167,8 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   const [userStatus, setUserStatus] = useState(user && user.getStatus ? user.getStatus() : "");
   const [typingText, setTypingText] = useState("");
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ pageX: 0, pageY: 0 });
   const receiverTypeRef = useRef(
     user ? CometChat.RECEIVER_TYPE.USER : group ? CometChat.RECEIVER_TYPE.GROUP : null
   );
@@ -169,6 +177,21 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
   const isAgenticUser = useCallback(() => {
     return userObj?.getRole?.() === '@agentic';
   }, [userObj]);
+
+  // Build menu items following CometChat pattern
+  const buildMenuItems = useCallback((): MenuItemInterface[] => {
+    if (options) return options({ user: userObj, group: groupObj });
+    
+    return [];
+  }, [options, userObj, groupObj, isAgenticUser]);
+
+  // Handle option selection
+  const handleOptionSelect = useCallback((item: MenuItemInterface) => {
+    setShowOptionsMenu(false);
+    if (item.onPress) {
+      item.onPress();
+    }
+  }, []);
 
 
   useEffect(() => {
@@ -473,6 +496,7 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
     );
   };
 
+  const menuItems = buildMenuItems();
 
   return (
     <>
@@ -502,27 +526,69 @@ export const CometChatMessageHeader = (props: CometChatMessageHeaderInterface) =
             alignItems: "center"
           }}>
             <View style={{ marginLeft: "auto", flexDirection: "row" }}>
-              {(() => {
-                const isAgenticUser = userObj?.getRole?.() === '@agentic';
-                
-                if (isAgenticUser && !AuxiliaryButtonView) {
-                  return renderAgentAuxiliaryView();
-                }
-                
-                return AuxiliaryButtonView
-                  ? AuxiliaryButtonView({ user: userObj, group })
-                  : ChatConfigurator.getDataSource().getAuxiliaryHeaderAppbarOptions(userObj, group, {
-                      callButtonStyle: messageHeaderStyles.callButtonStyle,
-                      hideVideoCallButton,
-                      hideVoiceCallButton,
-                    });
-              })()}
-              {TrailingView && !isAgenticUser() && <>{TrailingView({ user: userObj, group })}</>}
+                {(() => {
+                  const isAgenticUser = userObj?.getRole?.() === '@agentic';
+                  
+                  if (isAgenticUser && !AuxiliaryButtonView) {
+                    return renderAgentAuxiliaryView();
+                  }
+                  
+                  return AuxiliaryButtonView
+                    ? AuxiliaryButtonView({ user: userObj, group })
+                    : ChatConfigurator.getDataSource().getAuxiliaryHeaderAppbarOptions(userObj, group, {
+                        callButtonStyle: messageHeaderStyles.callButtonStyle,
+                        hideVideoCallButton,
+                        hideVoiceCallButton,
+                      });
+                })()}
+              {TrailingView && !isAgenticUser() && (
+                <View style={{ marginLeft: theme.spacing.padding.p4 }}>
+                  {TrailingView({ user: userObj, group })}
+                </View>
+              )}
+              {menuItems.length > 0 && (
+                <TouchableOpacity
+                style={{ marginLeft: theme.spacing.padding.p2 }}
+                  onPress={(e) => {
+                    if (e.nativeEvent) {
+                      setTooltipPosition({
+                        pageX: e.nativeEvent.pageX || 200,
+                        pageY: e.nativeEvent.pageY || 100,
+                      });
+                    }
+                    setShowOptionsMenu(true);
+                  }}
+                >
+                  <Icon
+                    name="more-vert"
+                    width={24}
+                    height={24}
+                    color={messageHeaderStyles.backButtonIconStyle.tintColor}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
       )}
 
+      {menuItems.length > 0 && (
+        <CometChatTooltipMenu
+          visible={showOptionsMenu}
+          onClose={() => setShowOptionsMenu(false)}
+          event={{
+            nativeEvent: tooltipPosition,
+          }}
+          menuItems={menuItems.map((item) => ({
+            text: item.text,
+            onPress: () => {
+              handleOptionSelect(item);
+            },
+            icon: item.icon,
+            textStyle: item.textStyle,
+          }))}
+        />
+      )}
     </>
   );
 };

@@ -326,4 +326,16 @@ export class DataSourceDecorator implements DataSource {
   getUrlsFormatter(loggedInUser?: CometChat.User): CometChatUrlsFormatter {
     return this.dataSource.getUrlsFormatter(loggedInUser);
   }
+
+  getMessagePreviewSubtitle(message: CometChat.BaseMessage): string {
+    return this.dataSource.getMessagePreviewSubtitle(message);
+  }
+
+  getReplyView(
+    message: CometChat.BaseMessage,
+    theme: CometChatTheme,
+    additionalParams?: AdditionalParams
+  ): JSX.Element | null {
+    return this.dataSource.getReplyView?.(message, theme, additionalParams) || null;
+  }
 }

@@ -440,7 +440,6 @@ export const ModerationBottomView = ({
         containerStyle={{ paddingLeft: 12, paddingRight: 4, alignSelf: "stretch" }}
       />
       <Text
-        numberOfLines={2}
         style={[
           effective?.textStyle,
         ]}

@@ -19,6 +19,8 @@ import { Icon } from "../../shared/icons/Icon";
 import { useTheme } from "../../theme";
 import { useCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { CometChatMessageEvents } from "../../shared/events/CometChatMessageEvents";
+import { messageStatus } from "../../shared/utils/CometChatMessageHelper";
 
 const { CommonUtil } = NativeModules;
 
@@ -96,6 +98,20 @@ export interface CometChatCreatePollInterface {
    * @description Default number of answer options
    */
   defaultAnswers?: number;
+  /**
+   *
+   *
+   * @type {CometChat.BaseMessage}
+   * @description The message to reply to
+   */
+  replyToMessage?: CometChat.BaseMessage;
+  /**
+   *
+   *
+   * @type {() => void}
+   * @description Function to close the reply preview
+   */
+  closeReplyPreview?: () => void;
 }
 
 /**
@@ -119,6 +135,8 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
     answerHelpText,
     addAnswerText,
     defaultAnswers = 2,
+    replyToMessage,
+    closeReplyPreview,
   } = props;
 
   const [question, setQuestion] = useState("");
@@ -167,16 +185,32 @@ export const CometChatCreatePoll = (props: CometChatCreatePollInterface) => {
     if (!validate()) return;
     setLoader(true);
 
-    CometChat.callExtension("polls", "POST", "v2/create", {
+    const payload: any = {
       question: question,
       options: answers.filter((item) => item),
       receiver: user ? user?.getUid() : group ? group?.getGuid() : "",
       receiverType: user ? "user" : group ? "group" : "",
-    })
+    };
+
+    if (replyToMessage) {
+      payload.quotedMessageId = replyToMessage.getId();
+    }
+
+    if (closeReplyPreview) {
+      closeReplyPreview();
+    }
+
+    CometChat.callExtension("polls", "POST", "v2/create", payload)
       .then((response) => {
         console.log("poll created", response);
         onClose && onClose();
         setLoader(false);
+        if (replyToMessage) {
+          CometChatMessageEvents.emit(CometChatMessageEvents.ccReplyToMessage, {
+            message: replyToMessage,
+            status: messageStatus.success,
+          });
+        }
       })
       .catch((error) => {
         console.log("poll error", error);

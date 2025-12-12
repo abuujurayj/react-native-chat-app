@@ -1,5 +1,8 @@
 import React from "react";
 import { DeepPartial } from "./types";
+import { useCometChatTranslation } from "../resources/CometChatLocalizeNew";
+import { localizedDateHelperInstance } from "./LocalizedDateHelper";
+import dayjs from "dayjs";
 
 export function deepMerge<
   T extends Record<string, any>,
@@ -69,4 +72,73 @@ export function deepClone<T>(obj: T, seen = new WeakMap()): T {
   }
 
   return clone as T;
+}
+
+export function getLastSeenTime(timestamp: number | null | undefined): string {
+  try {
+    if (timestamp === null || timestamp === undefined) {
+      // Move the hook call inside the function, just like in functions.js
+      return "";
+    }
+
+    // Convert to milliseconds if in seconds
+    if (String(timestamp).length === 10) {
+      timestamp *= 1000;
+    }
+
+    // Get user's current language from the translation hook (exactly like functions.js)
+    const { language, t } = useCometChatTranslation();
+
+    // Set the appropriate Day.js locale
+    dayjs.locale(language);
+
+    const now = dayjs();
+    const lastSeenTime = dayjs(timestamp);
+    const diffInMinutes = now.diff(lastSeenTime, "minute");
+    const diffInHours = now.diff(lastSeenTime, "hour");
+    const diffInDays = now.diff(lastSeenTime, "day");
+
+    // For very recent times (< 1 min) → "a few seconds ago"
+    if (diffInMinutes < 1) {
+      const relativeTimeString = lastSeenTime.fromNow();
+      // Day.js will give "a few seconds ago" localized
+      return `${t("LAST_SEEN")} ${relativeTimeString}`;
+    }
+
+    // For times less than 24 hours → relative ("X minutes ago", "X hours ago")
+    if (diffInHours < 24) {
+      const relativeTimeString = lastSeenTime.fromNow();
+      return `${t("LAST_SEEN")} ${relativeTimeString}`;
+    }
+
+    // For yesterday with time
+    if (diffInDays === 1) {
+      const timeFormat = localizedDateHelperInstance.getFormattedDate(
+        timestamp,
+        "timeFormat",
+        language
+      );
+      return `${t("LAST_SEEN")} ${t("YESTERDAY")} ${timeFormat}`;
+    }
+
+    // For dates within the past week → weekday + time
+    if (diffInDays < 7) {
+      const formattedDate = localizedDateHelperInstance.getFormattedDate(
+        timestamp,
+        "dayWeekDayDateTimeFormat",
+        language
+      );
+      return `${t("LAST_SEEN")} ${formattedDate}`;
+    }
+
+    // Older dates → full date + time
+    return `${t("LAST_SEEN")} ${localizedDateHelperInstance.getFormattedDate(
+      timestamp,
+      "dayDateTimeFormat",
+      language
+    )}`;
+  } catch (e) {
+    console.log(e);
+    return "";
+  }
 }

@@ -26,6 +26,7 @@ import {
   CometChatUiKitConstants,
   CometChatUrlsFormatter,
 } from "../shared";
+import { CometChatSearch } from "../CometChatSearch";
 import { SelectionMode } from "../shared/base/Types";
 import {
   ConversationTypeConstants,
@@ -57,6 +58,7 @@ import { CometChatTheme } from "../theme/type";
 import { MenuItemInterface } from "../shared/views/CometChatTooltipMenu/CometChatTooltipMenu";
 import { JSX } from "react";
 import { useCometChatTranslation } from "../shared/resources/CometChatLocalizeNew";
+import { SuggestionItem } from "../shared/views/CometChatSuggestionList/SuggestionItem";
 
 // Unique listener IDs for conversation, user, group, message and call events.
 const conversationListenerId = "chatlist_" + new Date().getTime();
@@ -220,6 +222,27 @@ export interface ConversationInterface {
    * Toggle delete conversation option  visibilty.
    */
   deleteConversationOptionVisibility?: boolean;
+  /**
+   * Toggle search bar visibility in the conversations header.
+   */
+  showSearchBar?: boolean;
+  /**
+   * Callback triggered when the search bar is clicked or focused.
+   */
+  onSearchBarClicked?: () => void;
+  /**
+   * Callback triggered when search text changes.
+   */
+  onSearchTextChanged?: (searchText: string) => void;
+  /**
+   * Current search text value.
+   */
+  searchText?: string;
+  /**
+   * Custom search view component to display in the conversations header.
+   */
+  SearchView?: () => JSX.Element;
+
 }
 
 /**
@@ -262,6 +285,11 @@ export const CometChatConversations = (props: ConversationInterface) => {
     usersStatusVisibility = true,
     groupTypeVisibility = true,
     deleteConversationOptionVisibility = true,
+    showSearchBar = false,
+    onSearchBarClicked,
+    onSearchTextChanged,
+    searchText = "",
+    SearchView,
   } = props;
 
   // Reference for accessing CometChatList methods
@@ -294,8 +322,37 @@ export const CometChatConversations = (props: ConversationInterface) => {
   const theme = useTheme();
   const { t } = useCometChatTranslation()
   const mergedStyles = useMemo(() => {
-    return deepMerge(theme.conversationStyles, style ?? {});
-  }, [theme.conversationStyles, style]);
+    const baseStyles = deepMerge(theme.conversationStyles, style ?? {});
+    // Add search styling for CometChatList component
+    return {
+      ...baseStyles,
+      searchStyle: {
+        textStyle: {
+          color: theme.color.textPrimary,
+          ...theme.typography.heading4.regular,
+        },
+        placehodlerTextStyle: {
+          color: theme.color.textTertiary,
+        },
+        containerStyle: {
+          backgroundColor: theme.color.background3,
+          borderRadius: theme.spacing.radius.max,
+          paddingHorizontal: theme.spacing.spacing.s3,
+          marginVertical: theme.spacing.spacing.s2,
+          flexDirection: 'row' as const,
+          alignItems: 'center' as const,
+          gap: theme.spacing.spacing.s1,
+        },
+        iconStyle: {
+          tintColor: theme.color.iconSecondary,
+          width: 24,
+          height: 24,
+        },
+      },
+    } as any;
+  }, [theme, style]);
+
+
 
   /**
    * ErrorStateView renders a view to show when an error occurs.
@@ -757,28 +814,27 @@ export const CometChatConversations = (props: ConversationInterface) => {
 
     if (lastMessage && typeof messageText === "string") {
       messageText = getFormattedText(lastMessage, messageText?.trim());
-
-      if (
-        lastMessage instanceof CometChat.TextMessage &&
-        lastMessage.getCategory() === "message" &&
-        lastMessage
-          .getText()
-          .substr(0, 50)
-          .match(/http[s]{0,1}:\/\//)
-      ) {
-        messageText = getMessagePreviewInternal("link-fill", t("LINK"), { theme });
-      } else {
-        // Ensure ellipsis is applied if the text is too long.
-        messageText = (
-          <Text
-            style={[mergedStyles.itemStyle.subtitleStyle, { flexShrink: 2 }]}
-            numberOfLines={1}
-            ellipsizeMode='tail'
-          >
-            {messageText}
-          </Text>
-        );
-      }
+    }
+    if (
+      lastMessage instanceof CometChat.TextMessage &&
+      lastMessage.getCategory() === "message" &&
+      (() => {
+        // Guard against undefined text or non-string values.
+        const text = typeof lastMessage.getText === "function" ? lastMessage.getText() : undefined;
+        return typeof text === "string" && text.slice(0, 50).match(/https?:\/\//);
+      })()
+    ) {
+      messageText = getMessagePreviewInternal("link-fill", t("LINK"), { theme });
+    } else if (messageText) {
+      messageText = (
+        <Text
+          style={[mergedStyles.itemStyle.subtitleStyle, { flexShrink: 2 }]}
+          numberOfLines={1}
+          ellipsizeMode='tail'
+        >
+          {messageText}
+        </Text>
+      );
     }
 
     let groupText = "";
@@ -817,25 +873,48 @@ export const CometChatConversations = (props: ConversationInterface) => {
   function getFormattedText(message: CometChat.BaseMessage, subtitle: string) {
     let messageTextTmp: string | JSX.Element = subtitle;
     let allFormatters = [...(textFormatters || [])];
+    // Detect presence of @all alias token in raw string
+    const containsAllAlias =
+      typeof messageTextTmp === "string" && /<@all:(.*?)>/.test(messageTextTmp);
 
-    if (message.getMentionedUsers().length) {
+    if (message.getMentionedUsers().length || containsAllAlias) {
       let mentionsFormatter = ChatConfigurator.getDataSource().getMentionsFormatter();
       mentionsFormatter.setContext("conversation");
       mentionsFormatter.setLoggedInUser(CometChatUIKit.loggedInUser!);
       mentionsFormatter.setMentionsStyle(mergedStyles.mentionsStyles);
       mentionsFormatter.setTargetElement(MentionsTargetElement.conversation);
-
       mentionsFormatter.setMessage(message);
+
+      // Inject alias suggestion item if needed so formatter can render styled @All
+      if (containsAllAlias) {
+        const match = (messageTextTmp as string).match(/<@all:(.*?)>/);
+        const aliasLabel = match && match[1] ? match[1] : "all";
+        let existing = mentionsFormatter.getSuggestionItems();
+        const underlyingText = `<@all:${aliasLabel}>`;
+        const already = existing.find((it: any) => it.underlyingText === underlyingText);
+        if (!already) {
+          const aliasItem = new SuggestionItem({
+            id: aliasLabel,
+            name: aliasLabel,
+            promptText: aliasLabel,
+            trackingCharacter: "@",
+            underlyingText,
+            hideLeadingIcon: true,
+          });
+          mentionsFormatter.setSuggestionItems([...existing, aliasItem]);
+        }
+      }
+
       allFormatters.push(mentionsFormatter);
     }
 
     if (
       message instanceof CometChat.TextMessage &&
       message.getCategory() === "message" &&
-      message
-        .getText()
-        .substr(0, 50)
-        .match(/http[s]{0,1}:\/\//)
+      (() => {
+        const text = typeof message.getText === "function" ? message.getText() : undefined;
+        return typeof text === "string" && text.slice(0, 50).match(/https?:\/\//);
+      })()
     ) {
       // For link messages, simply return the text.
       return messageTextTmp;
@@ -1567,6 +1646,64 @@ export const CometChatConversations = (props: ConversationInterface) => {
 
   return (
     <View style={mergedStyles.containerStyle}>
+      <CometChatList
+            AppBarOptions={AppBarOptions}
+            onError={onError}
+            ref={conversationListRef}
+            LeadingView={LeadingView ? LeadingView : LeadingViewRaw}
+            TitleView={TitleView ? TitleView : TitleViewRaw}
+            SubtitleView={SubtitleView ? SubtitleView : SubtitleViewRaw}
+            TrailingView={TrailingView ? TrailingView : TrailingViewRaw}
+            requestBuilder={
+              conversationsRequestBuilder || new CometChat.ConversationsRequestBuilder().setLimit(30)
+            }
+            hideStickyHeader={true}
+            title={!hideHeader ? t("CHATS") : ""}
+            listStyle={mergedStyles}
+            hideSearch={!showSearchBar}
+            hideHeader={hideHeader}
+            hideSubmitButton={hideSubmitButton}
+            SearchView={SearchView}
+            onSearchBarClicked={onSearchBarClicked}
+            onItemPress={(conversation) =>
+              selectionMode === "none" ? conversationClicked(conversation) : null
+            }
+            onItemLongPress={(conversation: CometChat.Conversation, e?: GestureResponderEvent) => {
+              if (selectionMode === "none") {
+                if (onItemLongPress) {
+                  onItemLongPress(conversation);
+                  return;
+                }
+                if (e && "nativeEvent" in e) {
+                  longPressId.current = conversation.getConversationId();
+                  longPressedConversation.current = conversation;
+                  tooltipPositon.current = {
+                    pageX: e.nativeEvent.pageX,
+                    pageY: e.nativeEvent.pageY,
+                  };
+                  setTooltipVisible(true);
+                }
+              }
+            }}
+            listItemKey={"conversationId"}
+            LoadingView={LoadingView ?? (() => <Skeleton style={mergedStyles.skeletonStyle} />)}
+            ItemView={ItemView}
+            EmptyView={EmptyView ? EmptyView : () => <EmptyStateView />}
+            ErrorView={ErrorView ? ErrorView : () => <ErrorStateView />}
+            onBack={onBack}
+            hideBackButton={hideBackButton}
+            onSelection={onSelection}
+            onSubmit={onSubmit}
+            selectionMode={selectionMode}
+            hideError={hideError}
+            onListFetched={(conversations: CometChat.Conversation[]) => {
+              if (conversations.length === 0) {
+                onEmpty?.();
+              } else {
+                onLoad?.(conversations);
+              }
+            }}
+          />
       <CometChatTooltipMenu
         visible={tooltipVisible}
         onClose={() => {
@@ -1617,62 +1754,6 @@ export const CometChatConversations = (props: ConversationInterface) => {
           setConfirmDelete(undefined);
         }}
         {...mergedStyles.confirmDialogStyle}
-      />
-      <CometChatList
-        AppBarOptions={AppBarOptions}
-        onError={onError}
-        ref={conversationListRef}
-        LeadingView={LeadingView ? LeadingView : LeadingViewRaw}
-        TitleView={TitleView ? TitleView : TitleViewRaw}
-        SubtitleView={SubtitleView ? SubtitleView : SubtitleViewRaw}
-        TrailingView={TrailingView ? TrailingView : TrailingViewRaw}
-        requestBuilder={
-          conversationsRequestBuilder || new CometChat.ConversationsRequestBuilder().setLimit(30)
-        }
-        hideStickyHeader={true}
-        title={t("CHATS")}
-        listStyle={mergedStyles}
-        hideSearch={true}
-        hideSubmitButton={hideSubmitButton}
-        onItemPress={(conversation) =>
-          selectionMode === "none" ? conversationClicked(conversation) : null
-        }
-        onItemLongPress={(conversation: CometChat.Conversation, e?: GestureResponderEvent) => {
-          if (selectionMode === "none") {
-            if (onItemLongPress) {
-              onItemLongPress(conversation);
-              return;
-            }
-            if (e && "nativeEvent" in e) {
-              longPressId.current = conversation.getConversationId();
-              longPressedConversation.current = conversation;
-              tooltipPositon.current = {
-                pageX: e.nativeEvent.pageX,
-                pageY: e.nativeEvent.pageY,
-              };
-              setTooltipVisible(true);
-            }
-          }
-        }}
-        listItemKey={"conversationId"}
-        LoadingView={LoadingView ?? (() => <Skeleton style={mergedStyles.skeletonStyle} />)}
-        ItemView={ItemView}
-        EmptyView={EmptyView ? EmptyView : () => <EmptyStateView />}
-        ErrorView={ErrorView ? ErrorView : () => <ErrorStateView />}
-        onBack={onBack}
-        hideBackButton={hideBackButton}
-        onSelection={onSelection}
-        onSubmit={onSubmit}
-        selectionMode={selectionMode}
-        hideError={hideError}
-        hideHeader={hideHeader}
-        onListFetched={(conversations: CometChat.Conversation[]) => {
-          if (conversations.length === 0) {
-            onEmpty?.();
-          } else {
-            onLoad?.(conversations);
-          }
-        }}
       />
     </View>
   );

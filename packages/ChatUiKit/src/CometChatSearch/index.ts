@@ -1,0 +1,1 @@
+export { CometChatSearch, default } from './CometChatSearch';

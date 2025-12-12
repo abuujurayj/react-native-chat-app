@@ -1,11 +1,10 @@
-import React, {useMemo, useRef} from 'react';
-import {CometChat} from '@cometchat/chat-sdk-react-native';
-import {navigate, navigationRef} from '../../../navigation/NavigationService';
-import {CometChatCalls} from '@cometchat/calls-sdk-react-native';
-import {CometChatOngoingCall} from '@cometchat/chat-uikit-react-native';
-import {voipHandler} from '../../../utils/VoipNotificationHandler';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {SCREEN_CONSTANTS} from '../../../utils/AppConstants';
+import React, { useMemo, useRef } from 'react';
+import { CometChat } from '@cometchat/chat-sdk-react-native';
+import { navigate, navigationRef } from '../../../navigation/NavigationService';
+import { CometChatCalls } from '@cometchat/calls-sdk-react-native';
+import { CometChatOngoingCall } from '@cometchat/chat-uikit-react-native';
+import { voipHandler } from '../../../utils/VoipNotificationHandler';
+import { SCREEN_CONSTANTS } from '../../../utils/AppConstants';
 import type { RouteProp } from '@react-navigation/native';
 import { CallType, RootStackParamList } from '../../../navigation/types';
 
@@ -14,7 +13,7 @@ type Props = {
   route: RouteProp<RootStackParamList, 'OngoingCallScreen'>;
 };
 
-const OngoingCallScreen = ({navigation, route}: Props) => {
+const OngoingCallScreen = ({ navigation, route }: Props) => {
   const params = route.params;
 
   // 1) Normalize sessionId
@@ -56,7 +55,7 @@ const OngoingCallScreen = ({navigation, route}: Props) => {
         navigate('BottomTabNavigator', undefined as any);
         navigationRef.reset({
           index: 0,
-          routes: [{name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR}],
+          routes: [{ name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR }],
         });
         voipHandler?.removeCallDialer();
       },
@@ -66,33 +65,34 @@ const OngoingCallScreen = ({navigation, route}: Props) => {
         navigate('BottomTabNavigator', undefined as any);
         navigationRef.reset({
           index: 0,
-          routes: [{name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR}],
+          routes: [{ name: SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR }],
         });
       },
-    })
+    }),
   );
 
   const callSettings = useMemo(() => {
     return new CometChatCalls.CallSettingsBuilder()
       .enableDefaultLayout(true)
       .setCallEventListener(callListener.current)
-      .setIsAudioOnlyCall(!!isAudioOnly)
+      .setIsAudioOnlyCall(!!isAudioOnly);
   }, [isAudioOnly]);
 
   if (!sessionID) {
     // Belt & suspenders: try to recover from active call if param missing
     const active: any = CometChat.getActiveCall?.();
-    const recovered = typeof active?.getSessionId === 'function' ? active.getSessionId() : undefined;
+    const recovered =
+      typeof active?.getSessionId === 'function'
+        ? active.getSessionId()
+        : undefined;
     if (!recovered) return null; // or render a fallback/loading
   }
 
   return (
-    <SafeAreaView style={{height: '100%', width: '100%', position: 'relative'}}>
-      <CometChatOngoingCall
-        sessionID={sessionID!}
-        callSettingsBuilder={callSettings}
-      />
-    </SafeAreaView>
+    <CometChatOngoingCall
+      sessionID={sessionID!}
+      callSettingsBuilder={callSettings}
+    />
   );
 };
 

@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useLayoutEffect,
   useRef,
+  useMemo,
   useState,
 } from 'react';
 import {
@@ -226,6 +227,11 @@ const handleBack = useCallback(() => {
     return mentionsFormatter;
   }, [user, group, loggedInUser, navigation, theme]);
 
+  const threadHeaderMentionsFormatter = useMemo(
+    () => getMentionsTap(),
+    [getMentionsTap],
+  );
+
   return (
     <View style={{ backgroundColor: theme.color.background1, flex: 1 }}>
       {/* Custom Header */}
@@ -267,7 +273,11 @@ const handleBack = useCallback(() => {
       </View>
 
       {/* Thread Header */}
-      <CometChatThreadHeader parentMessage={message} receiptsVisibility={messageDeliveryAndReadReceipts} />
+      <CometChatThreadHeader
+        parentMessage={message}
+        receiptsVisibility={messageDeliveryAndReadReceipts}
+        textFormatters={[threadHeaderMentionsFormatter]}
+      />
 
       {/* Threaded Message List */}
       <View style={{ flex: 1 }}>
@@ -279,6 +289,7 @@ const handleBack = useCallback(() => {
           receiptsVisibility={messageDeliveryAndReadReceipts}
           hideReactionOption={!hideReactionOption}
           hideMessagePrivatelyOption={!sendPrivateMessageToGroupMembers}
+          goToMessageId={params?.highlightMessageId}
         />
       </View>
 

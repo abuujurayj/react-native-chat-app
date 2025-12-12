@@ -15,7 +15,6 @@ export const getAudioBubbleStyleLight = (
         paddingBottom: spacing.padding.p0,
         borderRadius: spacing.radius.r3,
         alignSelf: "flex-start",
-        height: 74,
         width: 240,
       },
       playViewContainerStyle: {
@@ -118,7 +117,6 @@ export const getAudioBubbleStyleDark = (
         paddingBottom: spacing.padding.p0,
         borderRadius: spacing.radius.r3,
         alignSelf: "flex-start",
-        height: 74,
         width: 240,
       },
       playViewContainerStyle: {

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { Keyboard } from "react-native";
 import {
   ColorValue,
   Dimensions,
@@ -45,6 +46,7 @@ import {
 } from "../shared/constants/UIKitConstants";
 import { MessageEvents } from "../shared/events";
 import { CometChatUIEventHandler } from "../shared/events/CometChatUIEventHandler/CometChatUIEventHandler";
+import { CometChatMessageEvents } from "../shared/events/CometChatMessageEvents";
 import { CometChatMessageComposerAction, DeepPartial } from "../shared/helper/types";
 import { Icon } from "../shared/icons/Icon";
 import { CometChatSendButtonView } from "../shared/views/CometChatSendButtonView/CometChatSendButtonView";
@@ -74,18 +76,7 @@ const { FileManager, CommonUtil } = NativeModules;
 const uiEventListenerShow = "uiEvent_show_" + new Date().getTime();
 const uiEventListenerHide = "uiEvent_hide_" + new Date().getTime();
 
-const MessagePreviewTray = (props: any) => {
-  const { shouldShow = false, text = "", onClose = () => {} } = props;
-  const {t}= useCometChatTranslation()
-  return shouldShow ? (
-    <CometChatMessagePreview
-      messagePreviewTitle={t("EDIT_MESSAGE")}
-      messagePreviewSubtitle={text}
-      closeIconURL={ICONS.CLOSE}
-      onCloseClick={onClose}
-    />
-  ) : null;
-};
+
 
 const AttachIconButton = (props: {
   onPress: TouchableWithoutFeedbackProps["onPress"];
@@ -341,6 +332,21 @@ export interface CometChatMessageComposerInterface {
   disableMentions?: boolean;
 
   /**
+   * Flag to disable the special group mention (@all / @channel etc.).
+   * When true, the alias suggestion will not appear.
+   * @default false
+   */
+  disableMentionAll?: boolean;
+
+  /**
+   * Custom alias label for the group-wide mention.
+   * Rendered as @Alias in composer and bubbles.
+   * Internally stored as <@all:Alias>.
+   * @default "all"
+   */
+  mentionAllLabel?: string;
+
+  /**
    * Controls image quality when taking pictures from the camera.
    * A value of 100 means no compression.
    *
@@ -445,6 +451,7 @@ export interface CometChatMessageComposerInterface {
 export const CometChatMessageComposer = React.forwardRef(
   (props: CometChatMessageComposerInterface, ref) => {
     const editMessageListenerID = "editMessageListener_" + new Date().getTime();
+    const replyMessageListenerID = "replyMessageListener_" + new Date().getTime();
     const UiEventListenerID = "UiEventListener_" + new Date().getTime();
 
     const theme = useTheme();
@@ -470,6 +477,8 @@ export const CometChatMessageComposer = React.forwardRef(
       keyboardAvoidingViewProps,
       textFormatters,
       disableMentions: propDisableMentions,
+      disableMentionAll = false,
+      mentionAllLabel = "all",
       imageQuality = 20,
       hideCameraOption = false,
       hideImageAttachmentOption = false,
@@ -519,17 +528,7 @@ export const CometChatMessageComposer = React.forwardRef(
       return mergedStyle;
     }, [theme, style, isAgenticUser]);
 
-    const defaultAuxiliaryButtonOptions = useMemo(() => {
-      if (hideAuxiliaryButtons) return [];
-      return ChatConfigurator.getDataSource().getAuxiliaryOptions(user, group, composerIdMap, {
-        stickerIcon: mergedComposerStyle.stickerIcon as ImageSourcePropType | JSX.Element,
-        stickerIconStyle: mergedComposerStyle.stickerIconStyle as {
-          active: ImageStyle;
-          inactive: ImageStyle;
-        },
-        hideStickersButton,
-      });
-    }, [mergedComposerStyle, hideStickersButton, hideAuxiliaryButtons]);
+
 
     const loggedInUser = React.useRef<any>({});
     const chatWith = React.useRef<any>(null);
@@ -563,6 +562,9 @@ export const CometChatMessageComposer = React.forwardRef(
     const [showRecordAudio, setShowRecordAudio] = React.useState(false);
     const [actionSheetItems, setActionSheetItems] = React.useState<any[]>([]);
     const [messagePreview, setMessagePreview] = React.useState<any>();
+    const [replyMessage, setReplyMessage] = React.useState<any>();
+    // Ref to hold current replyMessage value to avoid stale closures in attachment handlers
+    const replyMessageRef = React.useRef(replyMessage);
     const [CustomView, setCustomView] = React.useState(null);
     const [CustomViewHeader, setCustomViewHeader] = React.useState<React.FC | React.ReactNode>(
       null
@@ -580,12 +582,30 @@ export const CometChatMessageComposer = React.forwardRef(
     const bottomSheetRef = React.useRef<any>(null);
     const [showStopButton, setShowStopButton] = React.useState(false);
     
+    const closeReplyPreview = useCallback(() => {
+      setReplyMessage(null);
+    }, []);
+
     // Reset streaming state when component mounts 
+    const defaultAuxiliaryButtonOptions = useMemo(() => {
+      if (hideAuxiliaryButtons) return [];
+      return ChatConfigurator.getDataSource().getAuxiliaryOptions(user, group, composerIdMap, {
+        stickerIcon: mergedComposerStyle.stickerIcon as ImageSourcePropType | JSX.Element,
+        stickerIconStyle: mergedComposerStyle.stickerIconStyle as {
+          active: ImageStyle;
+          inactive: ImageStyle;
+        },
+        hideStickersButton,
+        replyToMessage: replyMessage?.message,
+        closeReplyPreview,
+      });
+    }, [mergedComposerStyle, hideStickersButton, hideAuxiliaryButtons, replyMessage, closeReplyPreview]);
+
     useEffect(() => {
       setShowStopButton(false);
       setIsStreaming(false);
     }, []);
-    
+
     useLayoutEffect(() => {
       if (Platform.OS === "ios") {
         if (Number.isInteger(commonVars.safeAreaInsets.top)) {
@@ -618,7 +638,7 @@ export const CometChatMessageComposer = React.forwardRef(
         try {
           stopStreamingForRunId();
         } catch (error) {
-          console.log(error);
+          // console.log(error); // Removed debug log
         }
       }
     }));
@@ -657,8 +677,16 @@ export const CometChatMessageComposer = React.forwardRef(
       setCustomViewHeader(null);
     }, [warningMessage, theme]);
 
+    // Keep replyMessageRef in sync with replyMessage state
+    useEffect(() => {
+      replyMessageRef.current = replyMessage;
+    }, [replyMessage]);
+
     const previewMessage = ({ message, status }: any) => {
       if (status === messageStatus.inprogress) {
+        // Don't clear reply preview here - it needs to remain available for sendMediaMessage
+        // The reply preview will be cleared after successful send in sendMediaMessage (line 1127)
+
         let textComponents = message?.text;
 
         let rawText = message?.text;
@@ -731,6 +759,27 @@ export const CometChatMessageComposer = React.forwardRef(
       }
     };
 
+    const previewReplyMessage = (message: any) => {
+      // Clear edit preview if it exists
+      if (messagePreview) {
+        setMessagePreview(null);
+        mentionMap.current = new Map();
+        plainTextInput.current = "";
+        setOriginalText("");
+      }
+
+      setReplyMessage({
+        message: message,
+        mode: ConversationOptionConstants.reply,
+      });
+
+      try {
+        messageInputRef.current?.focus();
+      } catch (error) {
+        // console.log(error); // Removed debug log
+      }
+    };
+
     const cameraCallback = async (cameraImage: any) => {
       if (CheckPropertyExists(cameraImage, "error")) {
         return;
@@ -800,10 +849,20 @@ export const CometChatMessageComposer = React.forwardRef(
       setHasEdited(false);
       setInputMessage("");
       setWarningMessage("");
+      setReplyMessage(null);
+    };
+
+    const clearEditPreview = () => {
+      inputValueRef.current = "";
+      setPlainText("");
+      setHasEdited(false);
+      setInputMessage("");
+      setWarningMessage("");
     };
 
     const sendTextMessage = () => {
-        setShowStopButton(true);
+      setShowStopButton(true);
+
       //ignore sending new message
       if (messagePreview != null) {
         editMessage(messagePreview.message);
@@ -813,6 +872,12 @@ export const CometChatMessageComposer = React.forwardRef(
       let finalTextInput = getRegexString(plainTextInput.current);
       let trimmedTextInput = finalTextInput.trim();
 
+      if (trimmedTextInput.trim().length === 0) {
+        return;
+      }
+      const currentReplyMessage = replyMessage;
+      const replyMessageId = currentReplyMessage?.message?.getId?.() ?? null;
+
       let textMessage = new CometChat.TextMessage(
         chatWithId.current,
         trimmedTextInput,
@@ -821,13 +886,29 @@ export const CometChatMessageComposer = React.forwardRef(
 
       textMessage.setSender(loggedInUser.current);
       textMessage.setReceiver(chatWith.current);
-      // Use the trimmed text here as well
       textMessage.setText(trimmedTextInput);
       textMessage.setMuid(String(getUnixTimestampInMilliseconds()));
-      const currentParentId = parentMessageId || (isAgenticUser() ? parentMessageIdRef.current : null);
 
-      if (currentParentId) {
-        textMessage.setParentMessageId(currentParentId as number);
+      // Handle parent message ID for threaded messages
+      if (parentMessageId) {
+        textMessage.setParentMessageId(parentMessageId as number);
+      } else if (isAgenticUser() && parentMessageIdRef.current) {
+        textMessage.setParentMessageId(Number(parentMessageIdRef.current));
+      }
+
+      // Handle reply message - set quoted message for replies
+      if (replyMessageId && currentReplyMessage?.message) {
+        try {
+          // Use only the SDK's built-in quoted message functionality
+          if (typeof textMessage.setQuotedMessage === 'function') {
+            textMessage.setQuotedMessage(currentReplyMessage.message);
+          }
+          if (typeof textMessage.setQuotedMessageId === 'function') {
+            textMessage.setQuotedMessageId(replyMessageId);
+          }
+        } catch (error) {
+          // console.log(error); // Removed debug log
+        }
       }
 
       allFormatters.current.forEach((item) => {
@@ -837,11 +918,13 @@ export const CometChatMessageComposer = React.forwardRef(
       setMentionsSearchData([]);
       plainTextInput.current = "";
 
-      if (trimmedTextInput.trim().length === 0) {
-        return;
-      }
-
-      clearInputBox();
+      // Clear input and reply message immediately for better UX
+      inputValueRef.current = "";
+      setPlainText("");
+      setHasEdited(false);
+      setInputMessage("");
+      setWarningMessage("");
+      setReplyMessage(null);
 
       if (onSendButtonPress) {
         onSendButtonPress(textMessage);
@@ -879,7 +962,6 @@ export const CometChatMessageComposer = React.forwardRef(
             message: textMessage,
             status: messageStatus.error,
           });
-          clearInputBox();
         });
     };
 
@@ -952,7 +1034,26 @@ export const CometChatMessageComposer = React.forwardRef(
         url: messageInput["uri"],
         sender: loggedInUser.current,
       });
-      parentMessageId && mediaMessage.setParentMessageId(parentMessageId as number);
+      // Use ref to get current replyMessage value (avoids stale closure)
+      const currentReplyMessage = replyMessageRef.current;
+      const replyMessageId = currentReplyMessage?.message?.getId?.() ?? null;
+      if (replyMessageId) {
+        if (currentReplyMessage?.message) {
+          if (typeof mediaMessage.setQuotedMessage === 'function') {
+            mediaMessage.setQuotedMessage(currentReplyMessage.message);
+          }
+          if (typeof mediaMessage.setQuotedMessageId === 'function') {
+            mediaMessage.setQuotedMessageId(replyMessageId);
+          }
+          // Store full message object directly on the message (not in metadata)
+          (mediaMessage as any).quotedMessage = currentReplyMessage.message;
+          (mediaMessage as any).quotedMessageId = replyMessageId;
+
+          // Don't store in metadata - it exceeds size limit and SDK handles it
+        }
+      } else if (parentMessageId) {
+        mediaMessage.setParentMessageId(parentMessageId as number);
+      }
 
       let localMessage = new CometChat.MediaMessage(
         receiverId,
@@ -973,7 +1074,26 @@ export const CometChatMessageComposer = React.forwardRef(
         url: messageInput["uri"],
         sender: loggedInUser.current,
       });
-      parentMessageId && localMessage.setParentMessageId(parentMessageId as number);
+      if (replyMessageId) {
+        if (currentReplyMessage?.message) {
+          if (typeof localMessage.setQuotedMessage === 'function') {
+            localMessage.setQuotedMessage(currentReplyMessage.message);
+          }
+          if (typeof localMessage.setQuotedMessageId === 'function') {
+            localMessage.setQuotedMessageId(replyMessageId);
+          }
+          (localMessage as any).quotedMessage = currentReplyMessage.message;
+          (localMessage as any).quotedMessageId = replyMessageId;
+          const currentMetadata = localMessage.getMetadata() || {};
+          localMessage.setMetadata({
+            ...currentMetadata,
+            quotedMessage: currentReplyMessage.message,
+            quotedMessageId: replyMessageId
+          });
+        }
+      } else if (parentMessageId) {
+        localMessage.setParentMessageId(parentMessageId as number);
+      }
       localMessage.setData({
         type: messageType,
         category: CometChat.CATEGORY_MESSAGE,
@@ -996,6 +1116,13 @@ export const CometChatMessageComposer = React.forwardRef(
             message: message,
             status: messageStatus.success,
           });
+          if (replyMessageId) {
+            CometChatMessageEvents.emit(CometChatMessageEvents.ccReplyToMessage, {
+              message: message,
+              status: messageStatus.success,
+            });
+          }
+          setReplyMessage(null);
           setShowRecordAudio(false);
         })
         .catch((error: any) => {
@@ -1006,7 +1133,8 @@ export const CometChatMessageComposer = React.forwardRef(
             message: localMessage,
             status: messageStatus.error,
           });
-          console.log("media message sent error", error);
+          setReplyMessage(null);
+          // console.log("media message sent error", error); // Removed debug log
         });
     };
 
@@ -1065,7 +1193,10 @@ export const CometChatMessageComposer = React.forwardRef(
       if (hideAttachmentButton || !actionSheetItems.length) return <></>;
       return (
         <AttachIconButton
-          onPress={() => setShowActionSheet(true)}
+          onPress={() => {
+            Keyboard.dismiss();
+            setTimeout(() => setShowActionSheet(true), 50);
+          }}
           icon={mergedComposerStyle.attachmentIcon as JSX.Element | ImageSourcePropType}
           iconStyle={mergedComposerStyle.attachmentIconStyle as ImageStyle}
         />
@@ -1080,7 +1211,12 @@ export const CometChatMessageComposer = React.forwardRef(
       iconStyle?: ImageStyle;
     }) => {
       return (
-        <TouchableOpacity onPress={() => setShowRecordAudio(true)}>
+        <TouchableOpacity
+          onPress={() => {
+            Keyboard.dismiss();
+            setTimeout(() => setShowRecordAudio(true), 50);
+          }}
+        >
           <Icon
             name='mic'
             height={24}
@@ -1095,7 +1231,7 @@ export const CometChatMessageComposer = React.forwardRef(
 
     const voiceRecoringButtonElem = useMemo(() => {
       const isAgenticUser = user?.getRole?.() === '@agentic';
-      
+
       return (hideVoiceRecordingButton || isAgenticUser) ? undefined : (
         <RecordAudioButtonView
           icon={mergedComposerStyle.voiceRecordingIcon as ImageSourcePropType | JSX.Element}
@@ -1106,14 +1242,14 @@ export const CometChatMessageComposer = React.forwardRef(
 
     const AuxiliaryButtonViewElem = useCallback(() => {
       const isAgenticUser = user?.getRole?.() === '@agentic';
-      
+
       if (AuxiliaryButtonView)
         return <AuxiliaryButtonView user={user} group={group} composerId={id!} />;
-      
+
       if (isAgenticUser) {
         return <></>;
       }
-      
+
       if (defaultAuxiliaryButtonOptions)
         return (
           <View
@@ -1145,9 +1281,9 @@ export const CometChatMessageComposer = React.forwardRef(
 
     const SendButtonViewElem = useCallback(() => {
       if (hideSendButton) return <></>;
-      
+
       const isAgenticUserCheck = isAgenticUser();
-      
+
       if (isAgenticUserCheck) {
         const disabled = isStreaming || plainText.trim().length === 0 || (messagePreview && !hasEdited);
         const SendButtonComponent =  DefaultAgentSendButtonView;
@@ -1163,7 +1299,7 @@ export const CometChatMessageComposer = React.forwardRef(
         };
         return <SendButtonComponent isButtonDisabled={disabled} composerRef={composerRef} />;
       }
-      
+
       if (SendButtonView) return <SendButtonView user={user} group={group} composerId={id!} />;
       const disabled = isStreaming || plainText.trim().length === 0 || (messagePreview && !hasEdited);
       return (
@@ -1207,6 +1343,9 @@ export const CometChatMessageComposer = React.forwardRef(
           mergedComposerStyle.mentionsStyle as CometChatTheme["mentionsStyle"]
         );
         mentionsFormatter.setTargetElement(MentionsTargetElement.textinput);
+
+        if (mentionAllLabel) mentionsFormatter.setMentionAllLabel(mentionAllLabel);
+        mentionsFormatter.setDisableMentionAll(disableMentionAll);
 
         if (user) mentionsFormatter.setUser(user);
         if (group) mentionsFormatter.setGroup(group);
@@ -1281,17 +1420,39 @@ export const CometChatMessageComposer = React.forwardRef(
           hidePollsAttachmentOption,
           hideCollaborativeDocumentOption,
           hideCollaborativeWhiteboardOption,
+          replyToMessage: replyMessage?.message,
+          closeReplyPreview: () => setReplyMessage(null),
         }
       );
       setActionSheetItems(() =>
         attachmentOptions && typeof attachmentOptions === "function"
           ? attachmentOptions({ user, group, composerId: composerIdMap })?.map((item) => {
+            if (typeof item.CustomView === "function")
+              return {
+                ...item,
+                onPress: () => handleOnClick(item.CustomView),
+              };
+            if (typeof item.onPress == "function")
+              return {
+                ...item,
+                onPress: () => {
+                  setShowActionSheet(false);
+                  item.onPress?.(user, group);
+                },
+              };
+            return {
+              ...item,
+              onPress: () => fileInputHandler(item.id),
+            };
+          })
+          : [
+            ...defaultAttachmentOptions.map((item: any) => {
               if (typeof item.CustomView === "function")
                 return {
                   ...item,
                   onPress: () => handleOnClick(item.CustomView),
                 };
-              if (typeof item.onPress == "function")
+              if (typeof item.onPress === "function")
                 return {
                   ...item,
                   onPress: () => {
@@ -1303,15 +1464,15 @@ export const CometChatMessageComposer = React.forwardRef(
                 ...item,
                 onPress: () => fileInputHandler(item.id),
               };
-            })
-          : [
-              ...defaultAttachmentOptions.map((item: any) => {
+            }),
+            ...(addAttachmentOptions && typeof addAttachmentOptions === "function"
+              ? addAttachmentOptions({ user, group, composerId: composerIdMap })?.map((item) => {
                 if (typeof item.CustomView === "function")
                   return {
                     ...item,
                     onPress: () => handleOnClick(item.CustomView),
                   };
-                if (typeof item.onPress === "function")
+                if (typeof item.onPress == "function")
                   return {
                     ...item,
                     onPress: () => {
@@ -1323,29 +1484,9 @@ export const CometChatMessageComposer = React.forwardRef(
                   ...item,
                   onPress: () => fileInputHandler(item.id),
                 };
-              }),
-              ...(addAttachmentOptions && typeof addAttachmentOptions === "function"
-                ? addAttachmentOptions({ user, group, composerId: composerIdMap })?.map((item) => {
-                    if (typeof item.CustomView === "function")
-                      return {
-                        ...item,
-                        onPress: () => handleOnClick(item.CustomView),
-                      };
-                    if (typeof item.onPress == "function")
-                      return {
-                        ...item,
-                        onPress: () => {
-                          setShowActionSheet(false);
-                          item.onPress?.(user, group);
-                        },
-                      };
-                    return {
-                      ...item,
-                      onPress: () => fileInputHandler(item.id),
-                    };
-                  })
-                : []),
-            ]
+              })
+              : []),
+          ]
       );
     }, [
       user,
@@ -1361,6 +1502,7 @@ export const CometChatMessageComposer = React.forwardRef(
       hideCollaborativeDocumentOption,
       hideCollaborativeWhiteboardOption,
       addAttachmentOptions,
+      replyMessage,
     ]);
 
     useEffect(() => {
@@ -1374,6 +1516,16 @@ export const CometChatMessageComposer = React.forwardRef(
           }
         },
       });
+      CometChatMessageEvents.addListener(
+        CometChatMessageEvents.ccReplyToMessage,
+        replyMessageListenerID,
+        (data: any) => {
+          if (data.status === messageStatus.inprogress) {
+            previewReplyMessage(data.message);
+          } else if (data.status === messageStatus.success) {
+          }
+        }
+      );
       CometChatUIEventHandler.addUIListener(UiEventListenerID, {
         ccToggleBottomSheet: (item) => {
           if (item?.bots) {
@@ -1410,6 +1562,7 @@ export const CometChatMessageComposer = React.forwardRef(
       });
       return () => {
         CometChatUIEventHandler.removeMessageListener(editMessageListenerID);
+        CometChatMessageEvents.removeListener(CometChatMessageEvents.ccReplyToMessage, replyMessageListenerID);
         CometChatUIEventHandler.removeUIListener(UiEventListenerID);
       };
     }, []);
@@ -1424,7 +1577,6 @@ export const CometChatMessageComposer = React.forwardRef(
         else if (item.alignment === ViewAlignment.composerBottom) setCustomViewFooter(undefined);
       }
     };
-
     useEffect(() => {
       CometChatUIEventHandler.addUIListener(uiEventListenerShow, {
         showPanel: (item) => handlePannel(item),
@@ -1444,9 +1596,9 @@ export const CometChatMessageComposer = React.forwardRef(
         type: "audio/mp4",
         uri: recordedFile,
       };
-      console.log("fileObj", fileObj);
+      // console.log("fileObj", fileObj); // Removed debug log
       sendMediaMessage(chatWithId.current, fileObj, MessageTypeConstants.audio, chatWith.current);
-      console.log("Send Audio");
+      // console.log("Send Audio"); // Removed debug log
     };
 
     function isCursorWithinMentionRange(mentionRanges: any, cursorPosition: number) {
@@ -1473,11 +1625,11 @@ export const CometChatMessageComposer = React.forwardRef(
         trackingCharacters.current.includes(tracker) &&
         (searchString === ""
           ? (plainTextInput.current[selection.start - 2]?.length === 1 &&
-              plainTextInput.current[selection.start - 2]?.trim()?.length === 0) ||
-            plainTextInput.current[selection.start - 2] === undefined
+            plainTextInput.current[selection.start - 2]?.trim()?.length === 0) ||
+          plainTextInput.current[selection.start - 2] === undefined
           : true) &&
         (plainTextInput.current[selection.start - 1]?.length === 1 &&
-        plainTextInput.current[selection.start - 1]?.trim()?.length === 0
+          plainTextInput.current[selection.start - 1]?.trim()?.length === 0
           ? searchString.length > 0
           : true)
       );
@@ -1585,9 +1737,9 @@ export const CometChatMessageComposer = React.forwardRef(
     ) => {
       return selection.start === selection.end
         ? {
-            start: Math.max(0, selection.start - deletionLength),
-            end: selection.start,
-          }
+          start: Math.max(0, selection.start - deletionLength),
+          end: selection.start,
+        }
         : { start: selection.start, end: selection.end };
     };
 
@@ -1980,7 +2132,7 @@ export const CometChatMessageComposer = React.forwardRef(
           ? targetedFormatter?.getErrorString()
           : `${t("MENTION_UPTO")} ${limit} ${
               limit === 1 ? t("TIME") : t("TIMES")
-            } ${t("AT_A_TIME")}.`
+          } ${t("AT_A_TIME")}.`
       );
       return true;
     };
@@ -2037,7 +2189,7 @@ export const CometChatMessageComposer = React.forwardRef(
               mediaRecorderStyle={mergedComposerStyle.mediaRecorderStyle}
             />
 
-            {showMentionList && (plainTextInput.current?.length ?? 0) > 0 && (
+            {showMentionList && (plainTextInput.current?.length ?? 0) > 0 && mentionsSearchData.length > 0 && (
               <View
                 style={[
                   theme.mentionsListStyle.containerStyle,
@@ -2057,37 +2209,80 @@ export const CometChatMessageComposer = React.forwardRef(
 
             <View
               style={[
-                { flexDirection: "column" },
-                mentionsSearchData.length
-                  ? { maxHeight: Dimensions.get("window").height * 0.2 }
-                  : { maxHeight: Dimensions.get("window").height * 0.3 },
+                {
+                  flexDirection: "column",
+                  ...(messagePreview || replyMessage ? {
+                    backgroundColor: theme.color.background1,
+                    borderTopRightRadius: 8,
+                    borderTopLeftRadius: 8,
+                    paddingHorizontal: theme.spacing.padding.p1,
+                    // paddingTop: theme.spacing.padding.p1,
+                  } : {}),
+                },
               ]}
             >
               {HeaderView
                 ? HeaderView({ user, group })
                 : CustomViewHeader &&
-                  (typeof CustomViewHeader === "function" ? (
-                    <CustomViewHeader /> // Invoke CustomViewHeader if it's a functional component
-                  ) : (
-                    CustomViewHeader // Render it directly if it's a React node
-                  ))}
-              <MessagePreviewTray
-                onClose={() => {
-                  setMessagePreview(null);
-                  clearInputBox();
-                  mentionMap.current = new Map();
-                  plainTextInput.current = "";
-                  setOriginalText("");
-                }}
-                text={messagePreview?.message?.text}
-                shouldShow={messagePreview != null}
-              />
+                (typeof CustomViewHeader === "function" ? (
+                  <CustomViewHeader /> // Invoke CustomViewHeader if it's a functional component
+                ) : (
+                  CustomViewHeader // Render it directly if it's a React node
+                ))}
+              {messagePreview && (
+                <CometChatMessagePreview
+                  messagePreviewTitle={t("EDIT_MESSAGE")}
+                  messagePreviewSubtitle={messagePreview?.message?.text || "Message"}
+                  showCloseIcon={true}
+                  closeIconURL={ICONS.CLOSE}
+                  onCloseClick={() => {
+                    setMessagePreview(null);
+                    clearEditPreview();
+                    mentionMap.current = new Map();
+                    plainTextInput.current = "";
+                    setOriginalText("");
+                  }}
+                  style={{
+                    borderRadius: 8,
+                    borderWidth: 0,
+                    borderLeftWidth: 3,
+                    borderLeftColor: theme.color.borderHighlight,
+                    margin:theme.spacing.padding.p1,
+                  }}
+                />
+              )}
+              {replyMessage && replyMessage.message && (
+                <CometChatMessagePreview
+                  message={replyMessage.message}
+                  showCloseIcon={true}
+                  closeIconURL={ICONS.CLOSE}
+                  onCloseClick={() => {
+                    setReplyMessage(null);
+                  }}
+                  titleStyle={{ color: theme.color.textHighlight }}
+                  style={{
+                    borderRadius: 8,
+                    borderLeftWidth: 3,
+                    borderLeftColor: theme.color.borderHighlight,
+                    margin:theme.spacing.padding.p1,
+                  }}
+                />
+              )}
             </View>
             <CometChatMessageInput
               messageInputRef={messageInputRef}
               text={inputMessage as string}
               placeHolderText={isAgenticUser()? t("ASK_ANYTHING") : t("ENTER_YOUR_MESSAGE_HERE")}
-              style={mergedComposerStyle.messageInputStyles}
+              style={{
+                ...mergedComposerStyle.messageInputStyles,
+                containerStyle: {
+                  ...mergedComposerStyle.messageInputStyles?.containerStyle,
+                  ...(messagePreview || replyMessage ? {
+                    borderTopLeftRadius: 0,
+                    borderTopRightRadius: 0,
+                  } : {}),
+                },
+              }}
               onSelectionChange={({ nativeEvent: { selection } }) => {
                 setSelectionPosition(selection);
                 openList(selection);
@@ -2099,17 +2294,18 @@ export const CometChatMessageComposer = React.forwardRef(
               PrimaryButtonView={SendButtonViewElem}
               auxiliaryButtonAlignment={auxiliaryButtonsAlignment}
             />
-            {CustomViewFooter ? (
-              // If CustomViewFooter is a function component (React.FC)
-              typeof CustomViewFooter === "function" ? (
-                <CustomViewFooter /> // Invoke the function component
-              ) : (
-                CustomViewFooter // Render it directly if it's a React node (JSX or element)
-              )
-            ) : null}
           </View>
         </KeyboardAvoidingView>
+        {CustomViewFooter ? (
+          // If CustomViewFooter is a function component (React.FC)
+          typeof CustomViewFooter === "function" ? (
+            <CustomViewFooter /> // Invoke the function component
+          ) : (
+            CustomViewFooter // Render it directly if it's a React node (JSX or element)
+          )
+        ) : null}
       </>
     );
   }
 );
+

@@ -55,6 +55,7 @@ import { defaultTypography } from "./typography";
 import { DeepPartial } from "../../shared/helper/types";
 import { getMediaRecorderStyle } from "../../shared/views/CometChatMediaRecorder/style";
 import { getDateSeparatorStyleDark, getDateSeparatorStyleLight } from "../../shared/views/CometChatDateSeperator";
+import { getReportDialogStyleDark, getReportDialogStyleLight } from "../../shared/views/CometChatReportDialog/style";
 
 const getActionSheetStyle = (
   color: CometChatTheme["color"],
@@ -130,6 +131,7 @@ export const lightThemeMaker = (
     dateSeparatorStyles: getDateSeparatorStyleLight(color, spacing, typography),
     conversationStyles: getConversationStyleLight(color, spacing, typography),
     confirmDialogStyles: getConfirmDialogStyleLight(color, spacing, typography),
+    reportDialogStyles: getReportDialogStyleLight(color, spacing, typography),
     messageHeaderStyles: getMessageHeaderStyle(color, spacing, typography),
     messageComposerStyles: getComposerStyle(color, spacing, typography),
     userStyles: getUserListStyleLight(color, spacing, typography),
@@ -170,6 +172,7 @@ export const darkThemeMaker = (
     dateSeparatorStyles: getDateSeparatorStyleDark(color, spacing, typography),
     conversationStyles: getConversationStyleDark(color, spacing, typography),
     confirmDialogStyles: getConfirmDialogStyleDark(color, spacing, typography),
+    reportDialogStyles: getReportDialogStyleDark(color, spacing, typography),
     messageHeaderStyles: getMessageHeaderStyle(color, spacing, typography),
     messageComposerStyles: getComposerStyle(color, spacing, typography),
     userStyles: getUserListStyleDark(color, spacing, typography),

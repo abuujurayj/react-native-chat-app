@@ -270,11 +270,10 @@ const App = (): React.ReactElement => {
   // Once initialization is complete, render the main app UI.
   return (
     <SafeAreaProvider>
+      {/* Render the incoming call UI if the user is logged in and a call is received */}
       <ActiveChatProvider>
-        <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1 }}>
-          <CometChatThemeProvider theme={theme}>
-            <CometChatI18nProvider>
-              {/* Render the incoming call UI if the user is logged in and a call is received */}
+        <CometChatThemeProvider theme={theme}>
+          <CometChatI18nProvider>
               {isLoggedIn && callReceived && incomingCall.current ? (
                 <CometChatIncomingCall
                   call={incomingCall.current}
@@ -285,14 +284,15 @@ const App = (): React.ReactElement => {
                   }}
                 />
               ) : null}
+            <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
               {/* Render the main navigation stack, passing the login status as a prop */}
               <RootStackNavigator
                 isLoggedIn={isLoggedIn}
                 hasValidAppCredentials={hasValidAppCredentials}
               />
-            </CometChatI18nProvider>
-          </CometChatThemeProvider>
-        </SafeAreaView>
+            </SafeAreaView>
+          </CometChatI18nProvider>
+        </CometChatThemeProvider>
       </ActiveChatProvider>
     </SafeAreaProvider>
   );

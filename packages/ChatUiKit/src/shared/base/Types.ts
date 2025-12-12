@@ -3,6 +3,7 @@ import { CometChatTextFormatter } from "../formatters";
 import { CometChatTheme } from "../../theme/type";
 import { DeepPartial } from "../helper/types";
 import { JSX } from "react";
+import { CometChat } from "@cometchat/chat-sdk-react-native";
 
 export type SelectionMode = "none" | "single" | "multiple";
 
@@ -17,6 +18,7 @@ export type MessageTimeAlignmentType = "top" | "bottom";
 export type AdditionalParams = {
   textFormatters?: CometChatTextFormatter[];
   disableMentions?: boolean;
+  hideReplyOption?: boolean,
   hideReplyInThreadOption?: boolean,
   hideShareMessageOption?: boolean,
   hideEditMessageOption?: boolean,
@@ -26,7 +28,9 @@ export type AdditionalParams = {
   hideMessagePrivatelyOption?: boolean,
   hideCopyMessageOption?: boolean,
   hideMessageInfoOption?: boolean,
+  hideReportMessageOption?: boolean,
   hideGroupActionMessages?: boolean,
+  onReplyClick?: (messageId: string) => void;
 };
 
 export type AdditionalAttachmentOptionsParams = {
@@ -38,6 +42,8 @@ export type AdditionalAttachmentOptionsParams = {
   hidePollsAttachmentOption?: boolean;
   hideCollaborativeDocumentOption?: boolean;
   hideCollaborativeWhiteboardOption?: boolean;
+  replyToMessage?: CometChat.BaseMessage;
+  closeReplyPreview?: () => void;
 };
 
 export type AdditionalAuxiliaryOptionsParams = {
@@ -47,6 +53,8 @@ export type AdditionalAuxiliaryOptionsParams = {
   };
   stickerIcon?: JSX.Element | ImageSourcePropType;
   hideStickersButton?: boolean;
+  replyToMessage?: CometChat.BaseMessage;
+  closeReplyPreview?: () => void;
 };
 
 export type AdditionalAuxiliaryHeaderOptionsParams = {

@@ -8,7 +8,6 @@ export const getStickerStyleLight = (
 ): CometChatTheme["stickerBubbleStyles"] => {
   return {
     containerStyle: {
-      height: 180,
       width: 180,
       backgroundColor: color.background2,
       padding: spacing.padding.p0,

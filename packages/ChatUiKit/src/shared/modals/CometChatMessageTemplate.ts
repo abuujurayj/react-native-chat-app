@@ -85,6 +85,17 @@ interface MessageTemplateInterface {
   ) => JSX.Element | null;
 
   /**
+   * The reply view of the message template for displaying quoted messages.
+   * @param messageObject - The message object.
+   * @param alignment - The alignment of the message bubble.
+   * @returns The JSX element representing the reply view.
+   */
+  ReplyView?: (
+    messageObject: CometChat.BaseMessage,
+    alignment: MessageBubbleAlignmentType
+  ) => JSX.Element | null;
+
+  /**
    * The options of the message template.
    * @param loggedInUser - The logged in user.
    * @param messageObject - The message object.
@@ -172,6 +183,16 @@ export class CometChatMessageTemplate implements MessageTemplateInterface {
     alignment: MessageBubbleAlignmentType
   ) => JSX.Element | null;
   /**
+   * The reply view of the message template for displaying quoted messages.
+   * @param messageObject - The message object.
+   * @param alignment - The alignment of the message bubble.
+   * @returns The JSX element representing the reply view.
+   */
+  ReplyView?: (
+    messageObject: CometChat.BaseMessage,
+    alignment: MessageBubbleAlignmentType
+  ) => JSX.Element | null;
+  /**
    * The options of the message template.
    * @param loggedInUser - The logged in user.
    * @param messageObject - The message object.
@@ -199,6 +220,7 @@ export class CometChatMessageTemplate implements MessageTemplateInterface {
     LeadingView,
     StatusInfoView,
     FooterView,
+    ReplyView,
     options,
   }: MessageTemplateInterface) {
     this.category = category;
@@ -210,6 +232,7 @@ export class CometChatMessageTemplate implements MessageTemplateInterface {
     this.LeadingView = LeadingView;
     this.StatusInfoView = StatusInfoView;
     this.FooterView = FooterView;
+    this.ReplyView = ReplyView;
     this.options = options;
   }
 }

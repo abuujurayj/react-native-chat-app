@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, ListRenderItemInfo, View } from "react-native";
+import { ActivityIndicator, FlatList, ListRenderItemInfo, View, Text } from "react-native";
 import { CometChatListItem } from "../CometChatListItem";
 import { SuggestionItem } from "./SuggestionItem";
 import { SuggestionListStyle } from "../../../theme/type";
 import { Skeleton } from "./Skeleton";
+import { useTheme } from "../../../theme";
+import { useCometChatTranslation } from "../..";
 
 /**
  * Props for the CometChatSuggestionList component.
@@ -39,6 +41,8 @@ export interface CometChatSuggestionListInterface {
 
 export const CometChatSuggestionList = (props: CometChatSuggestionListInterface) => {
   const { data, listStyle, onPress, onEndReached, loading } = props;
+  const theme = useTheme();
+  const { t } = useCometChatTranslation();
 
   const [initialLoad, setInitialLoad] = useState(true);
 
@@ -50,11 +54,23 @@ export const CometChatSuggestionList = (props: CometChatSuggestionListInterface)
 
   const _render = ({ item, index }: ListRenderItemInfo<SuggestionItem>) => {
     let shouldLoadAvatarName = item.hideLeadingIcon ? {} : { avatarName: item.name };
+    const isAllAlias = item.underlyingText?.startsWith?.('<@all:');
+    const TitleView = isAllAlias ? (
+      <Text
+        numberOfLines={1}
+        ellipsizeMode='tail'
+        style={[listStyle?.listItemStyle.titleStyle, { flexShrink: 1 }]}
+      >
+        <Text style={[listStyle?.listItemStyle.titleStyle, { fontWeight: '700' }]}>@{item.name} </Text>
+        <Text style={[theme.typography.caption1.regular, { opacity: 0.7 }]}>{t('MESSAGE_COMPOSER_MENTION_NOTIFY_EVERYONE_LABEL')}</Text>
+      </Text>
+    ) : undefined;
     return (
       <CometChatListItem
         key={index}
         id={item.id}
-        title={item.name}
+        title={isAllAlias ? undefined : item.name}
+        TitleView={TitleView}
         avatarURL={item.leadingIconUrl ? { uri: item.leadingIconUrl } : undefined}
         containerStyle={listStyle?.listItemStyle.containerStyle}
         titleStyle={listStyle?.listItemStyle.titleStyle}

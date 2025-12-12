@@ -12,12 +12,12 @@ type ActiveChatContextType = {
 
 const ActiveChatContext = createContext<ActiveChatContextType | undefined>(undefined);
 
-export function ActiveChatProvider({ children }: { children: React.ReactNode }) {
+export function ActiveChatProvider({ children }: { children?: React.ReactNode }) {
   const [activeChat, setActiveChat] = useState<ActiveChat>(null);
 
   return (
     <ActiveChatContext.Provider value={{ activeChat, setActiveChat }}>
-      {children}
+      {children ?? null}
     </ActiveChatContext.Provider>
   );
 }

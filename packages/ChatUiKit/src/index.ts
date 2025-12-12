@@ -14,6 +14,7 @@ import {
   CometChatBottomSheet,
   CometChatBottomSheetInterface,
   CometChatConfirmDialog,
+  CometChatReportDialog,
   CometChatConfirmDialogInterface,
   CometChatConversationEvents,
   //Utils
@@ -123,6 +124,8 @@ import { CometChatAIAssistantChatHistory } from "./CometChatAIAssistantChatHisto
 
 import { CometChatThreadHeader, CometChatThreadHeaderInterface } from "./CometChatThreadHeader";
 
+import { CometChatSearch } from "./CometChatSearch";
+
 import {
   CallButtonStyle,
   CallUIEvents,
@@ -190,6 +193,7 @@ export {
   CometChatCollaborativeDocumentBubble,
   CometChatCollaborativeWhiteBoardBubble,
   CometChatConfirmDialog,
+  CometChatReportDialog,
   CometChatConversationEvents,
   //
   CometChatConversationUtils,
@@ -234,6 +238,7 @@ export {
   CometChatTextBubble,
   CometChatTextFormatter,
   CometChatThreadHeader,
+  CometChatSearch,
   CometChatUIEventHandler,
   CometChatUIEvents,
   CometChatUIKit,

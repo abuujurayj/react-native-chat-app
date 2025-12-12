@@ -50,6 +50,7 @@ export {
   CometChatBadge,
   CometChatBottomSheet,
   CometChatConfirmDialog,
+  CometChatReportDialog,
   CometChatDate,
   CometChatEmojiKeyboard,
   CometChatFileBubble,
@@ -111,4 +112,4 @@ export { getCometChatTranslation, getCurrentLanguage} from "./resources/CometCha
 export { useLocalizedDate } from "./helper/useLocalizedDateHook";
 export { LocalizedDateHelper } from "./helper/LocalizedDateHelper";
 export { useCometChatTranslation } from "./resources/CometChatLocalizeNew/useCometChatTranslationHook";
-export {getLastSeenTime} from "./helper/functions";
+export {getLastSeenTime} from "./helper/helperFunctions";

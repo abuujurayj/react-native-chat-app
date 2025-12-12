@@ -24,7 +24,9 @@ import { CometChatTheme } from "../../theme/type";
 import { CometChatCollaborativeBubble } from "../CollaborativeBubble/CometChatCollaborativeBubble";
 import { ExtensionConstants, ExtensionTypeConstants } from "../ExtensionConstants";
 import { getExtensionData } from "../ExtensionModerator";
-import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager"
+import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager";
+import { CometChatMessageEvents } from "../../shared/events/CometChatMessageEvents";
+import { messageStatus } from "../../shared/utils/CometChatMessageHelper";
 const t = getCometChatTranslation();
 
 export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator {
@@ -121,13 +123,23 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
           />
         ),
         onPress: (user, group) => {
-          this.shareCollaborativedocument(user, group);
+          this.shareCollaborativedocument(
+            user, 
+            group, 
+            additionalAttachmentOptionsParams?.replyToMessage,
+            additionalAttachmentOptionsParams?.closeReplyPreview
+          );
         },
       });
     return attachmentOptions;
   }
 
-  shareCollaborativedocument(user?: CometChat.User, group?: CometChat.Group) {
+  shareCollaborativedocument(
+    user?: CometChat.User, 
+    group?: CometChat.Group,
+    replyToMessage?: CometChat.BaseMessage,
+    closeReplyPreview?: () => void
+  ) {
     CometChatUIEventHandler.emitUIEvent(CometChatUIEvents.ccToggleBottomSheet, {
       isBottomSheetVisible: false,
     });
@@ -144,17 +156,33 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
     } else {
     }
 
+    const payload: any = {
+      receiver: receiverId,
+      receiverType: receiverType,
+    };
+
+    if (replyToMessage) {
+      payload.quotedMessageId = replyToMessage.getId();
+    }
+
+    if (closeReplyPreview) {
+      closeReplyPreview();
+    }
+
     CometChat.callExtension(
       ExtensionConstants.document,
       ExtensionConstants.post,
       this.documentUrl,
-      {
-        receiver: receiverId,
-        receiverType: receiverType,
-      }
+      payload
     )
       .then((response) => {
         console.log("extension sent ", response);
+        if (replyToMessage) {
+          CometChatMessageEvents.emit(CometChatMessageEvents.ccReplyToMessage, {
+            message: replyToMessage,
+            status: messageStatus.success,
+          });
+        }
       })
       .catch((error) => {
         console.log("error", error);
@@ -181,6 +209,14 @@ export class CollaborativeDocumentExtensionDecorator extends DataSourceDecorator
           } else {
             return this.getCollaborativeBubble(message, _alignment, theme);
           }
+        },
+        ReplyView: (
+          message: CometChat.BaseMessage,
+          _alignment?: MessageBubbleAlignmentType,
+          onReplyViewClicked?: (messageToReply: CometChat.BaseMessage) => void
+        ) => {
+          let documentMessage: CometChat.CustomMessage = message as CometChat.CustomMessage;
+          return ChatConfigurator.dataSource.getReplyView?.(documentMessage, theme, additionalParams) || null;
         },
         options: (
           loggedInUser: CometChat.User,

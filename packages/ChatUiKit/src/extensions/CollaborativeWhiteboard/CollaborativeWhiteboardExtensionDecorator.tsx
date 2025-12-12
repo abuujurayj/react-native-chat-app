@@ -25,7 +25,9 @@ import { Icon } from "../../shared/icons/Icon";
 import { getMessagePreviewInternal } from "../../shared/utils/MessageUtils";
 import { DEFAULT_ICONS } from "../../theme/default/resources/icons";
 import { CometChatTheme } from "../../theme/type";
-import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager"
+import { getCometChatTranslation } from "../../shared/resources/CometChatLocalizeNew/LocalizationManager";
+import { CometChatMessageEvents } from "../../shared/events/CometChatMessageEvents";
+import { messageStatus } from "../../shared/utils/CometChatMessageHelper";
 const t = getCometChatTranslation();
 
 /**
@@ -176,7 +178,12 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
           />
         ),
         onPress: (user, group) => {
-          this.shareCollaborativeWhiteboard(user, group);
+          this.shareCollaborativeWhiteboard(
+            user, 
+            group, 
+            additionalAttachmentOptionsParams?.replyToMessage,
+            additionalAttachmentOptionsParams?.closeReplyPreview
+          );
         },
       });
     }
@@ -188,8 +195,15 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
    *
    * @param user - (Optional) The user object.
    * @param group - (Optional) The group object.
+   * @param replyToMessage - (Optional) The message to reply to.
+   * @param closeReplyPreview - (Optional) Function to close reply preview.
    */
-  shareCollaborativeWhiteboard(user?: CometChat.User, group?: CometChat.Group) {
+  shareCollaborativeWhiteboard(
+    user?: CometChat.User, 
+    group?: CometChat.Group,
+    replyToMessage?: CometChat.BaseMessage,
+    closeReplyPreview?: () => void
+  ) {
     CometChatUIEventHandler.emitUIEvent(CometChatUIEvents.ccToggleBottomSheet, {
       isBottomSheetVisible: false,
     });
@@ -204,17 +218,33 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
       receiverType = ReceiverTypeConstants.group;
     }
 
+    const payload: any = {
+      receiver: receiverId,
+      receiverType: receiverType,
+    };
+
+    if (replyToMessage) {
+      payload.quotedMessageId = replyToMessage.getId();
+    }
+
+    if (closeReplyPreview) {
+      closeReplyPreview();
+    }
+
     CometChat.callExtension(
       ExtensionConstants.whiteboard,
       ExtensionConstants.post,
       this.whiteboardUrl,
-      {
-        receiver: receiverId,
-        receiverType: receiverType,
-      }
+      payload
     )
       .then((response) => {
         console.log("extension sent ", response);
+        if (replyToMessage) {
+          CometChatMessageEvents.emit(CometChatMessageEvents.ccReplyToMessage, {
+            message: replyToMessage,
+            status: messageStatus.success,
+          });
+        }
       })
       .catch((error) => {
         console.log("error", error);
@@ -248,6 +278,14 @@ export class CollaborativeWhiteboardExtensionDecorator extends DataSourceDecorat
           } else {
             return this.getCollaborativeBubble(message, _alignment, theme);
           }
+        },
+        ReplyView: (
+          message: CometChat.BaseMessage,
+          _alignment?: MessageBubbleAlignmentType,
+          onReplyViewClicked?: (messageToReply: CometChat.BaseMessage) => void
+        ) => {
+          let whiteboardMessage: CometChat.CustomMessage = message as CometChat.CustomMessage;
+          return ChatConfigurator.dataSource.getReplyView?.(whiteboardMessage, theme, additionalParams) || null;
         },
         options: (
           loggedInUser: CometChat.User,

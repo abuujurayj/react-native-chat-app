@@ -1,6 +1,6 @@
 import { CometChat } from "@cometchat/chat-sdk-react-native";
 import React, { JSX, useCallback, useEffect, useRef, useState } from "react";
-import { Keyboard, KeyboardEventName, Platform, TouchableOpacity } from "react-native";
+import { Keyboard, KeyboardEventName, Platform, TouchableOpacity, View } from "react-native";
 import {
   AdditionalParams,
   CometChatMessageTemplate,
@@ -8,6 +8,8 @@ import {
   CometChatUIEvents,
   MessageBubbleAlignmentType,
 } from "../../shared";
+import { CometChatMessageEvents } from "../../shared/events/CometChatMessageEvents";
+import { messageStatus } from "../../shared/utils/CometChatMessageHelper";
 import { ChatConfigurator, DataSource, DataSourceDecorator } from "../../shared/framework";
 import { CometChatUIKit } from "../../shared/CometChatUiKit/CometChatUIKit";
 import { MessageCategoryConstants, ViewAlignment } from "../../shared/constants/UIKitConstants";
@@ -35,12 +37,22 @@ const t = getCometChatTranslation();
  * @param {CometChat.Group} props.group - Group object representing the chat group.
  * @param {Map<string, any>} props.id - Additional metadata, like parent message ID.
  */
-const StickerButton = ({ user, group, id, stickerIconStyle, stickerIcon }: any) => {
+const StickerButton = ({ user, group, id, stickerIconStyle, stickerIcon, replyToMessage, closeReplyPreview }: any) => {
   const [isPanelOpen, setIsPanelOpen] = useState(false); // Tracks sticker panel visibility state.
   const [keyboardOpen, setKeyboardOpen] = useState(false); // Tracks if the system keyboard is open.
   const loggedInUser = useRef<CometChat.User | null>(null); // Stores the currently logged-in user.
   const theme = useTheme(); // Retrieves theme configurations for styling.
   const uiListenerIdRef = useRef<string>(`sticker_button_${Date.now()}`);
+  
+  // Use refs to store reply message info to avoid stale closures
+  const replyToMessageRef = useRef(replyToMessage);
+  const closeReplyPreviewRef = useRef(closeReplyPreview);
+
+  // Update refs when props change
+  useEffect(() => {
+    replyToMessageRef.current = replyToMessage;
+    closeReplyPreviewRef.current = closeReplyPreview;
+  }, [replyToMessage, closeReplyPreview]);
 
 
   /**
@@ -124,10 +136,29 @@ const StickerButton = ({ user, group, id, stickerIconStyle, stickerIcon }: any) 
     customMessage.shouldUpdateConversation(true);
     customMessage.setMetadata({ incrementUnreadCount: true });
 
+    // Set quoted message if replying - use ref to get current value
+    const currentReplyMessage = replyToMessageRef.current;
+    if (currentReplyMessage) {
+      customMessage.setQuotedMessage(currentReplyMessage);
+      customMessage.setQuotedMessageId(currentReplyMessage.getId());
+    }
+
+    // Close reply preview immediately after triggering send
+    const currentClosePreview = closeReplyPreviewRef.current;
+    if (currentClosePreview) {
+      currentClosePreview();
+    }
+
     // Send the custom message using CometChatUIKit.
     CometChatUIKit.sendCustomMessage(customMessage)
       .then((res) => {
-        console.log("Sticker sent successfully:", res);
+        // Emit reply event if this was a reply
+        if (currentReplyMessage) {
+          CometChatMessageEvents.emit(CometChatMessageEvents.ccReplyToMessage, {
+            message: res,
+            status: messageStatus.success,
+          });
+        }
       })
       .catch((err) => {
         console.error("Failed to send sticker:", err);
@@ -268,6 +299,10 @@ export class StickersExtensionDecorator extends DataSourceDecorator {
             return this.getStickerBubble(message as CometChat.CustomMessage, alignment, theme);
           }
         },
+        ReplyView: (message: CometChat.BaseMessage, alignment: MessageBubbleAlignmentType) => {
+          const replyView = ChatConfigurator.dataSource.getReplyView?.(message, theme, additionalParams);
+          return replyView || null;
+        },
         options: (loggedInuser, message, theme, group) => {
           return ChatConfigurator.dataSource.getMessageOptions(
             loggedInuser,
@@ -302,14 +337,16 @@ export class StickersExtensionDecorator extends DataSourceDecorator {
         ? theme.messageListStyles.outgoingMessageBubbleStyles
         : theme.messageListStyles.incomingMessageBubbleStyles;
     return (
-      <CometChatStickerBubble
-        url={url}
-        name=''
-        style={{
-          ...this.configuration?.style,
-          ..._style.stickerBubbleStyles?.imageStyle,
-        }}
-      />
+      <View style={_style.stickerBubbleStyles?.containerStyle}>
+        <CometChatStickerBubble
+          url={url}
+          name=''
+          style={{
+            ...this.configuration?.style,
+            ..._style.stickerBubbleStyles?.imageStyle,
+          }}
+        />
+      </View>
     );
   }
 
@@ -337,6 +374,8 @@ export class StickersExtensionDecorator extends DataSourceDecorator {
         id={id}
         stickerIcon={additionalAuxiliaryParams?.stickerIcon}
         stickerIconStyle={additionalAuxiliaryParams?.stickerIconStyle}
+        replyToMessage={additionalAuxiliaryParams?.replyToMessage}
+        closeReplyPreview={additionalAuxiliaryParams?.closeReplyPreview}
       />
     );
     return auxiliaryOptions;

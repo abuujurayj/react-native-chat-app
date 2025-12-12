@@ -28,6 +28,7 @@ import Users from '../components/users/Users';
 import Groups from '../components/groups/Groups';
 import AIAgents from '../components/AIAgent/AIAgents';
 import QRScreen from '../components/conversations/screens/qr_screen';
+import SearchMessages from '../components/conversations/screens/SearchMessages';
 
 type Props = {
   isLoggedIn: boolean;
@@ -36,7 +37,7 @@ type Props = {
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-const RootStackNavigator = ({ isLoggedIn, hasValidAppCredentials }: Props) => {
+const RootStackNavigator = ({isLoggedIn, hasValidAppCredentials: _hasValidAppCredentials}: Props) => {
   const theme = useTheme();
   const NavigationTheme = {
     ...DefaultTheme,
@@ -90,7 +91,7 @@ const RootStackNavigator = ({ isLoggedIn, hasValidAppCredentials }: Props) => {
           initialRouteName={
             isLoggedIn
               ? SCREEN_CONSTANTS.BOTTOM_TAB_NAVIGATOR
-              : hasValidAppCredentials
+              : _hasValidAppCredentials
               ? SCREEN_CONSTANTS.SAMPLE_USER
               : SCREEN_CONSTANTS.APP_CRED
           }
@@ -133,6 +134,10 @@ const RootStackNavigator = ({ isLoggedIn, hasValidAppCredentials }: Props) => {
           <Stack.Screen
             name={SCREEN_CONSTANTS.THREAD_VIEW}
             component={ThreadView}
+          />
+          <Stack.Screen
+            name={SCREEN_CONSTANTS.SEARCH_MESSAGES}
+            component={SearchMessages}
           />
 
           {/* Info Screens */}
