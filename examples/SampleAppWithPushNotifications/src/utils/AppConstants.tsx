@@ -1,11 +1,11 @@
 export const AppConstants = {
   fcmProviderId: '',
   apnsProviderId: '',
-  authKey: '',
-  appId: '',
-  region: '',
+  authKey: '4152b0366478871f0fa8d19a287dd6f5ed5f8eff',
+  appId: '26580020f03ff346',
+  region: 'in',
   subscriptionType: 'ALL_USERS',
-  versionNumber: 'V5.2.5',
+  versionNumber: 'V5.2.6',
   webClientId:
     '',
   iosClientId:
